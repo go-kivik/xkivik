@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/go-kivik/xkivik.svg?branch=master)](https://travis-ci.org/go-kivik/xkivik) [![Codecov](https://img.shields.io/codecov/c/github/go-kivik/xkivik.svg?style=flat)](https://codecov.io/gh/go-kivik/xkivik) [![GoDoc](https://godoc.org/github.com/go-kivik/xkivik?status.svg)](http://godoc.org/github.com/go-kivik/xkivik)
+[![Codecov](https://img.shields.io/codecov/c/github/go-kivik/xkivik.svg?style=flat)](https://codecov.io/gh/go-kivik/xkivik) [![GoDoc](https://godoc.org/github.com/go-kivik/xkivik?status.svg)](http://godoc.org/github.com/go-kivik/xkivik)
 
 # xKivik
 
