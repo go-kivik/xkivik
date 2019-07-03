@@ -2,7 +2,7 @@ stages:
     - test
 
 variables:
-    SRCDIR: /go/src/gitlab.com/flimzy/ale
+    SRCDIR: /go/src/gitlab.com/go-kivik/xkivik
 
 .test: &test_template
     stage: test
