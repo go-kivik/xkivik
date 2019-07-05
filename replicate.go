@@ -10,9 +10,39 @@ import (
 	"github.com/go-kivik/kivik"
 )
 
-// Replicate performs a replicatoin from source to target, using a limited
+func mergeOptions(otherOpts ...kivik.Options) kivik.Options {
+	if len(otherOpts) == 0 {
+		return nil
+	}
+	options := make(kivik.Options)
+	for _, opts := range otherOpts {
+		for k, v := range opts {
+			options[k] = v
+		}
+	}
+	if len(options) == 0 {
+		return nil
+	}
+	return options
+}
+
+// Replicate performs a replication from source to target, using a limited
 // version of the CouchDB replication protocol.
-func Replicate(ctx context.Context, target, source *kivik.DB) error {
+//
+// The following options are supported:
+//
+//     copy_security (bool) - When true, the security object is read from the
+//                            source, and copied to the target, before the
+//                            replication. Use with caution! The security object
+//                            is not versioned, and will be unconditionally
+//                            overwritten!
+func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.Options) error {
+	opts := mergeOptions(options...)
+	if _, sec := opts["copy_security"].(bool); sec {
+		if err := copySecurity(ctx, target, source); err != nil {
+			return err
+		}
+	}
 	group := parallel.New(ctx)
 	changes := make(chan *change)
 	group.Go(func(ctx context.Context) error {
@@ -37,6 +67,14 @@ func Replicate(ctx context.Context, target, source *kivik.DB) error {
 	})
 
 	return group.Wait()
+}
+
+func copySecurity(ctx context.Context, target, source *kivik.DB) error {
+	sec, err := source.Security(ctx)
+	if err != nil {
+		return err
+	}
+	return target.SetSecurity(ctx, sec)
 }
 
 type change struct {
