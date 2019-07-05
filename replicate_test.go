@@ -17,6 +17,7 @@ func TestReplicate(t *testing.T) {
 	type tt struct {
 		mockT, mockS   *kivikmock.Client
 		target, source *kivik.DB
+		options        kivik.Options
 		status         int
 		err            string
 	}
@@ -117,7 +118,7 @@ func TestReplicate(t *testing.T) {
 	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
-		err := Replicate(context.TODO(), tt.target, tt.source)
+		err := Replicate(context.TODO(), tt.target, tt.source, tt.options)
 		testy.StatusError(t, tt.err, tt.status, err)
 		if tt.mockT != nil {
 			testy.Error(t, "", tt.mockT.ExpectationsWereMet())
