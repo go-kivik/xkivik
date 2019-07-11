@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
+	"sync"
+	"time"
 
 	"gitlab.com/flimzy/parallel"
 
@@ -26,6 +28,52 @@ func mergeOptions(otherOpts ...kivik.Options) kivik.Options {
 	return options
 }
 
+// ReplicationResult represents the result of a replication.
+type ReplicationResult struct {
+	DocWriteFailures int       `json:"doc_write_failures"`
+	DocsRead         int       `json:"docs_read"`
+	DocsWritten      int       `json:"docs_written"`
+	EndTime          time.Time `json:"end_time"`
+	MissingChecked   int       `json:"missing_checked"`
+	MissingFound     int       `json:"missing_found"`
+	StartTime        time.Time `json:"start_time"`
+}
+
+type resultWrapper struct {
+	*ReplicationResult
+	mu sync.Mutex
+}
+
+func (r *resultWrapper) read() {
+	r.mu.Lock()
+	r.DocsRead++
+	r.mu.Unlock()
+}
+
+func (r *resultWrapper) missingChecked() {
+	r.mu.Lock()
+	r.MissingChecked++
+	r.mu.Unlock()
+}
+
+func (r *resultWrapper) missingFound() {
+	r.mu.Lock()
+	r.MissingFound++
+	r.mu.Unlock()
+}
+
+func (r *resultWrapper) writeError() {
+	r.mu.Lock()
+	r.DocWriteFailures++
+	r.mu.Unlock()
+}
+
+func (r *resultWrapper) write() {
+	r.mu.Lock()
+	r.DocsWritten++
+	r.mu.Unlock()
+}
+
 // Replicate performs a replication from source to target, using a limited
 // version of the CouchDB replication protocol.
 //
@@ -36,11 +84,19 @@ func mergeOptions(otherOpts ...kivik.Options) kivik.Options {
 //                            replication. Use with caution! The security object
 //                            is not versioned, and will be unconditionally
 //                            overwritten!
-func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.Options) error {
+func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.Options) (*ReplicationResult, error) {
+	result := &resultWrapper{
+		ReplicationResult: &ReplicationResult{
+			StartTime: time.Now(),
+		},
+	}
+	defer func() {
+		result.EndTime = time.Now()
+	}()
 	opts := mergeOptions(options...)
 	if _, sec := opts["copy_security"].(bool); sec {
 		if err := copySecurity(ctx, target, source); err != nil {
-			return err
+			return result.ReplicationResult, err
 		}
 	}
 	group := parallel.New(ctx)
@@ -59,14 +115,14 @@ func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.O
 	docs := make(chan *doc)
 	group.Go(func(ctx context.Context) error {
 		defer close(docs)
-		return readDocs(ctx, source, diffs, docs)
+		return readDocs(ctx, source, diffs, docs, result)
 	})
 
 	group.Go(func(ctx context.Context) error {
-		return storeDocs(ctx, target, docs)
+		return storeDocs(ctx, target, docs, result)
 	})
 
-	return group.Wait()
+	return result.ReplicationResult, group.Wait()
 }
 
 func copySecurity(ctx context.Context, target, source *kivik.DB) error {
@@ -134,13 +190,16 @@ type doc struct {
 	Content json.RawMessage
 }
 
-func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results chan<- *doc) error {
+func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results chan<- *doc, result *resultWrapper) error {
 	for rd := range diffs {
 		for _, rev := range rd.Missing {
+			result.missingChecked()
 			d, err := readDoc(ctx, db, rd.ID, rev)
 			if err != nil {
 				return err
 			}
+			result.read()
+			result.missingFound()
 			results <- d
 		}
 	}
@@ -165,11 +224,13 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*doc, error)
 	}, nil
 }
 
-func storeDocs(ctx context.Context, db *kivik.DB, docs <-chan *doc) error {
+func storeDocs(ctx context.Context, db *kivik.DB, docs <-chan *doc, result *resultWrapper) error {
 	for doc := range docs {
 		if _, err := db.Put(ctx, doc.ID, doc.Content, kivik.Options{"new_edits": false}); err != nil {
+			result.writeError()
 			return err
 		}
+		result.write()
 	}
 	return nil
 }

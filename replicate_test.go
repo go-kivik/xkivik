@@ -5,7 +5,9 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
+	"github.com/flimzy/diff"
 	"github.com/flimzy/testy"
 
 	"github.com/go-kivik/kivik"
@@ -20,6 +22,7 @@ func TestReplicate(t *testing.T) {
 		options        kivik.Options
 		status         int
 		err            string
+		result         *ReplicationResult
 	}
 	tests := testy.NewTable()
 	tests.Add("changes error", func(t *testing.T) interface{} {
@@ -33,6 +36,7 @@ func TestReplicate(t *testing.T) {
 			source: source.DB(context.TODO(), "src"),
 			status: http.StatusInternalServerError,
 			err:    "changes err",
+			result: &ReplicationResult{},
 		}
 	})
 	tests.Add("no changes", func(t *testing.T) interface{} {
@@ -44,6 +48,7 @@ func TestReplicate(t *testing.T) {
 		return tt{
 			mockS:  mock,
 			source: source.DB(context.TODO(), "src"),
+			result: &ReplicationResult{},
 		}
 	})
 	tests.Add("up to date", func(t *testing.T) interface{} {
@@ -71,6 +76,7 @@ func TestReplicate(t *testing.T) {
 			mockT:  tmock,
 			source: source.DB(context.TODO(), "src"),
 			target: target.DB(context.TODO(), "tgt"),
+			result: &ReplicationResult{},
 		}
 	})
 	tests.Add("one update", func(t *testing.T) interface{} {
@@ -114,17 +120,28 @@ func TestReplicate(t *testing.T) {
 			mockT:  tmock,
 			source: source.DB(context.TODO(), "src"),
 			target: target.DB(context.TODO(), "tgt"),
+			result: &ReplicationResult{
+				DocsRead:       1,
+				DocsWritten:    1,
+				MissingChecked: 1,
+				MissingFound:   1,
+			},
 		}
 	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
-		err := Replicate(context.TODO(), tt.target, tt.source, tt.options)
+		result, err := Replicate(context.TODO(), tt.target, tt.source, tt.options)
 		testy.StatusError(t, tt.err, tt.status, err)
 		if tt.mockT != nil {
 			testy.Error(t, "", tt.mockT.ExpectationsWereMet())
 		}
 		if tt.mockS != nil {
 			testy.Error(t, "", tt.mockS.ExpectationsWereMet())
+		}
+		result.StartTime = time.Time{}
+		result.EndTime = time.Time{}
+		if d := diff.AsJSON(tt.result, result); d != nil {
+			t.Error(d)
 		}
 	})
 }
