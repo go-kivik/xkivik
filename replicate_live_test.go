@@ -5,6 +5,7 @@ package xkivik
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/flimzy/diff"
 	"github.com/flimzy/testy"
@@ -20,6 +21,7 @@ func TestReplicate_live(t *testing.T) {
 		options        kivik.Options
 		status         int
 		err            string
+		result         *ReplicationResult
 	}
 	tests := testy.NewTable()
 	tests.Add("couch to couch", func(t *testing.T) interface{} {
@@ -53,6 +55,12 @@ func TestReplicate_live(t *testing.T) {
 		return tt{
 			source: source,
 			target: target,
+			result: &ReplicationResult{
+				DocsRead:       1,
+				DocsWritten:    1,
+				MissingChecked: 1,
+				MissingFound:   1,
+			},
 		}
 	})
 	tests.Add("fs to couch", func(t *testing.T) interface{} {
@@ -79,6 +87,12 @@ func TestReplicate_live(t *testing.T) {
 		return tt{
 			source: source,
 			target: target,
+			result: &ReplicationResult{
+				DocsRead:       1,
+				DocsWritten:    1,
+				MissingChecked: 1,
+				MissingFound:   1,
+			},
 		}
 	})
 	tests.Add("fs to couch, no shared history", func(t *testing.T) interface{} {
@@ -102,13 +116,19 @@ func TestReplicate_live(t *testing.T) {
 		})
 		target := client.DB(ctx, targetName)
 
-		if err := Replicate(ctx, target, source); err != nil {
+		if _, err := Replicate(ctx, target, source); err != nil {
 			t.Fatalf("setup replication failed: %s", err)
 		}
 
 		return tt{
 			source: fsclient.DB(ctx, "db2"),
 			target: target,
+			result: &ReplicationResult{
+				DocsRead:       1,
+				DocsWritten:    1,
+				MissingChecked: 1,
+				MissingFound:   1,
+			},
 		}
 	})
 	tests.Add("couch to couch with sec", func(t *testing.T) interface{} {
@@ -151,16 +171,27 @@ func TestReplicate_live(t *testing.T) {
 			source:  source,
 			target:  target,
 			options: map[string]interface{}{"copy_security": true},
+			result: &ReplicationResult{
+				DocsRead:       1,
+				DocsWritten:    1,
+				MissingChecked: 1,
+				MissingFound:   1,
+			},
 		}
 	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
 		ctx := context.TODO()
-		err := Replicate(ctx, tt.target, tt.source, tt.options)
+		result, err := Replicate(ctx, tt.target, tt.source, tt.options)
 		testy.StatusError(t, tt.err, tt.status, err)
 
 		verifyDoc(ctx, t, tt.target, tt.source, "foo")
 		verifySec(ctx, t, tt.target)
+		result.StartTime = time.Time{}
+		result.EndTime = time.Time{}
+		if d := diff.AsJSON(tt.result, result); d != nil {
+			t.Error(d)
+		}
 	})
 }
 
