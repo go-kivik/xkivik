@@ -208,7 +208,7 @@ func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results 
 }
 
 func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*doc, error) {
-	row := db.Get(ctx, docID, kivik.Options{"rev": rev})
+	row := db.Get(ctx, docID, kivik.Options{"rev": rev, "revs": true})
 	if row.Err != nil {
 		return nil, row.Err
 	}
