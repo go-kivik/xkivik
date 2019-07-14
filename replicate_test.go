@@ -105,7 +105,8 @@ func TestReplicate(t *testing.T) {
 		sdb.ExpectGet().
 			WithDocID("foo").
 			WithOptions(kivik.Options{
-				"rev": "2-7051cbe5c8faecd085a3fa619e6e6337",
+				"rev":  "2-7051cbe5c8faecd085a3fa619e6e6337",
+				"revs": true,
 			}).
 			WillReturn(kivikmock.DocumentT(t, `{"_id":"foo","_rev":"2-7051cbe5c8faecd085a3fa619e6e6337","foo":"bar"}`))
 		tdb.ExpectPut().
