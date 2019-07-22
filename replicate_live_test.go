@@ -213,6 +213,38 @@ func TestReplicate_live(t *testing.T) {
 			err:    "Bad Request: Bad special document member: _invalid",
 		}
 	})
+	tests.Add("fs to couch with attachment", func(t *testing.T) interface{} {
+		fsclient, err := kivik.New("fs", "testdata/")
+		if err != nil {
+			t.Fatal(err)
+		}
+		dsn := kt.DSN(t)
+		client, err := kivik.New("couch", dsn)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ctx := context.Background()
+		source := fsclient.DB(ctx, "db4")
+		targetName := kt.TestDBName(t)
+		if err := client.CreateDB(ctx, targetName); err != nil {
+			t.Fatal(err)
+		}
+		tests.Cleanup(func() {
+			_ = client.DestroyDB(ctx, targetName)
+		})
+		target := client.DB(ctx, targetName)
+
+		return tt{
+			source: source,
+			target: target,
+			result: &ReplicationResult{
+				DocsRead:       1,
+				DocsWritten:    1,
+				MissingChecked: 1,
+				MissingFound:   1,
+			},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
 		ctx := context.TODO()
