@@ -1,0 +1,10 @@
+{
+    "_id": "foo",
+    "_rev": "",
+    "_attachments": {
+        "foo.txt": {
+            "stub": true
+        }
+    },
+    "foo": "bar"
+}
