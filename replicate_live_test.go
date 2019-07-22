@@ -209,8 +209,8 @@ func TestReplicate_live(t *testing.T) {
 				MissingChecked: 1,
 				MissingFound:   1,
 			},
-			status: http.StatusPreconditionFailed,
-			err:    "Precondition Failed: Invalid attachment stub in note--XkWjFv13acvjJTt-CGJJ8hXlWE for es-diestro.ogg",
+			status: http.StatusBadRequest,
+			err:    "Bad Request: Bad special document member: _invalid",
 		}
 	})
 
@@ -233,10 +233,10 @@ func verifyDoc(ctx context.Context, t *testing.T, target, source *kivik.DB, docI
 	t.Helper()
 	var targetDoc, sourceDoc interface{}
 	if err := source.Get(ctx, docID).ScanDoc(&sourceDoc); err != nil {
-		t.Fatalf("get from source failed: %s", err)
+		t.Fatalf("get %s from source failed: %s", docID, err)
 	}
 	if err := target.Get(ctx, docID).ScanDoc(&targetDoc); err != nil {
-		t.Fatalf("get from target failed: %s", err)
+		t.Fatalf("get %s from target failed: %s", docID, err)
 	}
 	if d := diff.AsJSON(sourceDoc, targetDoc); d != nil {
 		t.Error(d)
