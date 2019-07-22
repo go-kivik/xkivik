@@ -2,8 +2,7 @@ package xkivik
 
 import (
 	"context"
-	"encoding/json"
-	"io/ioutil"
+	"io"
 	"sync"
 	"time"
 
@@ -112,7 +111,7 @@ func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.O
 		return readDiffs(ctx, target, changes, diffs)
 	})
 
-	docs := make(chan *doc)
+	docs := make(chan *Document)
 	group.Go(func(ctx context.Context) error {
 		defer close(docs)
 		return readDocs(ctx, source, diffs, docs, result)
@@ -139,7 +138,10 @@ type change struct {
 }
 
 func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change) error {
-	changes, err := db.Changes(ctx, kivik.Options{"feed": "normal", "style": "all_docs"})
+	changes, err := db.Changes(ctx, kivik.Options{
+		"feed":  "normal",
+		"style": "all_docs",
+	})
 	if err != nil {
 		return err
 	}
@@ -214,13 +216,7 @@ func readDiffs(ctx context.Context, db *kivik.DB, ch <-chan *change, results cha
 	}
 }
 
-type doc struct {
-	ID      string
-	Rev     string
-	Content json.RawMessage
-}
-
-func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results chan<- *doc, result *resultWrapper) error {
+func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results chan<- *Document, result *resultWrapper) error {
 	for {
 		var rd *revDiff
 		var ok bool
@@ -249,26 +245,36 @@ func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results 
 	}
 }
 
-func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*doc, error) {
-	row := db.Get(ctx, docID, kivik.Options{"rev": rev, "revs": true})
-	if row.Err != nil {
-		return nil, row.Err
-	}
-	defer row.Body.Close() // nolint: errcheck
-	body, err := ioutil.ReadAll(row.Body)
-	if err != nil {
+func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, error) {
+	doc := new(Document)
+	row := db.Get(ctx, docID, kivik.Options{
+		"rev":         rev,
+		"revs":        true,
+		"attachments": true,
+	})
+	if err := row.ScanDoc(&doc); err != nil {
 		return nil, err
 	}
-	return &doc{
-		ID:      docID,
-		Rev:     rev,
-		Content: body,
-	}, nil
+	// TODO: It seems silly this is necessary... I need better attachment
+	// handling in kivik.
+	if row.Attachments != nil {
+		for {
+			att, err := row.Attachments.Next()
+			if err != nil {
+				if err != io.EOF {
+					return nil, err
+				}
+				break
+			}
+			doc.Attachments.Set(att.Filename, att)
+		}
+	}
+	return doc, nil
 }
 
-func storeDocs(ctx context.Context, db *kivik.DB, docs <-chan *doc, result *resultWrapper) error {
+func storeDocs(ctx context.Context, db *kivik.DB, docs <-chan *Document, result *resultWrapper) error {
 	for doc := range docs {
-		if _, err := db.Put(ctx, doc.ID, doc.Content, kivik.Options{"new_edits": false}); err != nil {
+		if _, err := db.Put(ctx, doc.ID, doc, kivik.Options{"new_edits": false}); err != nil {
 			result.writeError()
 			return err
 		}
