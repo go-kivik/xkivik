@@ -2,6 +2,7 @@ package xkivik
 
 import (
 	"context"
+	"io"
 	"sync"
 	"time"
 
@@ -137,7 +138,10 @@ type change struct {
 }
 
 func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change) error {
-	changes, err := db.Changes(ctx, kivik.Options{"feed": "normal", "style": "all_docs"})
+	changes, err := db.Changes(ctx, kivik.Options{
+		"feed":  "normal",
+		"style": "all_docs",
+	})
 	if err != nil {
 		return err
 	}
@@ -242,13 +246,30 @@ func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results 
 }
 
 func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, error) {
-	row := db.Get(ctx, docID, kivik.Options{"rev": rev, "revs": true})
-	if row.Err != nil {
-		return nil, row.Err
-	}
 	doc := new(Document)
-	err := row.ScanDoc(doc)
-	return doc, err
+	row := db.Get(ctx, docID, kivik.Options{
+		"rev":         rev,
+		"revs":        true,
+		"attachments": true,
+	})
+	if err := row.ScanDoc(&doc); err != nil {
+		return nil, err
+	}
+	// TODO: It seems silly this is necessary... I need better attachment
+	// handling in kivik.
+	if row.Attachments != nil {
+		for {
+			att, err := row.Attachments.Next()
+			if err != nil {
+				if err != io.EOF {
+					return nil, err
+				}
+				break
+			}
+			doc.Attachments.Set(att.Filename, att)
+		}
+	}
+	return doc, nil
 }
 
 func storeDocs(ctx context.Context, db *kivik.DB, docs <-chan *Document, result *resultWrapper) error {

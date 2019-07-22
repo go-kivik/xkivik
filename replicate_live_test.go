@@ -180,7 +180,7 @@ func TestReplicate_live(t *testing.T) {
 			},
 		}
 	})
-	tests.Add("fs to couch, bad stub", func(t *testing.T) interface{} {
+	tests.Add("fs to couch, bad put", func(t *testing.T) interface{} {
 		fsclient, err := kivik.New("fs", "testdata/")
 		if err != nil {
 			t.Fatal(err)
