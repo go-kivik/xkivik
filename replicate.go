@@ -146,9 +146,14 @@ func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change) erro
 
 	defer changes.Close() // nolint: errcheck
 	for changes.Next() {
-		results <- &change{
+		ch := &change{
 			ID:      changes.ID(),
 			Changes: changes.Changes(),
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case results <- ch:
 		}
 	}
 	return changes.Err()
@@ -160,28 +165,53 @@ type revDiff struct {
 	PossibleAncestors []string `json:"possible_ancestors"`
 }
 
+const rdBatchSize = 10
+
 func readDiffs(ctx context.Context, db *kivik.DB, ch <-chan *change, results chan<- *revDiff) error {
-	revMap := map[string][]string{}
-	for change := range ch {
-		revMap[change.ID] = change.Changes
-	}
-	if len(revMap) == 0 {
-		return nil
-	}
-	diffs, err := db.RevsDiff(ctx, revMap)
-	if err != nil {
-		return err
-	}
-	defer diffs.Close() // nolint: errcheck
-	for diffs.Next() {
-		var val revDiff
-		if err := diffs.ScanValue(&val); err != nil {
+	for {
+		revMap := map[string][]string{}
+		var change *change
+		var ok bool
+	loop:
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case change, ok = <-ch:
+				if !ok {
+					break loop
+				}
+				revMap[change.ID] = change.Changes
+				if len(revMap) >= rdBatchSize {
+					break loop
+				}
+			}
+		}
+
+		if len(revMap) == 0 {
+			return nil
+		}
+		diffs, err := db.RevsDiff(ctx, revMap)
+		if err != nil {
 			return err
 		}
-		val.ID = diffs.ID()
-		results <- &val
+		defer diffs.Close() // nolint: errcheck
+		for diffs.Next() {
+			var val revDiff
+			if err := diffs.ScanValue(&val); err != nil {
+				return err
+			}
+			val.ID = diffs.ID()
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case results <- &val:
+			}
+		}
+		if err := diffs.Err(); err != nil {
+			return err
+		}
 	}
-	return diffs.Err()
 }
 
 type doc struct {
@@ -191,20 +221,32 @@ type doc struct {
 }
 
 func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results chan<- *doc, result *resultWrapper) error {
-	for rd := range diffs {
-		for _, rev := range rd.Missing {
-			result.missingChecked()
-			d, err := readDoc(ctx, db, rd.ID, rev)
-			if err != nil {
-				return err
+	for {
+		var rd *revDiff
+		var ok bool
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case rd, ok = <-diffs:
+			if !ok {
+				return nil
 			}
-			result.read()
-			result.missingFound()
-			results <- d
+			for _, rev := range rd.Missing {
+				result.missingChecked()
+				d, err := readDoc(ctx, db, rd.ID, rev)
+				if err != nil {
+					return err
+				}
+				result.read()
+				result.missingFound()
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case results <- d:
+				}
+			}
 		}
 	}
-
-	return nil
 }
 
 func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*doc, error) {

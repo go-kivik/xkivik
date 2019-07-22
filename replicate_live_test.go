@@ -4,6 +4,7 @@ package xkivik
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
@@ -179,7 +180,7 @@ func TestReplicate_live(t *testing.T) {
 			},
 		}
 	})
-	tests.Add("fs to couch, no revpos", func(t *testing.T) interface{} {
+	tests.Add("fs to couch, bad stub", func(t *testing.T) interface{} {
 		fsclient, err := kivik.New("fs", "testdata/")
 		if err != nil {
 			t.Fatal(err)
@@ -190,7 +191,6 @@ func TestReplicate_live(t *testing.T) {
 			t.Fatal(err)
 		}
 		ctx := context.Background()
-		source := fsclient.DB(ctx, "db3")
 		targetName := kt.TestDBName(t)
 		if err := client.CreateDB(ctx, targetName); err != nil {
 			t.Fatal(err)
@@ -200,12 +200,8 @@ func TestReplicate_live(t *testing.T) {
 		})
 		target := client.DB(ctx, targetName)
 
-		if _, err := Replicate(ctx, target, source); err != nil {
-			t.Fatalf("setup replication failed: %s", err)
-		}
-
 		return tt{
-			source: fsclient.DB(ctx, "db2"),
+			source: fsclient.DB(ctx, "db3"),
 			target: target,
 			result: &ReplicationResult{
 				DocsRead:       1,
@@ -213,6 +209,8 @@ func TestReplicate_live(t *testing.T) {
 				MissingChecked: 1,
 				MissingFound:   1,
 			},
+			status: http.StatusPreconditionFailed,
+			err:    "Precondition Failed: Invalid attachment stub in note--XkWjFv13acvjJTt-CGJJ8hXlWE for es-diestro.ogg",
 		}
 	})
 
