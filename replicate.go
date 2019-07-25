@@ -78,6 +78,7 @@ func (r *resultWrapper) write() {
 //
 // The following options are supported:
 //
+//     filter (string) - The name of a filter function.
 //     copy_security (bool) - When true, the security object is read from the
 //                            source, and copied to the target, before the
 //                            replication. Use with caution! The security object
@@ -102,7 +103,8 @@ func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.O
 	changes := make(chan *change)
 	group.Go(func(ctx context.Context) error {
 		defer close(changes)
-		return readChanges(ctx, source, changes)
+		filter, _ := opts["filter"].(string)
+		return readChanges(ctx, source, changes, filter)
 	})
 
 	diffs := make(chan *revDiff)
@@ -137,11 +139,15 @@ type change struct {
 	Changes []string
 }
 
-func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change) error {
-	changes, err := db.Changes(ctx, kivik.Options{
+func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, filter string) error {
+	opts := kivik.Options{
 		"feed":  "normal",
 		"style": "all_docs",
-	})
+	}
+	if filter != "" {
+		opts["filter"] = filter
+	}
+	changes, err := db.Changes(ctx, opts)
 	if err != nil {
 		return err
 	}
