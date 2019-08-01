@@ -4,7 +4,9 @@ package xkivik
 
 import (
 	"context"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -232,6 +234,53 @@ func TestReplicate_live(t *testing.T) {
 			_ = client.DestroyDB(ctx, targetName)
 		})
 		target := client.DB(ctx, targetName)
+
+		return tt{
+			source: source,
+			target: target,
+			result: &ReplicationResult{
+				DocsRead:       1,
+				DocsWritten:    1,
+				MissingChecked: 1,
+				MissingFound:   1,
+			},
+		}
+	})
+	tests.Add("couch to fs", func(t *testing.T) interface{} {
+		tempDir, err := ioutil.TempDir("", "kivik.test.")
+		if err != nil {
+			t.Fatal(err)
+		}
+		tests.Cleanup(func() error {
+			return os.RemoveAll(tempDir)
+		})
+		tClient, err := kivik.New("fs", tempDir)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		dsn := kt.DSN(t)
+		client, err := kivik.New("couch", dsn)
+		if err != nil {
+			t.Fatal(err)
+		}
+		dbName := kt.TestDBName(t)
+		ctx := context.Background()
+		if err := client.CreateDB(ctx, dbName); err != nil {
+			t.Fatal(err)
+		}
+		tests.Cleanup(func() {
+			_ = client.DestroyDB(ctx, dbName)
+		})
+		if err := tClient.CreateDB(ctx, dbName); err != nil {
+			t.Fatal(err)
+		}
+		source := client.DB(ctx, dbName)
+		target := tClient.DB(ctx, dbName)
+		doc := map[string]string{"foo": "bar"}
+		if _, err := source.Put(ctx, "foo", doc); err != nil {
+			t.Fatal(err)
+		}
 
 		return tt{
 			source: source,
