@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/flimzy/diff"
-	"github.com/flimzy/testy"
 	_ "github.com/go-kivik/couchdb" // CouchDB driver
 	_ "github.com/go-kivik/fsdb"    // Filesystem driver
 	"github.com/go-kivik/kivik"
 	"github.com/go-kivik/kiviktest/kt"
+	"gitlab.com/flimzy/testy"
 )
 
 func TestReplicate_live(t *testing.T) {
