@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flimzy/diff"
 	"gitlab.com/flimzy/testy"
 
 	"github.com/go-kivik/kivik"
@@ -142,7 +141,7 @@ func TestReplicate(t *testing.T) {
 		}
 		result.StartTime = time.Time{}
 		result.EndTime = time.Time{}
-		if d := diff.AsJSON(tt.result, result); d != nil {
+		if d := testy.DiffAsJSON(tt.result, result); d != nil {
 			t.Error(d)
 		}
 	})

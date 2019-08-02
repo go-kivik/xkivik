@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/flimzy/diff"
 	"gitlab.com/flimzy/testy"
 
 	"github.com/go-kivik/kivik"
@@ -44,7 +43,7 @@ func TestDocumentMarshalJSON(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if d := diff.AsJSON(&diff.File{Path: "testdata/" + testy.Stub(t)}, result); d != nil {
+		if d := testy.DiffAsJSON(&testy.File{Path: "testdata/" + testy.Stub(t)}, result); d != nil {
 			t.Error(d)
 		}
 	})
@@ -85,7 +84,7 @@ func TestNormalDocUnmarshalJSON(t *testing.T) {
 		if err := json.Unmarshal([]byte(in), &result); err != nil {
 			t.Fatal(err)
 		}
-		if d := diff.AsJSON(&diff.File{Path: "testdata/" + testy.Stub(t)}, result); d != nil {
+		if d := testy.DiffAsJSON(&testy.File{Path: "testdata/" + testy.Stub(t)}, result); d != nil {
 			t.Error(d)
 		}
 	})
