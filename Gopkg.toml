@@ -22,14 +22,6 @@
 ignored = ["github.com/flimzy/kivik*"]
 
 [[constraint]]
-  name = "github.com/flimzy/diff"
-  version = "0.1.3"
-
-[[constraint]]
-  name = "github.com/flimzy/testy"
-  branch = "master"
-
-[[constraint]]
   name = "github.com/go-kivik/couchdb"
   branch = "master"
 

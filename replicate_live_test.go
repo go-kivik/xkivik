@@ -1,4 +1,4 @@
-// +bui ld livetest
+// +build livetest
 
 package xkivik
 
@@ -8,12 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flimzy/diff"
-	"github.com/flimzy/testy"
 	_ "github.com/go-kivik/couchdb" // CouchDB driver
 	_ "github.com/go-kivik/fsdb"    // Filesystem driver
 	"github.com/go-kivik/kivik"
 	"github.com/go-kivik/kiviktest/kt"
+	"gitlab.com/flimzy/testy"
 )
 
 func TestReplicate_live(t *testing.T) {
@@ -210,7 +209,7 @@ func TestReplicate_live(t *testing.T) {
 				MissingFound:   1,
 			},
 			status: http.StatusBadRequest,
-			err:    "Bad Request: Bad special document member: _invalid",
+			err:    "Bad special document member: _invalid",
 		}
 	})
 	tests.Add("fs to couch with attachment", func(t *testing.T) interface{} {
@@ -255,7 +254,7 @@ func TestReplicate_live(t *testing.T) {
 		verifySec(ctx, t, tt.target)
 		result.StartTime = time.Time{}
 		result.EndTime = time.Time{}
-		if d := diff.AsJSON(tt.result, result); d != nil {
+		if d := testy.DiffAsJSON(tt.result, result); d != nil {
 			t.Error(d)
 		}
 	})
@@ -270,7 +269,7 @@ func verifyDoc(ctx context.Context, t *testing.T, target, source *kivik.DB, docI
 	if err := target.Get(ctx, docID).ScanDoc(&targetDoc); err != nil {
 		t.Fatalf("get %s from target failed: %s", docID, err)
 	}
-	if d := diff.AsJSON(sourceDoc, targetDoc); d != nil {
+	if d := testy.DiffAsJSON(sourceDoc, targetDoc); d != nil {
 		t.Error(d)
 	}
 }
@@ -280,7 +279,7 @@ func verifySec(ctx context.Context, t *testing.T, target *kivik.DB) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if d := diff.AsJSON(&diff.File{Path: "testdata/" + testy.Stub(t) + ".security"}, sec); d != nil {
+	if d := testy.DiffAsJSON(&testy.File{Path: "testdata/" + testy.Stub(t) + ".security"}, sec); d != nil {
 		t.Errorf("Security object:\n%s", d)
 	}
 }
