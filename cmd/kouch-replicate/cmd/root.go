@@ -3,12 +3,12 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -46,40 +46,34 @@ protocol.`,
 	},
 }
 
-// parseURL parses absolute URLs. Relative URLs are assumed to be file://
-func parseURL(addr string) (*url.URL, error) {
-	for _, scheme := range []string{"http://", "https://", "file://"} {
-		if strings.HasPrefix(addr, scheme) {
-			return url.Parse(addr)
-		}
-	}
-	return &url.URL{
-		Scheme: "file",
-		Path:   addr,
-	}, nil
-}
-
 func connect(ctx context.Context, dsn string) (*kivik.DB, error) {
-	idx := strings.LastIndex(dsn, "/")
-	dbname := dsn[idx:]
-	root := dsn[:idx]
-	uri, err := parseURL(root)
+	uri, err := url.Parse(dsn)
 	if err != nil {
-		return nil, err
+		return nil, &kivik.Error{HTTPStatus: http.StatusBadRequest, Err: err}
 	}
-	var client *kivik.Client
 	switch uri.Scheme {
 	case "http", "https":
-		client, err = kivik.New("couch", uri.String())
+		idx := strings.LastIndex(dsn, "/")
+		client, err := kivik.New("couch", dsn[:idx+1])
+		if err != nil {
+			return nil, err
+		}
+		db := client.DB(ctx, dsn[idx+1:])
+		return db, db.Err()
 	case "file":
-		client, err = kivik.New("fs", uri.Path)
+		client, err := kivik.New("fs", "")
+		if err != nil {
+			// WTF?
+			return nil, err
+		}
+		db := client.DB(ctx, dsn)
+		return db, db.Err()
 	default:
-		return nil, errors.Errorf("Unsupported URL scheme '%s'", uri.Scheme)
+		return nil, &kivik.Error{
+			HTTPStatus: http.StatusBadRequest,
+			Message:    fmt.Sprintf("unsupported URL scheme '%s'", uri.Scheme),
+		}
 	}
-	if err != nil {
-		return nil, err
-	}
-	return client.DB(ctx, dbname), nil
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

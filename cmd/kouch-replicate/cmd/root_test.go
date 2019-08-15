@@ -1,43 +1,50 @@
 package cmd
 
 import (
-	"net/url"
+	"context"
+	"net/http"
 	"testing"
 
 	"gitlab.com/flimzy/testy"
 )
 
-func TestParseURL(t *testing.T) {
-	tests := map[string]*url.URL{
-		"https://admin:abc123@localhost:5984/foo": &url.URL{
-			Scheme: "https",
-			Host:   "localhost:5984",
-			Path:   "/foo",
-			User:   url.UserPassword("admin", "abc123"),
-		},
-		"http://example.com/foo": &url.URL{
-			Scheme: "http",
-			Host:   "example.com",
-			Path:   "/foo",
-		},
-		"file:///foo.txt": &url.URL{
-			Scheme: "file",
-			Path:   "/foo.txt",
-		},
-		"/usr/local/db": &url.URL{
-			Scheme: "file",
-			Path:   "/usr/local/db",
-		},
+func TestConnect(t *testing.T) {
+	type tt struct {
+		dsn    string
+		status int
+		err    string
 	}
-	for addr, want := range tests {
-		t.Run(addr, func(t *testing.T) {
-			got, err := parseURL(addr)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if d := testy.DiffInterface(want, got); d != nil {
-				t.Error(d)
-			}
-		})
-	}
+	tests := testy.NewTable()
+	tests.Add("invalid url", tt{
+		dsn:    "http://%xxx",
+		status: http.StatusBadRequest,
+		err:    `parse http://%xxx: invalid URL escape "%xx"`,
+	})
+	tests.Add("valid http:// url", tt{
+		dsn: "http://example.com/foo",
+	})
+	tests.Add("valid https:// url", tt{
+		dsn: "https://example.com/bar",
+	})
+	tests.Add("valid file:// url", tt{
+		dsn: "file:///foo/bar",
+	})
+	tests.Add("unsupported scheme", tt{
+		dsn:    "ftp://webmaster@www.google.com/",
+		status: http.StatusBadRequest,
+		err:    "unsupported URL scheme 'ftp'",
+	})
+	tests.Add("file:// url with invalid dbname", tt{
+		dsn:    "file:///foo/bar.baz",
+		status: http.StatusBadRequest,
+		err:    "Name: 'bar.baz'. Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed. Must begin with a letter.",
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		result, err := connect(context.TODO(), tt.dsn)
+		testy.StatusError(t, tt.err, tt.status, err)
+		if d := testy.DiffInterface(testy.Snapshot(t), result); d != nil {
+			t.Error(d)
+		}
+	})
 }
