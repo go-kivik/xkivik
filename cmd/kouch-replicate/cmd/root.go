@@ -1,13 +1,21 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 	"os"
-
-	"github.com/spf13/cobra"
+	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	_ "github.com/go-kivik/couchdb" // The CouchDB driver
+	_ "github.com/go-kivik/fsdb"    // The Filesystem driver
+	"github.com/go-kivik/kivik"
+	"github.com/go-kivik/xkivik"
 )
 
 var cfgFile string
@@ -15,16 +23,63 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "kouch-replicate",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "replicate to/from CouchDB databases",
+	Long: `This tool implements a minimalistic version of the CouchDB replication
+protocol.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := cobra.NoArgs(cmd, args); err != nil {
+			return err
+		}
+		ctx := context.TODO()
+		sourceDSN, _ := cmd.Flags().GetString("source")
+		targetDSN, _ := cmd.Flags().GetString("target")
+		source, err := connect(ctx, sourceDSN)
+		if err != nil {
+			return err
+		}
+		target, err := connect(ctx, targetDSN)
+		if err != nil {
+			return err
+		}
+		_, err = xkivik.Replicate(ctx, target, source)
+		return err
+	},
+}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+// parseURL parses absolute URLs. Relative URLs are assumed to be file://
+func parseURL(addr string) (*url.URL, error) {
+	for _, scheme := range []string{"http://", "https://", "file://"} {
+		if strings.HasPrefix(addr, scheme) {
+			return url.Parse(addr)
+		}
+	}
+	return &url.URL{
+		Scheme: "file",
+		Path:   addr,
+	}, nil
+}
+
+func connect(ctx context.Context, dsn string) (*kivik.DB, error) {
+	idx := strings.LastIndex(dsn, "/")
+	dbname := dsn[idx:]
+	root := dsn[:idx]
+	uri, err := parseURL(root)
+	if err != nil {
+		return nil, err
+	}
+	var client *kivik.Client
+	switch uri.Scheme {
+	case "http", "https":
+		client, err = kivik.New("couch", uri.String())
+	case "file":
+		client, err = kivik.New("fs", uri.Path)
+	default:
+		return nil, errors.Errorf("Unsupported URL scheme '%s'", uri.Scheme)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return client.DB(ctx, dbname), nil
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -43,11 +98,23 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kouch-replicate.yaml)")
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kouch-replicate.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().StringP("source", "s", "", "Replication source")
+	rootCmd.MarkFlagRequired("source")
+	rootCmd.Flags().StringP("target", "t", "", "Replication target")
+	rootCmd.MarkFlagRequired("target")
+	/*
+				TODO:
+				security
+		        timeout
+				create_target
+				continuous
+				filter
+				doc_ids
+	*/
 }
 
 // initConfig reads in config file and ENV variables if set.
