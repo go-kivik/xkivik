@@ -85,6 +85,12 @@ func Execute() {
 	}
 }
 
+func must(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -97,9 +103,9 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().StringP("source", "s", "", "Replication source")
-	rootCmd.MarkFlagRequired("source")
+	must(rootCmd.MarkFlagRequired("source"))
 	rootCmd.Flags().StringP("target", "t", "", "Replication target")
-	rootCmd.MarkFlagRequired("target")
+	must(rootCmd.MarkFlagRequired("target"))
 	/*
 				TODO:
 				security
