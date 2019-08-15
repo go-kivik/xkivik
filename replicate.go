@@ -274,6 +274,8 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 				}
 				break
 			}
+			att.Stub = false
+			att.Follows = false
 			doc.Attachments.Set(att.Filename, att)
 		}
 	}
@@ -282,7 +284,9 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 
 func storeDocs(ctx context.Context, db *kivik.DB, docs <-chan *Document, result *resultWrapper) error {
 	for doc := range docs {
-		if _, err := db.Put(ctx, doc.ID, doc, kivik.Options{"new_edits": false}); err != nil {
+		if _, err := db.Put(ctx, doc.ID, doc, kivik.Options{
+			"new_edits": false,
+		}); err != nil {
 			result.writeError()
 			return err
 		}

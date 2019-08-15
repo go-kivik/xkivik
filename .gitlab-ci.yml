@@ -22,7 +22,7 @@ variables:
         - ln -s /builds /go/src/gitlab.com
         - cd ${SRCDIR}
         - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-        - dep ensure
+        - dep ensure && dep status
         - go test -race -tags=livetest ./...
 
 lint:
