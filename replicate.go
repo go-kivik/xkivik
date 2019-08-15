@@ -274,6 +274,8 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 				}
 				break
 			}
+			att.Stub = false
+			att.Follows = false
 			doc.Attachments.Set(att.Filename, att)
 		}
 	}
