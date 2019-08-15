@@ -39,6 +39,18 @@ func TestConnect(t *testing.T) {
 		status: http.StatusBadRequest,
 		err:    "Name: 'bar.baz'. Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed. Must begin with a letter.",
 	})
+	tests.Add("local absolute path", tt{
+		dsn: "/foo/bar",
+	})
+	tests.Add("local relative path", tt{
+		dsn: "foo/bar",
+	})
+	tests.Add("local dot path", tt{
+		dsn: "./foo/bar",
+	})
+	tests.Add("dot", tt{
+		dsn: ".",
+	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
 		result, err := connect(context.TODO(), tt.dsn)

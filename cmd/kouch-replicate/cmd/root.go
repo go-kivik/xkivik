@@ -60,7 +60,7 @@ func connect(ctx context.Context, dsn string) (*kivik.DB, error) {
 		}
 		db := client.DB(ctx, dsn[idx+1:])
 		return db, db.Err()
-	case "file":
+	case "file", "":
 		client, err := kivik.New("fs", "")
 		if err != nil {
 			// WTF?
