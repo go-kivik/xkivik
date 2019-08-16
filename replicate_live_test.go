@@ -277,7 +277,15 @@ func TestReplicate_live(t *testing.T) {
 		}
 		source := client.DB(ctx, dbName)
 		target := tClient.DB(ctx, dbName)
-		doc := map[string]string{"foo": "bar"}
+		doc := map[string]interface{}{
+			"foo": "bar",
+			"_attachments": map[string]interface{}{
+				"foo.txt": map[string]interface{}{
+					"content_type": "text/plain",
+					"data":         []byte("Test content"),
+				},
+			},
+		}
 		if _, err := source.Put(ctx, "foo", doc); err != nil {
 			t.Fatal(err)
 		}
