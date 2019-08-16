@@ -14,6 +14,7 @@ type Document struct {
 	Data        map[string]interface{} `json:"-"`
 }
 
+// MarshalJSON satisfies the json.Marshaler interface
 func (d *Document) MarshalJSON() ([]byte, error) {
 	var data []byte
 	doc, err := json.Marshal(*d)
@@ -31,6 +32,7 @@ func (d *Document) MarshalJSON() ([]byte, error) {
 	return doc, nil
 }
 
+// UnmarshalJSON satisfies the json.Unmarshaler interface.
 func (d *Document) UnmarshalJSON(p []byte) error {
 	type internalDoc Document
 	doc := &internalDoc{}
