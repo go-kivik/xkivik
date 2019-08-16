@@ -4,17 +4,19 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	"gitlab.com/flimzy/testy"
 
+	_ "github.com/go-kivik/fsdb" // The filesystem driver
 	"github.com/go-kivik/kivik"
 	"github.com/go-kivik/kivik/driver"
 	"github.com/go-kivik/kivikmock"
 )
 
-func TestReplicate(t *testing.T) {
+func TestReplicateMock(t *testing.T) {
 	type tt struct {
 		mockT, mockS   *kivikmock.Client
 		target, source *kivik.DB
@@ -142,6 +144,54 @@ func TestReplicate(t *testing.T) {
 		result.StartTime = time.Time{}
 		result.EndTime = time.Time{}
 		if d := testy.DiffAsJSON(tt.result, result); d != nil {
+			t.Error(d)
+		}
+	})
+}
+
+func TestReplicate(t *testing.T) {
+	type tt struct {
+		path           string
+		target, source *kivik.DB
+		options        kivik.Options
+		status         int
+		err            string
+	}
+	tests := testy.NewTable()
+	tests.Add("fs to fs", func(t *testing.T) interface{} {
+		tmpdir := testy.CopyTempDir(t, "testdata/db4", 1)
+		tests.Cleanup(func() error {
+			return os.RemoveAll(tmpdir)
+		})
+
+		client, err := kivik.New("fs", tmpdir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := client.CreateDB(context.TODO(), "target"); err != nil {
+			t.Fatal(err)
+		}
+
+		return tt{
+			path:   tmpdir,
+			target: client.DB(context.TODO(), "target"),
+			source: client.DB(context.TODO(), "db4"),
+		}
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		result, err := Replicate(context.TODO(), tt.target, tt.source, tt.options)
+		testy.StatusError(t, tt.err, tt.status, err)
+		result.StartTime = time.Time{}
+		result.EndTime = time.Time{}
+		if d := testy.DiffAsJSON(testy.Snapshot(t), result); d != nil {
+			t.Error(d)
+		}
+		if d := testy.DiffAsJSON(testy.Snapshot(t, "fs"), testy.JSONDir{
+			Path:           tt.path,
+			FileContent:    true,
+			MaxContentSize: 100,
+		}); d != nil {
 			t.Error(d)
 		}
 	})
