@@ -281,7 +281,7 @@ func TestReplicate_live(t *testing.T) {
 			"foo": "bar",
 			"_attachments": map[string]interface{}{
 				"foo.txt": map[string]interface{}{
-					"content_type": "text/plain",
+					"content_type": "application/octet-stream",
 					"data":         []byte("Test content"),
 				},
 			},
