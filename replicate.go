@@ -1,8 +1,11 @@
 package xkivik
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"io"
+	"io/ioutil"
 	"sync"
 	"time"
 
@@ -274,8 +277,36 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 				}
 				break
 			}
+			var content []byte
+			switch att.ContentEncoding {
+			case "":
+				var err error
+				content, err = ioutil.ReadAll(att.Content)
+				if err != nil {
+					return nil, err
+				}
+				if err := att.Content.Close(); err != nil {
+					return nil, err
+				}
+			case "gzip":
+				zr, err := gzip.NewReader(att.Content)
+				if err != nil {
+					return nil, err
+				}
+				content, err = ioutil.ReadAll(zr)
+				if err != nil {
+					return nil, err
+				}
+				if err := zr.Close(); err != nil {
+					return nil, err
+				}
+				if err := att.Content.Close(); err != nil {
+					return nil, err
+				}
+			}
 			att.Stub = false
 			att.Follows = false
+			att.Content = ioutil.NopCloser(bytes.NewReader(content))
 			doc.Attachments.Set(att.Filename, att)
 		}
 	}
