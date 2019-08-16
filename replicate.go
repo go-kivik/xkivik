@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"sync"
@@ -303,6 +304,8 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 				if err := att.Content.Close(); err != nil {
 					return nil, err
 				}
+			default:
+				return nil, fmt.Errorf("Unknown encoding '%s' for attachment '%s'", att.ContentEncoding, att.Filename)
 			}
 			att.Stub = false
 			att.Follows = false
