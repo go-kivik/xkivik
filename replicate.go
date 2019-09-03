@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"gitlab.com/flimzy/parallel"
+	"golang.org/x/xerrors"
 
 	"github.com/go-kivik/kivik"
 )
@@ -133,9 +134,12 @@ func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.O
 func copySecurity(ctx context.Context, target, source *kivik.DB) error {
 	sec, err := source.Security(ctx)
 	if err != nil {
-		return err
+		return xerrors.Errorf("read security: %w", err)
 	}
-	return target.SetSecurity(ctx, sec)
+	if err := target.SetSecurity(ctx, sec); err != nil {
+		return xerrors.Errorf("set security: %w", err)
+	}
+	return nil
 }
 
 type change struct {
@@ -155,7 +159,7 @@ func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, opti
 	}
 	changes, err := db.Changes(ctx, opts)
 	if err != nil {
-		return err
+		return xerrors.Errorf("open changes feed: %w", err)
 	}
 
 	defer changes.Close() // nolint: errcheck
@@ -170,7 +174,10 @@ func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, opti
 		case results <- ch:
 		}
 	}
-	return changes.Err()
+	if err := changes.Err(); err != nil {
+		return xerrors.Errorf("read changes feed: %w", err)
+	}
+	return nil
 }
 
 type revDiff struct {
@@ -223,7 +230,7 @@ func readDiffs(ctx context.Context, db *kivik.DB, ch <-chan *change, results cha
 			}
 		}
 		if err := diffs.Err(); err != nil {
-			return err
+			return xerrors.Errorf("read revs diffs: %w", err)
 		}
 	}
 }
@@ -243,7 +250,7 @@ func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results 
 				result.missingChecked()
 				d, err := readDoc(ctx, db, rd.ID, rev)
 				if err != nil {
-					return err
+					return xerrors.Errorf("read doc %s: %w", rd.ID, err)
 				}
 				result.read()
 				result.missingFound()
@@ -322,7 +329,7 @@ func storeDocs(ctx context.Context, db *kivik.DB, docs <-chan *Document, result 
 			"new_edits": false,
 		}); err != nil {
 			result.writeError()
-			return err
+			return xerrors.Errorf("store doc %s: %w", doc.ID, err)
 		}
 		result.write()
 	}

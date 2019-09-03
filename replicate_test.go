@@ -36,7 +36,7 @@ func TestReplicateMock(t *testing.T) {
 			mockS:  mock,
 			source: source.DB(context.TODO(), "src"),
 			status: http.StatusInternalServerError,
-			err:    "changes err",
+			err:    "open changes feed: changes err",
 			result: &ReplicationResult{},
 		}
 	})
