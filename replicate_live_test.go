@@ -211,7 +211,7 @@ func TestReplicate_live(t *testing.T) {
 				MissingFound:   1,
 			},
 			status: http.StatusBadRequest,
-			err:    "Bad Request: Bad special document member: _invalid",
+			err:    "store doc note--XkWjFv13acvjJTt-CGJJ8hXlWE: Bad Request: Bad special document member: _invalid",
 		}
 	})
 	tests.Add("fs to couch with attachment", func(t *testing.T) interface{} {
