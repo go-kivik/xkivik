@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"gitlab.com/flimzy/testy"
@@ -18,7 +19,7 @@ func TestConnect(t *testing.T) {
 	tests.Add("invalid url", tt{
 		dsn:    "http://%xxx",
 		status: http.StatusBadRequest,
-		err:    `parse http://%xxx: invalid URL escape "%xx"`,
+		err:    `parse "?http://%xxx"?: invalid URL escape "%xx"`,
 	})
 	tests.Add("valid http:// url", tt{
 		dsn: "http://example.com/foo",
@@ -37,7 +38,7 @@ func TestConnect(t *testing.T) {
 	tests.Add("file:// url with invalid dbname", tt{
 		dsn:    "file:///foo/bar.baz",
 		status: http.StatusBadRequest,
-		err:    "Name: 'bar.baz'. Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed. Must begin with a letter.",
+		err:    regexp.QuoteMeta("Name: 'bar.baz'. Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed. Must begin with a letter."),
 	})
 	tests.Add("local absolute path", tt{
 		dsn: "/foo/bar",
@@ -54,7 +55,7 @@ func TestConnect(t *testing.T) {
 
 	tests.Run(t, func(t *testing.T, tt tt) {
 		result, err := connect(context.TODO(), tt.dsn)
-		testy.StatusError(t, tt.err, tt.status, err)
+		testy.StatusErrorRE(t, tt.err, tt.status, err)
 		if d := testy.DiffInterface(testy.Snapshot(t), result); d != nil {
 			t.Error(d)
 		}
