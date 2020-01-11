@@ -24,7 +24,7 @@ require (
 	github.com/spf13/viper v1.4.0
 	gitlab.com/flimzy/ale v0.0.0-20190725131621-b59d7ca0da24 // indirect
 	gitlab.com/flimzy/parallel v0.0.5
-	gitlab.com/flimzy/testy v0.0.0-20190903085227-3891107a9715
+	gitlab.com/flimzy/testy v0.0.1
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7 // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
 	golang.org/x/sys v0.0.0-20190902133755-9109b7679e13 // indirect
