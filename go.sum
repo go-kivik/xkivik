@@ -145,6 +145,8 @@ gitlab.com/flimzy/parallel v0.0.5 h1:VNWiCtE43rw1HsM2wX3nNhMyrhWPKfn0ItbO5iRTXoU
 gitlab.com/flimzy/parallel v0.0.5/go.mod h1:4BTXrItF3cH8JQWsA17qEeTWFfLVXoB7pkADuaxrnqQ=
 gitlab.com/flimzy/testy v0.0.0-20190903085227-3891107a9715 h1:Rq4gemPThNxgY+ZdofDlLoluRhSbSY42x/4e2JBplg0=
 gitlab.com/flimzy/testy v0.0.0-20190903085227-3891107a9715/go.mod h1:MQwjgAyueIbBZv+qSYAMs6LaZwsJysPs0BK/niv9JiI=
+gitlab.com/flimzy/testy v0.0.1 h1:8NnI4ofk44lEgDyUgV5f01IJqqM4jcjjyswbfhE18iU=
+gitlab.com/flimzy/testy v0.0.1/go.mod h1:MQwjgAyueIbBZv+qSYAMs6LaZwsJysPs0BK/niv9JiI=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/multierr v1.1.0/go.mod h1:wR5kodmAFQ0UK8QlbwjlSNy0Z68gJhDJUG5sjR94q/0=
