@@ -22,35 +22,34 @@ variables:
 
 lint:
     stage: test
-    image: golang:1.13
+    image: golangci/golangci-lint:v1.24
     script:
-        - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.22.2
         - go mod download
         - golangci-lint run ./...
 
 coverage:
     stage: test
-    image: golang:1.13
+    image: golang:1.14
     script:
         - ./script/coverage.sh
 
 go-1.11:
     <<: *test_template
-    stage: test
     image: golang:1.11
 
 go-1.12:
     <<: *test_template
-    stage: test
     image: golang:1.12
 
 go-1.13:
     <<: *test_template
-    stage: test
     image: golang:1.13
+
+go-1.14:
+    <<: *test_template
+    image: golang:1.14
 
 go-rc:
     <<: *test_template
-    stage: test
     image: golang:rc
     allow_failure: true
