@@ -7,7 +7,7 @@ import (
 
 	"gitlab.com/flimzy/testy"
 
-	"github.com/go-kivik/kivik"
+	"github.com/go-kivik/kivik/v3"
 )
 
 func TestDocumentMarshalJSON(t *testing.T) {
