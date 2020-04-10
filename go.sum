@@ -143,8 +143,6 @@ gitlab.com/flimzy/ale v0.0.0-20190725131621-b59d7ca0da24 h1:yYOM+ydaGGN2G/iPaZSr
 gitlab.com/flimzy/ale v0.0.0-20190725131621-b59d7ca0da24/go.mod h1:TJ6/ncB/sG+vQWV7XigJ5oe78WrMhjDrOLZSftH/bt8=
 gitlab.com/flimzy/parallel v0.0.5 h1:VNWiCtE43rw1HsM2wX3nNhMyrhWPKfn0ItbO5iRTXoU=
 gitlab.com/flimzy/parallel v0.0.5/go.mod h1:4BTXrItF3cH8JQWsA17qEeTWFfLVXoB7pkADuaxrnqQ=
-gitlab.com/flimzy/testy v0.0.0-20190903085227-3891107a9715 h1:Rq4gemPThNxgY+ZdofDlLoluRhSbSY42x/4e2JBplg0=
-gitlab.com/flimzy/testy v0.0.0-20190903085227-3891107a9715/go.mod h1:MQwjgAyueIbBZv+qSYAMs6LaZwsJysPs0BK/niv9JiI=
 gitlab.com/flimzy/testy v0.0.1 h1:8NnI4ofk44lEgDyUgV5f01IJqqM4jcjjyswbfhE18iU=
 gitlab.com/flimzy/testy v0.0.1/go.mod h1:MQwjgAyueIbBZv+qSYAMs6LaZwsJysPs0BK/niv9JiI=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
