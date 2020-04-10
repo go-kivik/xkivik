@@ -12,7 +12,7 @@ import (
 
 	"gitlab.com/flimzy/parallel"
 
-	"github.com/go-kivik/kivik"
+	"github.com/go-kivik/kivik/v3"
 )
 
 func mergeOptions(otherOpts ...kivik.Options) kivik.Options {
