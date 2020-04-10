@@ -11,7 +11,6 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/xerrors"
 
 	_ "github.com/go-kivik/couchdb" // The CouchDB driver
 	_ "github.com/go-kivik/fsdb"    // The Filesystem driver
@@ -36,11 +35,11 @@ protocol.`,
 		targetDSN, _ := cmd.Flags().GetString("target")
 		source, err := connect(ctx, sourceDSN)
 		if err != nil {
-			return xerrors.Errorf("connect source '%s': %w", sourceDSN, err)
+			return fmt.Errorf("connect source '%s': %w", sourceDSN, err)
 		}
 		target, err := connect(ctx, targetDSN)
 		if err != nil {
-			return xerrors.Errorf("connect target '%s': %w", targetDSN, err)
+			return fmt.Errorf("connect target '%s': %w", targetDSN, err)
 		}
 		_, err = xkivik.Replicate(ctx, target, source)
 		return err

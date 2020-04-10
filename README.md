@@ -10,6 +10,8 @@ time.
 
 There is no backward compatibility guarantee for anything in this package.
 
+This package depends on Go 1.13 or newer.
+
 
 ## License
 
