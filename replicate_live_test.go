@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/go-kivik/couchdb" // CouchDB driver
-	_ "github.com/go-kivik/fsdb"    // Filesystem driver
-	"github.com/go-kivik/kivik"
-	"github.com/go-kivik/kiviktest/kt"
+	_ "github.com/go-kivik/couchdb/v4" // CouchDB driver
+	_ "github.com/go-kivik/fsdb/v4"    // Filesystem driver
+	"github.com/go-kivik/kivik/v4"
+	"github.com/go-kivik/kiviktest/v4/kt"
 	"gitlab.com/flimzy/testy"
 )
 

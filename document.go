@@ -3,7 +3,7 @@ package xkivik
 import (
 	"encoding/json"
 
-	"github.com/go-kivik/kivik"
+	"github.com/go-kivik/kivik/v4"
 )
 
 // Document represents any CouchDB document.

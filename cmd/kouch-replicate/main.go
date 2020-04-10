@@ -1,6 +1,6 @@
 package main
 
-import "github.com/go-kivik/xkivik/cmd/kouch-replicate/cmd"
+import "github.com/go-kivik/xkivik/v4/cmd/kouch-replicate/cmd"
 
 func main() {
 	cmd.Execute()

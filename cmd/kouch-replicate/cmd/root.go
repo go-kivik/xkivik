@@ -12,10 +12,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	_ "github.com/go-kivik/couchdb" // The CouchDB driver
-	_ "github.com/go-kivik/fsdb"    // The Filesystem driver
-	"github.com/go-kivik/kivik"
-	"github.com/go-kivik/xkivik"
+	_ "github.com/go-kivik/couchdb/v4" // The CouchDB driver
+	_ "github.com/go-kivik/fsdb/v4"    // The Filesystem driver
+	"github.com/go-kivik/kivik/v4"
+	"github.com/go-kivik/xkivik/v4"
 )
 
 var cfgFile string
