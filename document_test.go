@@ -20,7 +20,6 @@ func TestDocumentMarshalJSON(t *testing.T) {
 		},
 	})
 	tests.Add("attachment", func(t *testing.T) interface{} {
-
 		f, err := os.Open("testdata/foo.txt")
 		if err != nil {
 			t.Fatal(err)

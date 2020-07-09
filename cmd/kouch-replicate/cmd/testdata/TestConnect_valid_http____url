@@ -5,8 +5,8 @@
     driverClient: (*couchdb.client)({
       Client: (*chttp.Client)({
         UserAgents: ([]string) (len=2) {
-          (string) (len=11) "Kivik/3.0.0",
-          (string) (len=37) "Kivik CouchDB driver/2.0.0-prerelease"
+          (string) (len=11) "Kivik/3.1.0",
+          (string) (len=26) "Kivik CouchDB driver/3.1.0"
         },
         Client: (*http.Client)({
           Transport: (http.RoundTripper) <nil>,
@@ -44,8 +44,8 @@
     client: (*couchdb.client)({
       Client: (*chttp.Client)({
         UserAgents: ([]string) (len=2) {
-          (string) (len=11) "Kivik/3.0.0",
-          (string) (len=37) "Kivik CouchDB driver/2.0.0-prerelease"
+          (string) (len=11) "Kivik/3.1.0",
+          (string) (len=26) "Kivik CouchDB driver/3.1.0"
         },
         Client: (*http.Client)({
           Transport: (http.RoundTripper) <nil>,

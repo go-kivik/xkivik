@@ -3,11 +3,11 @@ module github.com/go-kivik/xkivik/v3
 go 1.13
 
 require (
-	github.com/go-kivik/couchdb/v3 v3.0.0
+	github.com/go-kivik/couchdb/v3 v3.1.0
 	github.com/go-kivik/fsdb/v3 v3.0.0
-	github.com/go-kivik/kivik/v3 v3.0.2
+	github.com/go-kivik/kivik/v3 v3.1.2
 	github.com/go-kivik/kivikmock/v3 v3.0.0
-	github.com/go-kivik/kiviktest/v3 v3.0.1
+	github.com/go-kivik/kiviktest/v3 v3.0.2
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
