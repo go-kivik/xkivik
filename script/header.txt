@@ -10,10 +10,3 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
-package main
-
-import "github.com/go-kivik/xkivik/v4/cmd/kouch-replicate/cmd"
-
-func main() {
-	cmd.Execute()
-}
