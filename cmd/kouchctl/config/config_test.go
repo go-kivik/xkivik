@@ -13,6 +13,8 @@
 package config
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"gitlab.com/flimzy/testy"
@@ -61,4 +63,59 @@ dsn: https://admin:abc123@localhost:5984/somedb
 			t.Error(d)
 		}
 	})
+}
+
+func TestNew(t *testing.T) {
+	type tt struct {
+		filename string
+		env      map[string]string
+		err      string
+	}
+
+	tests := testy.NewTable()
+	tests.Add("no config file", tt{})
+	tests.Add("permission deined", func(t *testing.T) interface{} {
+		f, err := ioutil.TempFile("", "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		_ = f.Close()
+		t.Cleanup(func() {
+			_ = os.RemoveAll(f.Name())
+		})
+		if err := os.Chmod(f.Name(), 0); err != nil {
+			t.Fatal(err)
+		}
+
+		return tt{
+			filename: f.Name(),
+			err:      "open " + f.Name() + ": permission denied",
+		}
+	})
+	tests.Add("file not found", tt{
+		filename: "not found",
+	})
+	tests.Add("env only", tt{
+		env: map[string]string{
+			"KOUCHCTL_DSN": "http://foo.com/",
+		},
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		testEnv(t, tt.env)
+		cf, err := New(tt.filename)
+		testy.Error(t, tt.err, err)
+		if d := testy.DiffInterface(testy.Snapshot(t), cf); d != nil {
+			t.Error(d)
+		}
+	})
+}
+
+func testEnv(t *testing.T, env map[string]string) {
+	t.Helper()
+	t.Cleanup(testy.RestoreEnv())
+	os.Clearenv()
+	if err := testy.SetEnv(env); err != nil {
+		t.Fatal(err)
+	}
 }

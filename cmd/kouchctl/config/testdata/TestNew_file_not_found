@@ -1,0 +1,5 @@
+(*config.Config)({
+  Contexts: (map[string]*config.Context) {
+  },
+  CurrentContext: (string) ""
+})

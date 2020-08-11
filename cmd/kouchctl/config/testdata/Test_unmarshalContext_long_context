@@ -1,5 +1,4 @@
 (*config.Context)({
-  Name: (string) (len=4) "long",
   Scheme: (string) (len=5) "https",
   Host: (string) (len=14) "localhost:5984",
   User: (string) (len=5) "admin",
