@@ -65,7 +65,7 @@ func (r *root) RunE(cmd *cobra.Command, args []string) error {
 	r.log = log.New(cmd)
 	r.log.Debug("Debug mode enabled")
 
-	conf, err := config.New(r.confFile)
+	conf, err := config.New(r.confFile, r.log)
 	if err != nil {
 		return err
 	}

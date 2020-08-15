@@ -19,6 +19,8 @@ import (
 
 	"gitlab.com/flimzy/testy"
 	"gopkg.in/yaml.v3"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
 func Test_unmarshalContext(t *testing.T) {
@@ -97,17 +99,19 @@ func TestNew(t *testing.T) {
 	})
 	tests.Add("env only", tt{
 		env: map[string]string{
-			"KOUCHCTL_DSN": "http://foo.com/",
+			"KOUCHDSN": "http://foo.com/",
 		},
 	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
 		testEnv(t, tt.env)
-		cf, err := New(tt.filename)
+		l := log.NewTest()
+		cf, err := New(tt.filename, l)
 		testy.Error(t, tt.err, err)
 		if d := testy.DiffInterface(testy.Snapshot(t), cf); d != nil {
 			t.Error(d)
 		}
+		l.Check(t)
 	})
 }
 
@@ -139,7 +143,7 @@ func TestConfig_DSN(t *testing.T) {
 	tests.Add("only one context, no default", tt{
 		cf: &Config{
 			Contexts: map[string]*Context{
-				"foo": &Context{
+				"foo": {
 					Scheme:   "http",
 					Host:     "localhost:5984",
 					User:     "admin",
@@ -153,7 +157,7 @@ func TestConfig_DSN(t *testing.T) {
 	tests.Add("success", tt{
 		cf: &Config{
 			Contexts: map[string]*Context{
-				"foo": &Context{
+				"foo": {
 					Scheme:   "http",
 					Host:     "localhost:5984",
 					User:     "admin",

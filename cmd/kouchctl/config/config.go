@@ -19,9 +19,11 @@ import (
 	"os"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
-const envPrefix = "KOUCHCTL"
+const envPrefix = "KOUCH"
 
 // Config is the full app configuration file.
 type Config struct {
@@ -86,12 +88,12 @@ func (c *Context) UnmarshalYAML(v *yaml.Node) error {
 //
 // - Reads from filename
 // - If DSN env variable is set, it's added as context called 'ENV' and made current
-func New(filename string) (*Config, error) {
-	cf, err := readYAML(filename)
+func New(filename string, lg log.Logger) (*Config, error) {
+	cf, err := readYAML(filename, lg)
 	if err != nil {
 		return nil, err
 	}
-	if dsn := os.Getenv(envPrefix + "_DSN"); dsn != "" {
+	if dsn := os.Getenv(envPrefix + "DSN"); dsn != "" {
 		uri, err := url.Parse(dsn)
 		if err != nil {
 			return nil, err
@@ -113,23 +115,27 @@ func New(filename string) (*Config, error) {
 	return cf, nil
 }
 
-func readYAML(filename string) (*Config, error) {
+func readYAML(filename string, lg log.Logger) (*Config, error) {
 	cf := &Config{
 		Contexts: make(map[string]*Context),
 	}
 	if filename == "" {
+		lg.Debug("no kouchconfig file specified")
 		return cf, nil
 	}
 	f, err := os.Open(filename)
 	if err != nil {
+		lg.Debugf("failed to read kouchconfig: %s", err)
 		if os.IsNotExist(err) {
 			err = nil
 		}
 		return cf, err
 	}
 	if err := yaml.NewDecoder(f).Decode(cf); err != nil {
+		lg.Debugf("YAML parse error: %s", err)
 		return nil, err
 	}
+	lg.Debugf("successfully read kouchconfig file %q", filename)
 	return cf, nil
 }
 

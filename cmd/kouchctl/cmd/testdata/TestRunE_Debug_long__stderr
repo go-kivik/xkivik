@@ -1,4 +1,5 @@
 Debug mode enabled
+failed to read kouchconfig: open ~/.kouchctl/config: no such file or directory
 Error: no context specified
 Usage:
   kouchctl [flags]
