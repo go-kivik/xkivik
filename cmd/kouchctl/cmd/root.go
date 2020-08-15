@@ -22,7 +22,6 @@ import (
 
 type root struct {
 	confFile string
-	verbose  bool
 	debug    bool
 }
 
@@ -50,11 +49,17 @@ func rootCmd() *cobra.Command {
 		RunE:  r.RunE,
 	}
 
-	cmd.PersistentFlags().StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
+	pf := cmd.PersistentFlags()
+
+	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
+	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
 
 	return cmd
 }
 
 func (r *root) RunE(cmd *cobra.Command, args []string) error {
+	if r.debug {
+		fmt.Fprintln(cmd.ErrOrStderr(), "Debug mode enabled")
+	}
 	return nil
 }

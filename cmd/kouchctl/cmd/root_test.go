@@ -30,6 +30,12 @@ func TestRunE(t *testing.T) {
 		args: []string{"bogus"},
 		err:  `unknown command "bogus" for "kouchctl"`,
 	})
+	tests.Add("Debug long", cmdTest{
+		args: []string{"--debug"},
+	})
+	tests.Add("Debug short", cmdTest{
+		args: []string{"-d"},
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		cmd := rootCmd()
