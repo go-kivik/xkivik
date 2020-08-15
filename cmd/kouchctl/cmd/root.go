@@ -18,6 +18,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 )
 
 type root struct {
@@ -60,6 +62,17 @@ func rootCmd() *cobra.Command {
 func (r *root) RunE(cmd *cobra.Command, args []string) error {
 	if r.debug {
 		fmt.Fprintln(cmd.ErrOrStderr(), "Debug mode enabled")
+	}
+	conf, err := config.New(r.confFile)
+	if err != nil {
+		return err
+	}
+	cx, err := conf.DSN()
+	if err != nil {
+		return err
+	}
+	if r.debug {
+		fmt.Fprintf(cmd.ErrOrStderr(), "DSN: %s from %q", cx, conf.CurrentContext)
 	}
 	return nil
 }

@@ -119,3 +119,58 @@ func testEnv(t *testing.T, env map[string]string) {
 		t.Fatal(err)
 	}
 }
+
+func TestConfig_DSN(t *testing.T) {
+	type tt struct {
+		cf   *Config
+		want string
+		err  string
+	}
+
+	tests := testy.NewTable()
+	tests.Add("no current context", tt{
+		cf:  &Config{},
+		err: "no context specified",
+	})
+	tests.Add("context not found", tt{
+		cf:  &Config{CurrentContext: "xxx"},
+		err: `context "xxx" not found`,
+	})
+	tests.Add("only one context, no default", tt{
+		cf: &Config{
+			Contexts: map[string]*Context{
+				"foo": &Context{
+					Scheme:   "http",
+					Host:     "localhost:5984",
+					User:     "admin",
+					Password: "abc123",
+					Database: "_users",
+				},
+			},
+		},
+		want: "http://admin:abc123@localhost:5984/_users",
+	})
+	tests.Add("success", tt{
+		cf: &Config{
+			Contexts: map[string]*Context{
+				"foo": &Context{
+					Scheme:   "http",
+					Host:     "localhost:5984",
+					User:     "admin",
+					Password: "abc123",
+					Database: "_users",
+				},
+			},
+			CurrentContext: "foo",
+		},
+		want: "http://admin:abc123@localhost:5984/_users",
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		got, err := tt.cf.DSN()
+		testy.Error(t, tt.err, err)
+		if got != tt.want {
+			t.Errorf("Unexpected result: %s", got)
+		}
+	})
+}

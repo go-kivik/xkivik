@@ -32,9 +32,14 @@ func TestRunE(t *testing.T) {
 	})
 	tests.Add("Debug long", cmdTest{
 		args: []string{"--debug"},
+		err:  "no context specified",
 	})
 	tests.Add("Debug short", cmdTest{
 		args: []string{"-d"},
+		err:  "no context specified",
+	})
+	tests.Add("context from config file", cmdTest{
+		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml"},
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
@@ -62,11 +67,11 @@ func testCmd(t *testing.T, cmd *cobra.Command, tt cmdTest) {
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
 		err = cmd.Execute()
 	})
-	testy.Error(t, tt.err, err)
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout); d != nil {
 		t.Errorf("STDOUT: %s", d)
 	}
 	if d := testy.DiffText(testy.Snapshot(t, "_stderr"), stderr); d != nil {
 		t.Errorf("STDERR: %s", d)
 	}
+	testy.Error(t, tt.err, err)
 }

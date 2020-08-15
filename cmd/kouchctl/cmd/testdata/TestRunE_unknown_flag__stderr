@@ -1,5 +1,4 @@
-Debug mode enabled
-Error: no context specified
+Error: unknown flag: --bogus
 Usage:
   kouchctl [flags]
   kouchctl [command]

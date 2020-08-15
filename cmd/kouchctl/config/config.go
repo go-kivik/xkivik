@@ -13,6 +13,8 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 	"os"
 
@@ -34,6 +36,16 @@ type Context struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	Database string `yaml:"database"`
+}
+
+func (c *Context) DSN() string {
+	dsn := &url.URL{
+		Scheme: c.Scheme,
+		Host:   c.Host,
+		Path:   c.Database,
+		User:   url.UserPassword(c.User, c.Password),
+	}
+	return dsn.String()
 }
 
 // UnmarshalYAML handles parsing of a Context from YAML input.
@@ -119,4 +131,20 @@ func readYAML(filename string) (*Config, error) {
 		return nil, err
 	}
 	return cf, nil
+}
+
+func (c *Config) DSN() (string, error) {
+	if c.CurrentContext == "" {
+		if len(c.Contexts) == 1 {
+			for _, cx := range c.Contexts {
+				return cx.DSN(), nil
+			}
+		}
+		return "", errors.New("no context specified")
+	}
+	cx, ok := c.Contexts[c.CurrentContext]
+	if !ok {
+		return "", fmt.Errorf("context %q not found", c.CurrentContext)
+	}
+	return cx.DSN(), nil
 }
