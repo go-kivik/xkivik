@@ -20,11 +20,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
 type root struct {
 	confFile string
 	debug    bool
+	log      log.Logger
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -60,9 +62,9 @@ func rootCmd() *cobra.Command {
 }
 
 func (r *root) RunE(cmd *cobra.Command, args []string) error {
-	if r.debug {
-		fmt.Fprintln(cmd.ErrOrStderr(), "Debug mode enabled")
-	}
+	r.log = log.New(cmd)
+	r.log.Debug("Debug mode enabled")
+
 	conf, err := config.New(r.confFile)
 	if err != nil {
 		return err
@@ -71,8 +73,7 @@ func (r *root) RunE(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if r.debug {
-		fmt.Fprintf(cmd.ErrOrStderr(), "DSN: %s from %q", cx, conf.CurrentContext)
-	}
+	r.log.Debugf("DSN: %s from %q", cx, conf.CurrentContext)
+
 	return nil
 }
