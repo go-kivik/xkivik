@@ -1,0 +1,11 @@
+Error: no document specified to get
+Usage:
+  kouchctl get [flags]
+
+Flags:
+  -h, --help   help for get
+
+Global Flags:
+  -d, --debug                Enable debug output
+      --kouchconfig string   Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")
+

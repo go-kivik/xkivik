@@ -6,8 +6,8 @@ Usage:
   kouchctl [command]
 
 Available Commands:
+  get         get a document
   help        Help about any command
-  test        
 
 Flags:
   -d, --debug                Enable debug output

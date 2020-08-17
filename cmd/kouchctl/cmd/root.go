@@ -58,6 +58,8 @@ func rootCmd() *cobra.Command {
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
 
+	cmd.AddCommand(getCmd())
+
 	return cmd
 }
 

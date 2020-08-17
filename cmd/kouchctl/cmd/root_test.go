@@ -20,7 +20,7 @@ import (
 	"gitlab.com/flimzy/testy"
 )
 
-func TestRunE(t *testing.T) {
+func Test_root_RunE(t *testing.T) {
 	tests := testy.NewTable()
 	tests.Add("unknown flag", cmdTest{
 		args: []string{"--bogus"},
@@ -44,11 +44,6 @@ func TestRunE(t *testing.T) {
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		cmd := rootCmd()
-
-		cmd.AddCommand(&cobra.Command{
-			Use: "test",
-			Run: func(*cobra.Command, []string) {},
-		})
 
 		testCmd(t, cmd, tt)
 	})
