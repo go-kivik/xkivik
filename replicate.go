@@ -77,6 +77,55 @@ func (r *resultWrapper) write() {
 	r.mu.Unlock()
 }
 
+const (
+	eventSecurity = "security"
+	eventChanges  = "changes"
+	eventChange   = "change"
+	eventRevsDiff = "revsdiff"
+	eventDocument = "document"
+)
+
+// ReplicationEvent is an event emitted by the Replicate function, which
+// represents a single read or write event, and its status.
+type ReplicationEvent struct {
+	// Type is the event type. Options are:
+	//
+	// - "security" -- Relates to the _security document.
+	// - "changes"  -- Relates to the changes feed.
+	// - "change"   -- Relates to a single change.
+	// - "revsdiff" -- Relates to reading the revs diff.
+	// - "document" -- Relates to a specific document.
+	Type string
+	// Read is true if the event relates to a read operation.
+	Read bool
+	// DocID is the relevant document ID, if any.
+	DocID string
+	// Error is the error associated with the event, if any.
+	Error error
+}
+
+// EventCallback is a function that receives replication events.
+type EventCallback func(ReplicationEvent)
+
+// WithEventCallback adds an EventCallback function to the context, which will
+// be used by the Replicate function, to emit events, useful for debugging or
+// logging.
+func WithEventCallback(ctx context.Context, cb EventCallback) context.Context {
+	return context.WithValue(ctx, callbackKey, cb)
+}
+
+func callback(ctx context.Context) EventCallback {
+	cb, _ := ctx.Value(callbackKey).(EventCallback)
+	if cb == nil {
+		cb = func(ReplicationEvent) {}
+	}
+	return cb
+}
+
+type contextKey struct{ name string }
+
+var callbackKey = &contextKey{"event_callback"}
+
 // Replicate performs a replication from source to target, using a limited
 // version of the CouchDB replication protocol.
 //
@@ -99,8 +148,10 @@ func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.O
 		result.EndTime = time.Now()
 	}()
 	opts := mergeOptions(options...)
+	cb := callback(ctx)
+
 	if _, sec := opts["copy_security"].(bool); sec {
-		if err := copySecurity(ctx, target, source); err != nil {
+		if err := copySecurity(ctx, target, source, cb); err != nil {
 			return result.ReplicationResult, err
 		}
 	}
@@ -108,34 +159,45 @@ func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.O
 	changes := make(chan *change)
 	group.Go(func(ctx context.Context) error {
 		defer close(changes)
-		return readChanges(ctx, source, changes, opts)
+		return readChanges(ctx, source, changes, opts, cb)
 	})
 
 	diffs := make(chan *revDiff)
 	group.Go(func(ctx context.Context) error {
 		defer close(diffs)
-		return readDiffs(ctx, target, changes, diffs)
+		return readDiffs(ctx, target, changes, diffs, cb)
 	})
 
 	docs := make(chan *Document)
 	group.Go(func(ctx context.Context) error {
 		defer close(docs)
-		return readDocs(ctx, source, diffs, docs, result)
+		return readDocs(ctx, source, diffs, docs, result, cb)
 	})
 
 	group.Go(func(ctx context.Context) error {
-		return storeDocs(ctx, target, docs, result)
+		return storeDocs(ctx, target, docs, result, cb)
 	})
 
 	return result.ReplicationResult, group.Wait()
 }
 
-func copySecurity(ctx context.Context, target, source *kivik.DB) error {
+func copySecurity(ctx context.Context, target, source *kivik.DB, cb EventCallback) error {
 	sec, err := source.Security(ctx)
+	cb(ReplicationEvent{
+		Type:  eventSecurity,
+		Read:  true,
+		Error: err,
+	})
 	if err != nil {
 		return fmt.Errorf("read security: %w", err)
 	}
-	if err := target.SetSecurity(ctx, sec); err != nil {
+	err = target.SetSecurity(ctx, sec)
+	cb(ReplicationEvent{
+		Type:  eventSecurity,
+		Read:  false,
+		Error: err,
+	})
+	if err != nil {
 		return fmt.Errorf("set security: %w", err)
 	}
 	return nil
@@ -146,7 +208,7 @@ type change struct {
 	Changes []string
 }
 
-func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, options kivik.Options) error {
+func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, options kivik.Options, cb EventCallback) error {
 	opts := kivik.Options{
 		"feed":  "normal",
 		"style": "all_docs",
@@ -157,6 +219,11 @@ func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, opti
 		}
 	}
 	changes, err := db.Changes(ctx, opts)
+	cb(ReplicationEvent{
+		Type:  eventChanges,
+		Read:  true,
+		Error: err,
+	})
 	if err != nil {
 		return fmt.Errorf("open changes feed: %w", err)
 	}
@@ -167,6 +234,11 @@ func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, opti
 			ID:      changes.ID(),
 			Changes: changes.Changes(),
 		}
+		cb(ReplicationEvent{
+			Type:  eventChange,
+			DocID: changes.ID(),
+			Read:  true,
+		})
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -174,6 +246,11 @@ func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, opti
 		}
 	}
 	if err := changes.Err(); err != nil {
+		cb(ReplicationEvent{
+			Type:  eventChanges,
+			Read:  true,
+			Error: err,
+		})
 		return fmt.Errorf("read changes feed: %w", err)
 	}
 	return nil
@@ -187,7 +264,7 @@ type revDiff struct {
 
 const rdBatchSize = 10
 
-func readDiffs(ctx context.Context, db *kivik.DB, ch <-chan *change, results chan<- *revDiff) error {
+func readDiffs(ctx context.Context, db *kivik.DB, ch <-chan *change, results chan<- *revDiff, cb EventCallback) error {
 	for {
 		revMap := map[string][]string{}
 		var change *change
@@ -212,6 +289,11 @@ func readDiffs(ctx context.Context, db *kivik.DB, ch <-chan *change, results cha
 			return nil
 		}
 		diffs, err := db.RevsDiff(ctx, revMap)
+		cb(ReplicationEvent{
+			Type:  eventRevsDiff,
+			Read:  true,
+			Error: err,
+		})
 		if err != nil {
 			return err
 		}
@@ -219,9 +301,19 @@ func readDiffs(ctx context.Context, db *kivik.DB, ch <-chan *change, results cha
 		for diffs.Next() {
 			var val revDiff
 			if err := diffs.ScanValue(&val); err != nil {
+				cb(ReplicationEvent{
+					Type:  eventRevsDiff,
+					Read:  true,
+					Error: err,
+				})
 				return err
 			}
 			val.ID = diffs.ID()
+			cb(ReplicationEvent{
+				Type:  eventRevsDiff,
+				Read:  true,
+				DocID: val.ID,
+			})
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
@@ -229,12 +321,17 @@ func readDiffs(ctx context.Context, db *kivik.DB, ch <-chan *change, results cha
 			}
 		}
 		if err := diffs.Err(); err != nil {
+			cb(ReplicationEvent{
+				Type:  eventRevsDiff,
+				Read:  true,
+				Error: err,
+			})
 			return fmt.Errorf("read revs diffs: %w", err)
 		}
 	}
 }
 
-func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results chan<- *Document, result *resultWrapper) error {
+func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results chan<- *Document, result *resultWrapper, cb EventCallback) error {
 	for {
 		var rd *revDiff
 		var ok bool
@@ -248,6 +345,12 @@ func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results 
 			for _, rev := range rd.Missing {
 				result.missingChecked()
 				d, err := readDoc(ctx, db, rd.ID, rev)
+				cb(ReplicationEvent{
+					Type:  eventDocument,
+					Read:  true,
+					DocID: rd.ID,
+					Error: err,
+				})
 				if err != nil {
 					return fmt.Errorf("read doc %s: %w", rd.ID, err)
 				}
@@ -322,11 +425,18 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 	return doc, nil
 }
 
-func storeDocs(ctx context.Context, db *kivik.DB, docs <-chan *Document, result *resultWrapper) error {
+func storeDocs(ctx context.Context, db *kivik.DB, docs <-chan *Document, result *resultWrapper, cb EventCallback) error {
 	for doc := range docs {
-		if _, err := db.Put(ctx, doc.ID, doc, kivik.Options{
+		_, err := db.Put(ctx, doc.ID, doc, kivik.Options{
 			"new_edits": false,
-		}); err != nil {
+		})
+		cb(ReplicationEvent{
+			Type:  "document",
+			Read:  false,
+			DocID: doc.ID,
+			Error: err,
+		})
+		if err != nil {
 			result.writeError()
 			return fmt.Errorf("store doc %s: %w", doc.ID, err)
 		}
