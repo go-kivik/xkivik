@@ -114,6 +114,8 @@ type ReplicationEvent struct {
 	DocID string
 	// Error is the error associated with the event, if any.
 	Error error
+	// Changes is the list of changed revs, for a "change" event.
+	Changes []string
 }
 
 // EventCallback is a function that receives replication events.
@@ -247,9 +249,10 @@ func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, opti
 			Changes: changes.Changes(),
 		}
 		cb(ReplicationEvent{
-			Type:  eventChange,
-			DocID: changes.ID(),
-			Read:  true,
+			Type:    eventChange,
+			DocID:   ch.ID,
+			Read:    true,
+			Changes: ch.Changes,
 		})
 		select {
 		case <-ctx.Done():
