@@ -119,6 +119,25 @@ type ReplicationEvent struct {
 // EventCallback is a function that receives replication events.
 type EventCallback func(ReplicationEvent)
 
+// WithEventCallback adds an EventCallback function to the context, which will
+// be used by the Replicate function, to emit events, useful for debugging or
+// logging.
+func WithEventCallback(ctx context.Context, cb EventCallback) context.Context {
+	return context.WithValue(ctx, callbackKey, cb)
+}
+
+func callback(ctx context.Context) EventCallback {
+	cb, _ := ctx.Value(callbackKey).(EventCallback)
+	if cb == nil {
+		cb = func(ReplicationEvent) {}
+	}
+	return cb
+}
+
+type contextKey struct{ name string }
+
+var callbackKey = &contextKey{"event_callback"}
+
 // Replicate performs a replication from source to target, using a limited
 // version of the CouchDB replication protocol.
 //
@@ -131,7 +150,6 @@ type EventCallback func(ReplicationEvent)
 //                            replication. Use with caution! The security object
 //                            is not versioned, and will be unconditionally
 //                            overwritten!
-//     event_callback - A EventCallback function. Useful for debugging.
 func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.Options) (*ReplicationResult, error) {
 	result := &resultWrapper{
 		ReplicationResult: &ReplicationResult{
@@ -142,10 +160,7 @@ func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.O
 		result.EndTime = time.Now()
 	}()
 	opts := mergeOptions(options...)
-	cb, _ := opts["event_callback"].(EventCallback)
-	if cb == nil {
-		cb = func(ReplicationEvent) {}
-	}
+	cb := callback(ctx)
 
 	if _, sec := opts["copy_security"].(bool); sec {
 		if err := copySecurity(ctx, target, source, cb); err != nil {
