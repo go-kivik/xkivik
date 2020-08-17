@@ -68,7 +68,7 @@ dsn: https://admin:abc123@localhost:5984/somedb
 	})
 }
 
-func TestNew(t *testing.T) {
+func TestConfigNew(t *testing.T) {
 	type tt struct {
 		filename string
 		env      map[string]string
@@ -98,10 +98,23 @@ func TestNew(t *testing.T) {
 	tests.Add("file not found", tt{
 		filename: "not found",
 	})
+	tests.Add("invalid env", tt{
+		env: map[string]string{
+			"KOUCHDSN": "http://foo.com/%xxx",
+		},
+		err: `parse "http://foo.com/%xxx": invalid URL escape "%xx"`,
+	})
 	tests.Add("env only", tt{
 		env: map[string]string{
 			"KOUCHDSN": "http://foo.com/",
 		},
+	})
+	tests.Add("invalid yaml", tt{
+		filename: "testdata/invalid.yaml",
+		err:      `yaml: found unexpected end of stream`,
+	})
+	tests.Add("valid yaml", tt{
+		filename: "testdata/valid.yaml",
 	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
