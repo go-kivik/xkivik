@@ -1,5 +1,14 @@
 (*config.Config)({
   Contexts: (map[string]*config.Context) {
   },
-  CurrentContext: (string) ""
+  CurrentContext: (string) "",
+  log: (*log.TestLogger)({
+    mu: (sync.Mutex) {
+      state: (int32) 0,
+      sema: (uint32) 0
+    },
+    logs: ([]string) (len=1) {
+      (string) (len=77) "[DEBUG] failed to read kouchconfig: open not found: no such file or directory"
+    }
+  })
 })

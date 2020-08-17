@@ -17,6 +17,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/spf13/cobra"
 	"gitlab.com/flimzy/testy"
 	"gopkg.in/yaml.v3"
 
@@ -176,5 +177,43 @@ func TestConfig_DSN(t *testing.T) {
 		if got != tt.want {
 			t.Errorf("Unexpected result: %s", got)
 		}
+	})
+}
+
+func TestConfigArgs(t *testing.T) {
+	type tt struct {
+		c    *Config
+		args []string
+		err  string
+	}
+
+	tests := testy.NewTable()
+	tests.Add("no arguments", tt{
+		c: &Config{},
+	})
+	tests.Add("invalid dsn", tt{
+		c:    &Config{},
+		args: []string{"http://localhost:5984/%xxx"},
+		err:  `parse "http://localhost:5984/%xxx": invalid URL escape "%xx"`,
+	})
+	tests.Add("full dsn in args", tt{
+		c:    &Config{},
+		args: []string{"http://localhost:5984/foo/bar"},
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		lg := log.NewTest()
+		c := tt.c
+		c.log = lg
+		if c.Contexts == nil {
+			c.Contexts = make(map[string]*Context)
+		}
+		cmd := &cobra.Command{}
+		err := tt.c.Args(cmd, tt.args)
+		testy.Error(t, tt.err, err)
+		if d := testy.DiffInterface(testy.Snapshot(t), c); d != nil {
+			t.Error(d)
+		}
+		lg.Check(t)
 	})
 }

@@ -7,8 +7,7 @@
       state: (int32) 0,
       sema: (uint32) 0
     },
-    logs: ([]string) (len=1) {
-      (string) (len=37) "[DEBUG] no kouchconfig file specified"
+    logs: ([]string) {
     }
   })
 })

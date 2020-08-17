@@ -18,6 +18,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
@@ -29,6 +30,7 @@ const envPrefix = "KOUCH"
 type Config struct {
 	Contexts       map[string]*Context `yaml:"contexts"`
 	CurrentContext string              `yaml:"current-context"`
+	log            log.Logger
 }
 
 // Context represents a complete, or partial CouchDB DSN context.
@@ -84,59 +86,50 @@ func (c *Context) UnmarshalYAML(v *yaml.Node) error {
 	return nil
 }
 
+func newConf(lg log.Logger) *Config {
+	return &Config{
+		Contexts: make(map[string]*Context),
+		log:      lg,
+	}
+}
+
 // New returns app configuration.
 //
 // - Reads from filename
 // - If DSN env variable is set, it's added as context called 'ENV' and made current
 func New(filename string, lg log.Logger) (*Config, error) {
-	cf, err := readYAML(filename, lg)
-	if err != nil {
+	c := newConf(lg)
+	if err := c.readYAML(filename); err != nil {
 		return nil, err
 	}
 	if dsn := os.Getenv(envPrefix + "DSN"); dsn != "" {
-		uri, err := url.Parse(dsn)
-		if err != nil {
+		if err := c.setDefaultDSN(dsn); err != nil {
 			return nil, err
 		}
-		var user, password string
-		if u := uri.User; u != nil {
-			user = u.Username()
-			password, _ = u.Password()
-		}
-		cf.Contexts["ENV"] = &Context{
-			Scheme:   uri.Scheme,
-			Host:     uri.Host,
-			User:     user,
-			Password: password,
-			Database: uri.Path,
-		}
-		cf.CurrentContext = "ENV"
+		lg.Debug("set default DSN from environment")
 	}
-	return cf, nil
+	return c, nil
 }
 
-func readYAML(filename string, lg log.Logger) (*Config, error) {
-	cf := &Config{
-		Contexts: make(map[string]*Context),
-	}
+func (c *Config) readYAML(filename string) error {
 	if filename == "" {
-		lg.Debug("no kouchconfig file specified")
-		return cf, nil
+		c.log.Debug("no kouchconfig file specified")
+		return nil
 	}
 	f, err := os.Open(filename)
 	if err != nil {
-		lg.Debugf("failed to read kouchconfig: %s", err)
+		c.log.Debugf("failed to read kouchconfig: %s", err)
 		if os.IsNotExist(err) {
 			err = nil
 		}
-		return cf, err
+		return err
 	}
-	if err := yaml.NewDecoder(f).Decode(cf); err != nil {
-		lg.Debugf("YAML parse error: %s", err)
-		return nil, err
+	if err := yaml.NewDecoder(f).Decode(c); err != nil {
+		c.log.Debugf("YAML parse error: %s", err)
+		return err
 	}
-	lg.Debugf("successfully read kouchconfig file %q", filename)
-	return cf, nil
+	c.log.Debugf("successfully read kouchconfig file %q", filename)
+	return nil
 }
 
 func (c *Config) DSN() (string, error) {
@@ -153,4 +146,38 @@ func (c *Config) DSN() (string, error) {
 		return "", fmt.Errorf("context %q not found", c.CurrentContext)
 	}
 	return cx.DSN(), nil
+}
+
+// Config sets config from the cobra command.
+func (c *Config) Args(_ *cobra.Command, args []string) error {
+	if len(args) > 0 {
+		if err := c.setDefaultDSN(args[0]); err != nil {
+			return err
+		}
+		c.log.Debug("set default DSN from command line arguments")
+	}
+	return nil
+}
+
+// setDefaultDSN sets the default DSN. It's meant to be used when setting from
+// the environment, or CLI.
+func (c *Config) setDefaultDSN(dsn string) error {
+	uri, err := url.Parse(dsn)
+	if err != nil {
+		return err
+	}
+	var user, password string
+	if u := uri.User; u != nil {
+		user = u.Username()
+		password, _ = u.Password()
+	}
+	c.Contexts["*"] = &Context{
+		Scheme:   uri.Scheme,
+		Host:     uri.Host,
+		User:     user,
+		Password: password,
+		Database: uri.Path,
+	}
+	c.CurrentContext = "*"
+	return nil
 }

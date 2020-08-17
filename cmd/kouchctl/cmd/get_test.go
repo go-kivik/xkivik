@@ -25,6 +25,9 @@ func Test_get_RunE(t *testing.T) {
 		args: []string{"get"},
 		err:  "no document specified to get",
 	})
+	tests.Add("full url on command line", cmdTest{
+		args: []string{"-d", "get", "http://localhost:1/foo/bar"},
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		cmd := rootCmd()

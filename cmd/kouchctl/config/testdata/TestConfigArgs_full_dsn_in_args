@@ -2,10 +2,10 @@
   Contexts: (map[string]*config.Context) (len=1) {
     (string) (len=1) "*": (*config.Context)({
       Scheme: (string) (len=4) "http",
-      Host: (string) (len=7) "foo.com",
+      Host: (string) (len=14) "localhost:5984",
       User: (string) "",
       Password: (string) "",
-      Database: (string) (len=1) "/"
+      Database: (string) (len=8) "/foo/bar"
     })
   },
   CurrentContext: (string) (len=1) "*",
@@ -14,9 +14,8 @@
       state: (int32) 0,
       sema: (uint32) 0
     },
-    logs: ([]string) (len=2) {
-      (string) (len=37) "[DEBUG] no kouchconfig file specified",
-      (string) (len=40) "[DEBUG] set default DSN from environment"
+    logs: ([]string) (len=1) {
+      (string) (len=51) "[DEBUG] set default DSN from command line arguments"
     }
   })
 })
