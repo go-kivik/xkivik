@@ -22,11 +22,12 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/flimzy/testy"
+
 	_ "github.com/go-kivik/couchdb/v4" // CouchDB driver
 	_ "github.com/go-kivik/fsdb/v4"    // Filesystem driver
 	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/kiviktest/v4/kt"
-	"gitlab.com/flimzy/testy"
 )
 
 func TestReplicate_live(t *testing.T) {
@@ -313,7 +314,41 @@ func TestReplicate_live(t *testing.T) {
 			},
 		}
 	})
+	tests.Add("fs to couch with deleted document", func(t *testing.T) interface{} {
+		fsclient, err := kivik.New("fs", "testdata/")
+		if err != nil {
+			t.Fatal(err)
+		}
+		dsn := kt.DSN(t)
+		client, err := kivik.New("couch", dsn)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ctx := context.Background()
+		source := fsclient.DB(ctx, "dbdelete")
+		targetName := kt.TestDBName(t)
+		if err := client.CreateDB(ctx, targetName); err != nil {
+			t.Fatal(err)
+		}
+		tests.Cleanup(func() {
+			_ = client.DestroyDB(ctx, targetName)
+		})
+		target := client.DB(ctx, targetName)
+		if _, err := target.Put(ctx, "foo", map[string]string{"still": "here"}); err != nil {
+			t.Fatal(err)
+		}
 
+		return tt{
+			source: source,
+			target: target,
+			result: &ReplicationResult{
+				DocsRead:       1,
+				DocsWritten:    1,
+				MissingChecked: 1,
+				MissingFound:   1,
+			},
+		}
+	})
 	tests.Run(t, func(t *testing.T, tt tt) {
 		ctx := context.TODO()
 		result, err := Replicate(ctx, tt.target, tt.source, tt.options)
