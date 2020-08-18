@@ -1,4 +1,4 @@
-[![Codecov](https://img.shields.io/codecov/c/github/go-kivik/xkivik.svg?style=flat)](https://codecov.io/gh/go-kivik/xkivik) [![GoDoc](https://godoc.org/github.com/go-kivik/xkivik?status.svg)](http://godoc.org/github.com/go-kivik/xkivik)
+[![Codecov](https://img.shields.io/codecov/c/github/go-kivik/xkivik.svg?style=flat)](https://codecov.io/gh/go-kivik/xkivik) [![GoDoc](https://godoc.org/github.com/go-kivik/xkivik?status.svg)](https://pkg.go.dev/github.com/go-kivik/xkivik/v4)
 
 # xKivik
 
