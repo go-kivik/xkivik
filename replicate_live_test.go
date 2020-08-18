@@ -355,10 +355,18 @@ func TestReplicate_live(t *testing.T) {
 func verifyDoc(ctx context.Context, t *testing.T, target, source *kivik.DB, docID string) {
 	t.Helper()
 	var targetDoc, sourceDoc interface{}
+	notFound := false
 	if err := source.Get(ctx, docID).ScanDoc(&sourceDoc); err != nil {
-		t.Fatalf("get %s from source failed: %s", docID, err)
+		if kivik.StatusCode(err) == http.StatusNotFound {
+			notFound = true
+		} else {
+			t.Fatalf("get %s from source failed: %s", docID, err)
+		}
 	}
 	if err := target.Get(ctx, docID).ScanDoc(&targetDoc); err != nil {
+		if notFound && kivik.StatusCode(err) == http.StatusNotFound {
+			return
+		}
 		t.Fatalf("get %s from target failed: %s", docID, err)
 	}
 	if d := testy.DiffAsJSON(sourceDoc, targetDoc); d != nil {
