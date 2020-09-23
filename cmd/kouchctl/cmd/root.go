@@ -44,13 +44,16 @@ func Execute(ctx context.Context) {
 }
 
 func rootCmd() *cobra.Command {
-	r := &root{}
+	r := &root{
+		log: log.New(),
+	}
 
 	cmd := &cobra.Command{
-		Use:   "kouchctl",
-		Short: "kouchctl facilitates controlling CouchDB instances",
-		Long:  `This tool makes it easier to administrate and interact with CouchDB's HTTP API`,
-		RunE:  r.RunE,
+		Use:              "kouchctl",
+		Short:            "kouchctl facilitates controlling CouchDB instances",
+		Long:             `This tool makes it easier to administrate and interact with CouchDB's HTTP API`,
+		PersistentPreRun: r.setLogger,
+		RunE:             r.RunE,
 	}
 
 	pf := cmd.PersistentFlags()
@@ -58,13 +61,18 @@ func rootCmd() *cobra.Command {
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
 
-	cmd.AddCommand(getCmd())
+	cmd.AddCommand(getCmd(r.log))
 
 	return cmd
 }
 
+func (r *root) setLogger(cmd *cobra.Command, _ []string) {
+	r.log.SetOut(cmd.OutOrStdout())
+	r.log.SetErr(cmd.ErrOrStderr())
+}
+
 func (r *root) RunE(cmd *cobra.Command, args []string) error {
-	r.log = log.New(cmd.OutOrStdout(), cmd.ErrOrStderr())
+	// r.log = log.New(cmd.OutOrStdout(), cmd.ErrOrStderr())
 	r.log.Debug("Debug mode enabled")
 
 	conf, err := config.New(r.confFile, r.log)

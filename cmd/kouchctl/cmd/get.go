@@ -15,13 +15,18 @@ package cmd
 import (
 	"errors"
 
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 	"github.com/spf13/cobra"
 )
 
-type get struct{}
+type get struct {
+	log log.Logger
+}
 
-func getCmd() *cobra.Command {
-	g := &get{}
+func getCmd(lg log.Logger) *cobra.Command {
+	g := &get{
+		log: lg,
+	}
 	return &cobra.Command{
 		Use:   "get",
 		Short: "get a document",

@@ -12,6 +12,8 @@
 
 package log
 
+import "io"
+
 type nilLogger struct{}
 
 var _ Logger = nilLogger{}
@@ -19,5 +21,7 @@ var _ Logger = nilLogger{}
 // NewNil returns a new nil logger. All logs are silently discarded.
 func NewNil() Logger { return nilLogger{} }
 
+func (nilLogger) SetOut(io.Writer)              {}
+func (nilLogger) SetErr(io.Writer)              {}
 func (nilLogger) Debug(...interface{})          {}
 func (nilLogger) Debugf(string, ...interface{}) {}

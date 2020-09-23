@@ -14,6 +14,7 @@ package log
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"sync"
 	"testing"
@@ -45,6 +46,9 @@ func (l *TestLogger) log(level, line string) {
 		strings.TrimSpace(line),
 	))
 }
+
+func (*TestLogger) SetOut(io.Writer) {}
+func (*TestLogger) SetErr(io.Writer) {}
 
 func (l *TestLogger) Debug(args ...interface{}) {
 	l.log("DEBUG", fmt.Sprint(args...))

@@ -15,11 +15,19 @@ package log
 import (
 	"fmt"
 	"io"
+	"os"
 	"strings"
 )
 
+// Logger is the standard logger interface.
 type Logger interface {
+	// SetOut sets the destination for normal output.
+	SetOut(io.Writer)
+	// SetErr sets the destination for error output.
+	SetErr(io.Writer)
+	// Debug logs debug output.
 	Debug(...interface{})
+	// Debug logs formatted debug output.
 	Debugf(string, ...interface{})
 }
 
@@ -30,12 +38,15 @@ type logger struct {
 
 var _ Logger = &logger{}
 
-func New(out, err io.Writer) Logger {
+func New() Logger {
 	return &logger{
-		stdout: out,
-		stderr: err,
+		stdout: os.Stdout,
+		stderr: os.Stderr,
 	}
 }
+
+func (l *logger) SetOut(out io.Writer) { l.stdout = out }
+func (l *logger) SetErr(err io.Writer) { l.stderr = err }
 
 func (l *logger) err(line string) {
 	fmt.Fprintln(l.stderr, strings.TrimSpace(line))
