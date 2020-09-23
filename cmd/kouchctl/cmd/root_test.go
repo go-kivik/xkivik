@@ -53,14 +53,20 @@ type cmdTest struct {
 	args  []string
 	stdin string
 	err   string
+	cmd   *cobra.Command
 }
 
 func testCmd(t *testing.T, cmd *cobra.Command, tt cmdTest) {
+	tt.cmd = cmd
+	tt.Test(t)
+}
+
+func (tt *cmdTest) Test(t *testing.T) {
 	t.Helper()
-	cmd.SetArgs(tt.args)
+	tt.cmd.SetArgs(tt.args)
 	var err error
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
-		err = cmd.Execute()
+		err = tt.cmd.Execute()
 	})
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout); d != nil {
 		t.Errorf("STDOUT: %s", d)
