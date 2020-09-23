@@ -71,6 +71,7 @@ func rootCmd() *cobra.Command {
 func (r *root) init(cmd *cobra.Command, _ []string) error {
 	r.log.SetOut(cmd.OutOrStdout())
 	r.log.SetErr(cmd.ErrOrStderr())
+	r.log.SetDebug(r.debug)
 
 	r.log.Debug("Debug mode enabled")
 	return r.conf.Read(r.confFile, r.log)

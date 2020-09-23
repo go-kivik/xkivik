@@ -23,5 +23,6 @@ func NewNil() Logger { return nilLogger{} }
 
 func (nilLogger) SetOut(io.Writer)              {}
 func (nilLogger) SetErr(io.Writer)              {}
+func (nilLogger) SetDebug(bool)                 {}
 func (nilLogger) Debug(...interface{})          {}
 func (nilLogger) Debugf(string, ...interface{}) {}

@@ -25,6 +25,8 @@ type Logger interface {
 	SetOut(io.Writer)
 	// SetErr sets the destination for error output.
 	SetErr(io.Writer)
+	// SetDebug turns debug mode on or off.
+	SetDebug(bool)
 	// Debug logs debug output.
 	Debug(...interface{})
 	// Debug logs formatted debug output.
@@ -34,6 +36,7 @@ type Logger interface {
 type logger struct {
 	stdout io.Writer
 	stderr io.Writer
+	debug  bool
 }
 
 var _ Logger = &logger{}
@@ -47,6 +50,7 @@ func New() Logger {
 
 func (l *logger) SetOut(out io.Writer) { l.stdout = out }
 func (l *logger) SetErr(err io.Writer) { l.stderr = err }
+func (l *logger) SetDebug(debug bool)  { l.debug = debug }
 
 func (l *logger) err(line string) {
 	fmt.Fprintln(l.stderr, strings.TrimSpace(line))
@@ -57,9 +61,13 @@ func (l *logger) err(line string) {
 // }
 
 func (l *logger) Debug(args ...interface{}) {
-	l.err(fmt.Sprint(args...))
+	if l.debug {
+		l.err(fmt.Sprint(args...))
+	}
 }
 
 func (l *logger) Debugf(format string, args ...interface{}) {
-	l.err(fmt.Sprintf(format, args...))
+	if l.debug {
+		l.err(fmt.Sprintf(format, args...))
+	}
 }

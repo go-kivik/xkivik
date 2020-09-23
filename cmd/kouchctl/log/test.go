@@ -49,6 +49,7 @@ func (l *TestLogger) log(level, line string) {
 
 func (*TestLogger) SetOut(io.Writer) {}
 func (*TestLogger) SetErr(io.Writer) {}
+func (*TestLogger) SetDebug(bool)    {}
 
 func (l *TestLogger) Debug(args ...interface{}) {
 	l.log("DEBUG", fmt.Sprint(args...))
