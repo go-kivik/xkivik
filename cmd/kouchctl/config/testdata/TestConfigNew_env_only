@@ -5,7 +5,8 @@
       Host: (string) (len=7) "foo.com",
       User: (string) "",
       Password: (string) "",
-      Database: (string) (len=1) "/"
+      Database: (string) (len=1) "/",
+      DocID: (string) (len=1) "/"
     })
   },
   CurrentContext: (string) (len=1) "*",

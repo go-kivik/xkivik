@@ -3,8 +3,8 @@
     (string) (len=1) "*": (*config.Context)({
       Scheme: (string) (len=4) "http",
       Host: (string) (len=14) "localhost:5984",
-      User: (string) "",
-      Password: (string) "",
+      User: (string) (len=5) "admin",
+      Password: (string) (len=6) "abc123",
       Database: (string) (len=4) "/foo",
       DocID: (string) (len=3) "bar"
     })
@@ -15,8 +15,7 @@
       state: (int32) 0,
       sema: (uint32) 0
     },
-    logs: ([]string) (len=1) {
-      (string) (len=51) "[DEBUG] set default DSN from command line arguments"
+    logs: ([]string) {
     }
   })
 })

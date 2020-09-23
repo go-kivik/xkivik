@@ -231,3 +231,70 @@ func TestConfigArgs(t *testing.T) {
 		lg.Check(t)
 	})
 }
+
+func TestConfig_SetURL(t *testing.T) {
+	type tt struct {
+		cf  *Config
+		url string
+		err string
+	}
+
+	tests := testy.NewTable()
+	tests.Add("empty url", tt{
+		cf:  New(),
+		url: "",
+	})
+	tests.Add("full dsn, empty config", tt{
+		cf:  New(),
+		url: "http://admin:abc123@localhost:5984/foo/bar",
+	})
+	tests.Add("db/doc, empty config", tt{
+		cf:  New(),
+		url: "foo/bar",
+	})
+	tests.Add("doc only, empty config", tt{
+		cf:  New(),
+		url: "bar",
+	})
+	tests.Add("db/doc, with config", tt{
+		cf: &Config{
+			Contexts: map[string]*Context{
+				"foo": {
+					Scheme:   "http",
+					Host:     "localhost:5984",
+					User:     "admin",
+					Password: "abc123",
+					Database: "_users",
+				},
+			},
+			CurrentContext: "foo",
+		},
+		url: "foo/bar",
+	})
+	tests.Add("doc, with config", tt{
+		cf: &Config{
+			Contexts: map[string]*Context{
+				"foo": {
+					Scheme:   "http",
+					Host:     "localhost:5984",
+					User:     "admin",
+					Password: "abc123",
+					Database: "_users",
+				},
+			},
+			CurrentContext: "foo",
+		},
+		url: "bar",
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		tl := log.NewTest()
+		tt.cf.log = tl
+		err := tt.cf.SetURL(tt.url)
+		testy.Error(t, tt.err, err)
+		if d := testy.DiffInterface(testy.Snapshot(t), tt.cf); d != nil {
+			t.Error(d)
+		}
+		tl.Check(t)
+	})
+}

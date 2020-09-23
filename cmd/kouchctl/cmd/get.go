@@ -18,9 +18,10 @@ import (
 	"path"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
-	"github.com/spf13/cobra"
 )
 
 type get struct {

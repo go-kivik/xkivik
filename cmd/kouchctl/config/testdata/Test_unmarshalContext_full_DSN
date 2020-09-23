@@ -3,5 +3,6 @@
   Host: (string) (len=14) "localhost:5984",
   User: (string) (len=5) "admin",
   Password: (string) (len=6) "abc123",
-  Database: (string) (len=7) "/somedb"
+  Database: (string) (len=7) "/somedb",
+  DocID: (string) ""
 })

@@ -17,6 +17,8 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -40,6 +42,7 @@ type Context struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	Database string `yaml:"database"`
+	DocID    string `yaml:"-"`
 }
 
 func (c *Context) DSN() string {
@@ -132,18 +135,26 @@ func (c *Config) readYAML(filename string) error {
 	return nil
 }
 
-func (c *Config) DSN() (string, error) {
+func (c *Config) currentCx() (*Context, error) {
 	if c.CurrentContext == "" {
 		if len(c.Contexts) == 1 {
 			for _, cx := range c.Contexts {
-				return cx.DSN(), nil
+				return cx, nil
 			}
 		}
-		return "", errors.New("no context specified")
+		return nil, errors.New("no context specified")
 	}
 	cx, ok := c.Contexts[c.CurrentContext]
 	if !ok {
-		return "", fmt.Errorf("context %q not found", c.CurrentContext)
+		return nil, fmt.Errorf("context %q not found", c.CurrentContext)
+	}
+	return cx, nil
+}
+
+func (c *Config) DSN() (string, error) {
+	cx, err := c.currentCx()
+	if err != nil {
+		return "", err
 	}
 	return cx.DSN(), nil
 }
@@ -162,22 +173,75 @@ func (c *Config) Args(_ *cobra.Command, args []string) error {
 // setDefaultDSN sets the default DSN. It's meant to be used when setting from
 // the environment, or CLI.
 func (c *Config) setDefaultDSN(dsn string) error {
-	uri, err := url.Parse(dsn)
+	cx, err := cxFromDSN(dsn)
 	if err != nil {
 		return err
+	}
+	c.Contexts["*"] = cx
+	c.CurrentContext = "*"
+	return nil
+}
+
+func cxFromDSN(dsn string) (*Context, error) {
+	uri, err := url.Parse(dsn)
+	if err != nil {
+		return nil, err
 	}
 	var user, password string
 	if u := uri.User; u != nil {
 		user = u.Username()
 		password, _ = u.Password()
 	}
-	c.Contexts["*"] = &Context{
+	db := uri.Path
+	var docid string
+	if strings.Contains(db, "/") {
+		docid = path.Base(db)
+		db = path.Dir(db)
+	}
+	// If we have no hostname, and no docid, that means we really got only a
+	// docid, so we need to adjust...
+	if uri.Host == "" && docid == "" {
+		docid = db
+		db = ""
+	}
+	return &Context{
 		Scheme:   uri.Scheme,
 		Host:     uri.Host,
 		User:     user,
 		Password: password,
-		Database: uri.Path,
+		Database: db,
+		DocID:    docid,
+	}, nil
+}
+
+// SetURL sets the current context based on a URL argument passed on the
+// command line.
+//
+// Supported formats and examples:
+//
+// - Full DSN    -- http://localhost:5984/database/docid
+// - Path only   -- /database/docid
+// - Doc ID only -- docid
+func (c *Config) SetURL(dsn string) error {
+	if dsn == "" {
+		return nil
 	}
+	cx, err := cxFromDSN(dsn)
+	if err != nil {
+		return err
+	}
+	curCx, _ := c.currentCx()
+	if cx.Host == "" && curCx != nil {
+		c.log.Debugf("Incomplete DSN provided: %q, merging with current context", dsn)
+		cx.Scheme = curCx.Scheme
+		cx.Host = curCx.Host
+		cx.User = curCx.User
+		cx.Password = curCx.Password
+		if cx.Database == "" {
+			cx.Database = curCx.Database
+		}
+	}
+	c.Contexts["*"] = cx
 	c.CurrentContext = "*"
 	return nil
 }
