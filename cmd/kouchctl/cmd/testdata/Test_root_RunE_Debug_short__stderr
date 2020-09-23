@@ -8,6 +8,7 @@ Usage:
 Available Commands:
   get         get a document
   help        Help about any command
+  ping        Ping a server
 
 Flags:
   -d, --debug                Enable debug output

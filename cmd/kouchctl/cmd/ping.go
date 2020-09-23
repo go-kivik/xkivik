@@ -19,29 +19,30 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
-type get struct {
+type ping struct {
 	log  log.Logger
 	conf *config.Config
 }
 
-func getCmd(lg log.Logger, conf *config.Config) *cobra.Command {
-	g := &get{
+func pingCmd(lg log.Logger, conf *config.Config) *cobra.Command {
+	c := &ping{
 		log:  lg,
 		conf: conf,
 	}
+
 	return &cobra.Command{
-		Use:   "get [dsn]",
-		Short: "get a document",
-		Long:  `Fetch a document with the HTTP GET verb`,
-		RunE:  g.RunE,
+		Use:   "ping [dsn]",
+		Short: "Ping a server",
+		Long:  "Ping a server's /_up endpoint to determine availability to serve requests",
+		RunE:  c.RunE,
 	}
 }
 
-func (c *get) RunE(cmd *cobra.Command, _ []string) error {
-	dsn, err := c.conf.DSN()
+func (c *ping) RunE(cmd *cobra.Command, args []string) error {
+	dsn, err := c.conf.ServerDSN()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch document: %q", dsn)
+	c.log.Debugf("[ping] Will ping server: %q", dsn)
 	return nil
 }

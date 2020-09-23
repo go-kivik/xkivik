@@ -49,17 +49,27 @@ func (c *Context) String() string {
 	return c.DSN()
 }
 
-func (c *Context) DSN() string {
+func (c *Context) dsn() *url.URL {
 	var user *url.Userinfo
 	if c.User != "" || c.Password != "" {
 		user = url.UserPassword(c.User, c.Password)
 	}
-	dsn := &url.URL{
+	return &url.URL{
 		Scheme: c.Scheme,
 		Host:   c.Host,
 		Path:   path.Join(c.Database, c.DocID),
 		User:   user,
 	}
+}
+
+func (c *Context) DSN() string {
+	return c.dsn().String()
+}
+
+// ServerDSN returns just the server DSN, with no database or docid.
+func (c *Context) ServerDSN() string {
+	dsn := c.dsn()
+	dsn.Path = ""
 	return dsn.String()
 }
 
@@ -165,6 +175,18 @@ func (c *Config) DSN() (string, error) {
 		return "", err
 	}
 	return cx.DSN(), nil
+}
+
+func (c *Config) ServerDSN() (string, error) {
+	cx, err := c.currentCx()
+	if err != nil {
+		return "", err
+	}
+	dsn := cx.ServerDSN()
+	if dsn == "" {
+		return "", errors.New("server hostname required")
+	}
+	return dsn, nil
 }
 
 // Config sets config from the cobra command.

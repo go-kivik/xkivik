@@ -64,6 +64,7 @@ func rootCmd() *cobra.Command {
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
 
 	cmd.AddCommand(getCmd(r.log, r.conf))
+	cmd.AddCommand(pingCmd(r.log, r.conf))
 
 	return cmd
 }

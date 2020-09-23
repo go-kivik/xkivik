@@ -1,9 +1,9 @@
-Error: no context specified
+Error: server hostname required
 Usage:
-  kouchctl get [dsn] [flags]
+  kouchctl ping [dsn] [flags]
 
 Flags:
-  -h, --help   help for get
+  -h, --help   help for ping
 
 Global Flags:
   -d, --debug                Enable debug output
