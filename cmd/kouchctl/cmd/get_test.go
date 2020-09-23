@@ -32,6 +32,12 @@ func Test_get_RunE(t *testing.T) {
 	tests.Add("full url on command line", cmdTest{
 		args: []string{"-d", "get", "http://localhost:1/foo/bar"},
 	})
+	tests.Add("path only on command line", cmdTest{
+		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "get", "/foo/bar"},
+	})
+	tests.Add("document only on command line", cmdTest{
+		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "get", "bar"},
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		cmd := rootCmd()

@@ -120,7 +120,8 @@ func TestConfigNew(t *testing.T) {
 	tests.Run(t, func(t *testing.T, tt tt) {
 		testEnv(t, tt.env)
 		l := log.NewTest()
-		cf, err := New(tt.filename, l)
+		cf := New()
+		err := cf.Read(tt.filename, l)
 		testy.Error(t, tt.err, err)
 		if d := testy.DiffInterface(testy.Snapshot(t), cf); d != nil {
 			t.Error(d)

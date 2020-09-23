@@ -27,6 +27,7 @@ type root struct {
 	confFile string
 	debug    bool
 	log      log.Logger
+	conf     *config.Config
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -45,15 +46,16 @@ func Execute(ctx context.Context) {
 
 func rootCmd() *cobra.Command {
 	r := &root{
-		log: log.New(),
+		log:  log.New(),
+		conf: config.New(),
 	}
 
 	cmd := &cobra.Command{
-		Use:              "kouchctl",
-		Short:            "kouchctl facilitates controlling CouchDB instances",
-		Long:             `This tool makes it easier to administrate and interact with CouchDB's HTTP API`,
-		PersistentPreRun: r.setLogger,
-		RunE:             r.RunE,
+		Use:               "kouchctl",
+		Short:             "kouchctl facilitates controlling CouchDB instances",
+		Long:              `This tool makes it easier to administrate and interact with CouchDB's HTTP API`,
+		PersistentPreRunE: r.init,
+		RunE:              r.RunE,
 	}
 
 	pf := cmd.PersistentFlags()
@@ -61,29 +63,25 @@ func rootCmd() *cobra.Command {
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
 
-	cmd.AddCommand(getCmd(r.log))
+	cmd.AddCommand(getCmd(r.log, r.conf))
 
 	return cmd
 }
 
-func (r *root) setLogger(cmd *cobra.Command, _ []string) {
+func (r *root) init(cmd *cobra.Command, _ []string) error {
 	r.log.SetOut(cmd.OutOrStdout())
 	r.log.SetErr(cmd.ErrOrStderr())
+
+	r.log.Debug("Debug mode enabled")
+	return r.conf.Read(r.confFile, r.log)
 }
 
 func (r *root) RunE(cmd *cobra.Command, args []string) error {
-	// r.log = log.New(cmd.OutOrStdout(), cmd.ErrOrStderr())
-	r.log.Debug("Debug mode enabled")
-
-	conf, err := config.New(r.confFile, r.log)
+	cx, err := r.conf.DSN()
 	if err != nil {
 		return err
 	}
-	cx, err := conf.DSN()
-	if err != nil {
-		return err
-	}
-	r.log.Debugf("DSN: %s from %q", cx, conf.CurrentContext)
+	r.log.Debugf("DSN: %s from %q", cx, r.conf.CurrentContext)
 
 	return nil
 }

@@ -86,29 +86,29 @@ func (c *Context) UnmarshalYAML(v *yaml.Node) error {
 	return nil
 }
 
-func newConf(lg log.Logger) *Config {
+// New returns an empty configuration object. Call Read() to populate it.
+func New() *Config {
 	return &Config{
 		Contexts: make(map[string]*Context),
-		log:      lg,
 	}
 }
 
-// New returns app configuration.
+// Read populates c with app configuration found in filename.
 //
 // - Reads from filename
 // - If DSN env variable is set, it's added as context called 'ENV' and made current
-func New(filename string, lg log.Logger) (*Config, error) {
-	c := newConf(lg)
+func (c *Config) Read(filename string, lg log.Logger) error {
+	c.log = lg
 	if err := c.readYAML(filename); err != nil {
-		return nil, err
+		return err
 	}
 	if dsn := os.Getenv(envPrefix + "DSN"); dsn != "" {
 		if err := c.setDefaultDSN(dsn); err != nil {
-			return nil, err
+			return err
 		}
 		lg.Debug("set default DSN from environment")
 	}
-	return c, nil
+	return nil
 }
 
 func (c *Config) readYAML(filename string) error {
