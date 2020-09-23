@@ -1,4 +1,4 @@
-Error: no document specified to get
+Error: no context specified
 Usage:
   kouchctl get [flags]
 

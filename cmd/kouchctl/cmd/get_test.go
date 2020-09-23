@@ -23,7 +23,7 @@ func Test_get_RunE(t *testing.T) {
 
 	tests.Add("missing document", cmdTest{
 		args: []string{"get"},
-		err:  "no document specified to get",
+		err:  "no context specified",
 	})
 	tests.Add("invalid URL on command line", cmdTest{
 		args: []string{"-d", "get", "http://localhost:1/foo/bar/%xxx"},

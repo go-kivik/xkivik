@@ -1,3 +1,4 @@
 Debug mode enabled
 successfully read kouchconfig file "./testdata/localhost.yaml"
-[get] Will fetch document: "http://localhost:5984/_users/bar"
+Incomplete DSN provided: "bar", merging with current context: "http://admin:abc123@localhost:5984/_users"
+[get] Will fetch document: "http://admin:abc123@localhost:5984/_users/bar"

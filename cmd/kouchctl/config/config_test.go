@@ -292,9 +292,10 @@ func TestConfig_SetURL(t *testing.T) {
 		tt.cf.log = tl
 		err := tt.cf.SetURL(tt.url)
 		testy.Error(t, tt.err, err)
+		tl.Check(t)
+		tt.cf.log = nil
 		if d := testy.DiffInterface(testy.Snapshot(t), tt.cf); d != nil {
 			t.Error(d)
 		}
-		tl.Check(t)
 	})
 }

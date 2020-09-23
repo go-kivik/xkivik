@@ -45,12 +45,20 @@ type Context struct {
 	DocID    string `yaml:"-"`
 }
 
+func (c *Context) String() string {
+	return c.DSN()
+}
+
 func (c *Context) DSN() string {
+	var user *url.Userinfo
+	if c.User != "" || c.Password != "" {
+		user = url.UserPassword(c.User, c.Password)
+	}
 	dsn := &url.URL{
 		Scheme: c.Scheme,
 		Host:   c.Host,
-		Path:   c.Database,
-		User:   url.UserPassword(c.User, c.Password),
+		Path:   path.Join(c.Database, c.DocID),
+		User:   user,
 	}
 	return dsn.String()
 }
@@ -232,7 +240,7 @@ func (c *Config) SetURL(dsn string) error {
 	}
 	curCx, _ := c.currentCx()
 	if cx.Host == "" && curCx != nil {
-		c.log.Debugf("Incomplete DSN provided: %q, merging with current context", dsn)
+		c.log.Debugf("Incomplete DSN provided: %q, merging with current context: %q", dsn, curCx)
 		cx.Scheme = curCx.Scheme
 		cx.Host = curCx.Host
 		cx.User = curCx.User

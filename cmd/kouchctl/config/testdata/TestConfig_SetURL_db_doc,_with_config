@@ -18,13 +18,5 @@
     })
   },
   CurrentContext: (string) (len=1) "*",
-  log: (*log.TestLogger)({
-    mu: (sync.Mutex) {
-      state: (int32) 0,
-      sema: (uint32) 0
-    },
-    logs: ([]string) (len=1) {
-      (string) (len=72) "[DEBUG] Incomplete DSN provided: \"foo/bar\", merging with current context"
-    }
-  })
+  log: (log.Logger) <nil>
 })

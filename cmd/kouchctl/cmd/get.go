@@ -13,11 +13,6 @@
 package cmd
 
 import (
-	"errors"
-	"net/url"
-	"path"
-	"strings"
-
 	"github.com/spf13/cobra"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
@@ -42,25 +37,10 @@ func getCmd(lg log.Logger, conf *config.Config) *cobra.Command {
 	}
 }
 
-func (c *get) RunE(cmd *cobra.Command, args []string) error {
-	if len(args) == 0 {
-		return errors.New("no document specified to get")
-	}
-	dsn, err := url.Parse(args[0])
+func (c *get) RunE(cmd *cobra.Command, _ []string) error {
+	dsn, err := c.conf.DSN()
 	if err != nil {
 		return err
-	}
-	if dsn.Host == "" {
-		cx, err := c.conf.DSN()
-		if err != nil {
-			return err
-		}
-		cxDSN, _ := url.Parse(cx)
-		dsn.Scheme = cxDSN.Scheme
-		dsn.Host = cxDSN.Host
-		if !strings.Contains(dsn.Path, "/") {
-			dsn.Path = path.Join(cxDSN.Path, dsn.Path)
-		}
 	}
 	c.log.Debugf("[get] Will fetch document: %q", dsn)
 	return nil

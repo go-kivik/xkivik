@@ -68,13 +68,24 @@ func rootCmd() *cobra.Command {
 	return cmd
 }
 
-func (r *root) init(cmd *cobra.Command, _ []string) error {
+func (r *root) init(cmd *cobra.Command, args []string) error {
 	r.log.SetOut(cmd.OutOrStdout())
 	r.log.SetErr(cmd.ErrOrStderr())
 	r.log.SetDebug(r.debug)
 
 	r.log.Debug("Debug mode enabled")
-	return r.conf.Read(r.confFile, r.log)
+
+	if err := r.conf.Read(r.confFile, r.log); err != nil {
+		return err
+	}
+
+	if len(args) > 0 {
+		if err := r.conf.SetURL(args[0]); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (r *root) RunE(cmd *cobra.Command, args []string) error {
