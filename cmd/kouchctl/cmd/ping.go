@@ -15,6 +15,8 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/go-kivik/kivik/v4"
+
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
@@ -44,5 +46,15 @@ func (c *ping) RunE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	c.log.Debugf("[ping] Will ping server: %q", dsn)
-	return nil
+	client, err := kivik.New("couch", dsn)
+	if err != nil {
+		return err
+	}
+	success, err := client.Ping(cmd.Context())
+	if success {
+		c.log.Debug("[ping] Server is up")
+	} else {
+		c.log.Debug("[ping] Server is not up")
+	}
+	return err
 }

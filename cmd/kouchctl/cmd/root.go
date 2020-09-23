@@ -19,6 +19,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	_ "github.com/go-kivik/couchdb/v4" // CouchDB driver
+
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )

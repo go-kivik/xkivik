@@ -13,6 +13,9 @@
 package cmd
 
 import (
+	"io/ioutil"
+	"net/http"
+	"strings"
 	"testing"
 
 	"gitlab.com/flimzy/testy"
@@ -29,15 +32,31 @@ func Test_ping_RunE(t *testing.T) {
 		args: []string{"-d", "ping", "http://localhost:1/foo/bar/%xxx"},
 		err:  `parse "http://localhost:1/foo/bar/%xxx": invalid URL escape "%xx"`,
 	})
-	tests.Add("full url on command line", cmdTest{
-		args: []string{"-d", "ping", "http://localhost:1/foo/bar"},
+	tests.Add("full url on command line", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+		})
+
+		return cmdTest{
+			args: []string{"ping", s.URL},
+		}
 	})
-	tests.Add("server only on command line", cmdTest{
-		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "ping", "http://localhost:1"},
+	tests.Add("server only on command line", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+		})
+
+		return cmdTest{
+			args: []string{"--kouchconfig", "./testdata/localhost.yaml", "ping", s.URL},
+		}
 	})
 	tests.Add("no server provided", cmdTest{
 		args: []string{"ping", "foo/bar"},
 		err:  "server hostname required",
+	})
+	tests.Add("network error", cmdTest{
+		args: []string{"ping", "http://localhost:9999/"},
+		err:  `Head "http://localhost:9999/_up": dial tcp [::1]:9999: connect: connection refused`,
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
