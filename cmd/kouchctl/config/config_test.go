@@ -13,7 +13,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -68,7 +67,7 @@ dsn: https://admin:abc123@localhost:5984/somedb
 	})
 }
 
-func TestConfigNew(t *testing.T) {
+func TestConfig_Read(t *testing.T) {
 	type tt struct {
 		filename string
 		env      map[string]string
@@ -77,23 +76,13 @@ func TestConfigNew(t *testing.T) {
 
 	tests := testy.NewTable()
 	tests.Add("no config file", tt{})
-	tests.Add("permission deined", func(t *testing.T) interface{} {
-		f, err := ioutil.TempFile("", "")
-		if err != nil {
-			t.Fatal(err)
-		}
-		_ = f.Close()
-		t.Cleanup(func() {
-			_ = os.RemoveAll(f.Name())
-		})
-		if err := os.Chmod(f.Name(), 0); err != nil {
-			t.Fatal(err)
-		}
-
-		return tt{
-			filename: f.Name(),
-			err:      "open " + f.Name() + ": permission denied",
-		}
+	tests.Add("other read error", tt{
+		filename: "foo\x00bar",
+		err:      "open foo\x00bar: invalid argument",
+	})
+	tests.Add("not regular file", tt{
+		filename: "./testdata",
+		err:      "yaml: input error: read ./testdata: is a directory",
 	})
 	tests.Add("file not found", tt{
 		filename: "not found",
