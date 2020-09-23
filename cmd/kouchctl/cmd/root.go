@@ -38,8 +38,6 @@ func Execute(ctx context.Context) {
 	fmt.Println(os.Args)
 	root := rootCmd()
 
-	root.AddCommand(fooCmd())
-
 	if err := root.ExecuteContext(ctx); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
