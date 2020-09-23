@@ -16,8 +16,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-
-	"github.com/spf13/cobra"
 )
 
 type Logger interface {
@@ -32,10 +30,10 @@ type logger struct {
 
 var _ Logger = &logger{}
 
-func New(cmd *cobra.Command) Logger {
+func New(out, err io.Writer) Logger {
 	return &logger{
-		stdout: cmd.OutOrStdout(),
-		stderr: cmd.ErrOrStderr(),
+		stdout: out,
+		stderr: err,
 	}
 }
 
@@ -43,9 +41,9 @@ func (l *logger) err(line string) {
 	fmt.Fprintln(l.stderr, strings.TrimSpace(line))
 }
 
-func (l *logger) out(line string) {
-	fmt.Fprintln(l.stdout, strings.TrimSpace(line))
-}
+// func (l *logger) out(line string) {
+// 	fmt.Fprintln(l.stdout, strings.TrimSpace(line))
+// }
 
 func (l *logger) Debug(args ...interface{}) {
 	l.err(fmt.Sprint(args...))
