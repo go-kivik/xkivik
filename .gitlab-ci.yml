@@ -30,7 +30,7 @@ lint:
 
 coverage:
     stage: test
-    image: golang:1.14
+    image: golang:1.15
     script:
         - ./script/coverage.sh
 
@@ -41,6 +41,10 @@ go-1.13:
 go-1.14:
     <<: *test_template
     image: golang:1.14
+
+go-1.15:
+    <<: *test_template
+    image: golang:1.15
 
 go-rc:
     <<: *test_template
