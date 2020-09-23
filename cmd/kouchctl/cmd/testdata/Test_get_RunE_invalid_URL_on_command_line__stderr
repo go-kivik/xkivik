@@ -1,0 +1,13 @@
+Debug mode enabled
+failed to read kouchconfig: open ~/.kouchctl/config: no such file or directory
+Error: parse "http://localhost:1/foo/bar/%xxx": invalid URL escape "%xx"
+Usage:
+  kouchctl get [dsn] [flags]
+
+Flags:
+  -h, --help   help for get
+
+Global Flags:
+  -d, --debug                Enable debug output
+      --kouchconfig string   Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")
+
