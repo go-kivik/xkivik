@@ -25,6 +25,10 @@ func Test_get_RunE(t *testing.T) {
 		args: []string{"get"},
 		err:  "no document specified to get",
 	})
+	tests.Add("invalid URL on command line", cmdTest{
+		args: []string{"-d", "get", "http://localhost:1/foo/bar/%xxx"},
+		err:  `parse "http://localhost:1/foo/bar/%xxx": invalid URL escape "%xx"`,
+	})
 	tests.Add("full url on command line", cmdTest{
 		args: []string{"-d", "get", "http://localhost:1/foo/bar"},
 	})

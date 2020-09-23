@@ -14,6 +14,7 @@ package cmd
 
 import (
 	"errors"
+	"net/url"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 	"github.com/spf13/cobra"
@@ -39,5 +40,10 @@ func (c *get) RunE(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return errors.New("no document specified to get")
 	}
+	path, err := url.Parse(args[0])
+	if err != nil {
+		return err
+	}
+	c.log.Debugf("[get] Will fetch document: %s", path)
 	return nil
 }
