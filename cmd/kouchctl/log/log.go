@@ -31,6 +31,10 @@ type Logger interface {
 	Debug(...interface{})
 	// Debug logs formatted debug output.
 	Debugf(string, ...interface{})
+	// Info logs normal priority messages.
+	Info(...interface{})
+	// Infof logs normal priorty formatted messages.
+	Infof(string, ...interface{})
 }
 
 type logger struct {
@@ -56,9 +60,9 @@ func (l *logger) err(line string) {
 	fmt.Fprintln(l.stderr, strings.TrimSpace(line))
 }
 
-// func (l *logger) out(line string) {
-// 	fmt.Fprintln(l.stdout, strings.TrimSpace(line))
-// }
+func (l *logger) out(line string) {
+	fmt.Fprintln(l.stdout, strings.TrimSpace(line))
+}
 
 func (l *logger) Debug(args ...interface{}) {
 	if l.debug {
@@ -70,4 +74,12 @@ func (l *logger) Debugf(format string, args ...interface{}) {
 	if l.debug {
 		l.err(fmt.Sprintf(format, args...))
 	}
+}
+
+func (l *logger) Info(args ...interface{}) {
+	l.out(fmt.Sprint(args...))
+}
+
+func (l *logger) Infof(format string, args ...interface{}) {
+	l.out(fmt.Sprintf(format, args...))
 }

@@ -26,3 +26,5 @@ func (nilLogger) SetErr(io.Writer)              {}
 func (nilLogger) SetDebug(bool)                 {}
 func (nilLogger) Debug(...interface{})          {}
 func (nilLogger) Debugf(string, ...interface{}) {}
+func (nilLogger) Info(...interface{})           {}
+func (nilLogger) Infof(string, ...interface{})  {}

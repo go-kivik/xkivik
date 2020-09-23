@@ -52,9 +52,9 @@ func (c *ping) RunE(cmd *cobra.Command, args []string) error {
 	}
 	success, err := client.Ping(cmd.Context())
 	if success {
-		c.log.Debug("[ping] Server is up")
+		c.log.Info("[ping] Server is up")
 	} else {
-		c.log.Debug("[ping] Server is not up")
+		c.log.Info("[ping] Server down")
 	}
 	return err
 }
