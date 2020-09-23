@@ -1,0 +1,1 @@
+parse "http://localhost:1/foo/bar/%xxx": invalid URL escape "%xx"

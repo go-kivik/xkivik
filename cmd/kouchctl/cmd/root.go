@@ -37,11 +37,15 @@ type root struct {
 func Execute(ctx context.Context) {
 	fmt.Println(os.Args)
 	root := rootCmd()
+	os.Exit(execute(ctx, root))
+}
 
-	if err := root.ExecuteContext(ctx); err != nil {
+func execute(ctx context.Context, cmd *cobra.Command) int {
+	if err := cmd.ExecuteContext(ctx); err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		return 1
 	}
+	return 0
 }
 
 func rootCmd() *cobra.Command {

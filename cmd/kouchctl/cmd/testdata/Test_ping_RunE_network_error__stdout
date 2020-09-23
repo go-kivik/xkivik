@@ -1,1 +1,2 @@
 [ping] Server down
+Head "http://localhost:9999/_up": dial tcp [::1]:9999: connect: connection refused

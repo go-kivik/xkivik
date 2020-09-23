@@ -25,12 +25,12 @@ func Test_ping_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
 	tests.Add("missing document", cmdTest{
-		args: []string{"get"},
-		err:  "no context specified",
+		args:   []string{"get"},
+		status: 1,
 	})
 	tests.Add("invalid URL on command line", cmdTest{
-		args: []string{"-d", "ping", "http://localhost:1/foo/bar/%xxx"},
-		err:  `parse "http://localhost:1/foo/bar/%xxx": invalid URL escape "%xx"`,
+		args:   []string{"-d", "ping", "http://localhost:1/foo/bar/%xxx"},
+		status: 1,
 	})
 	tests.Add("full url on command line", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
@@ -51,12 +51,12 @@ func Test_ping_RunE(t *testing.T) {
 		}
 	})
 	tests.Add("no server provided", cmdTest{
-		args: []string{"ping", "foo/bar"},
-		err:  "server hostname required",
+		args:   []string{"ping", "foo/bar"},
+		status: 1,
 	})
 	tests.Add("network error", cmdTest{
-		args: []string{"ping", "http://localhost:9999/"},
-		err:  `Head "http://localhost:9999/_up": dial tcp [::1]:9999: connect: connection refused`,
+		args:   []string{"ping", "http://localhost:9999/"},
+		status: 1,
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {

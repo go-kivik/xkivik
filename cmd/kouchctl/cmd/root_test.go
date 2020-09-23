@@ -13,6 +13,7 @@
 package cmd
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -23,20 +24,20 @@ import (
 func Test_root_RunE(t *testing.T) {
 	tests := testy.NewTable()
 	tests.Add("unknown flag", cmdTest{
-		args: []string{"--bogus"},
-		err:  "unknown flag: --bogus",
+		args:   []string{"--bogus"},
+		status: 1,
 	})
 	tests.Add("unknown command", cmdTest{
-		args: []string{"bogus"},
-		err:  `unknown command "bogus" for "kouchctl"`,
+		args:   []string{"bogus"},
+		status: 1,
 	})
 	tests.Add("Debug long", cmdTest{
-		args: []string{"--debug"},
-		err:  "no context specified",
+		args:   []string{"--debug"},
+		status: 1,
 	})
 	tests.Add("Debug short", cmdTest{
-		args: []string{"-d"},
-		err:  "no context specified",
+		args:   []string{"-d"},
+		status: 1,
 	})
 	tests.Add("context from config file", cmdTest{
 		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml"},
@@ -50,10 +51,10 @@ func Test_root_RunE(t *testing.T) {
 }
 
 type cmdTest struct {
-	args  []string
-	stdin string
-	err   string
-	cmd   *cobra.Command
+	args   []string
+	stdin  string
+	cmd    *cobra.Command
+	status int
 }
 
 func testCmd(t *testing.T, cmd *cobra.Command, tt cmdTest) {
@@ -64,9 +65,9 @@ func testCmd(t *testing.T, cmd *cobra.Command, tt cmdTest) {
 func (tt *cmdTest) Test(t *testing.T) {
 	t.Helper()
 	tt.cmd.SetArgs(tt.args)
-	var err error
+	var status int
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
-		err = tt.cmd.Execute()
+		status = execute(context.Background(), tt.cmd)
 	})
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout); d != nil {
 		t.Errorf("STDOUT: %s", d)
@@ -74,5 +75,7 @@ func (tt *cmdTest) Test(t *testing.T) {
 	if d := testy.DiffText(testy.Snapshot(t, "_stderr"), stderr); d != nil {
 		t.Errorf("STDERR: %s", d)
 	}
-	testy.Error(t, tt.err, err)
+	if tt.status != status {
+		t.Errorf("Unexpected exit status. Want %d, got %d", tt.status, status)
+	}
 }
