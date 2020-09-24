@@ -17,7 +17,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spf13/cobra"
 	"gitlab.com/flimzy/testy"
 )
 
@@ -44,30 +43,24 @@ func Test_root_RunE(t *testing.T) {
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
-		cmd := rootCmd()
-
-		testCmd(t, cmd, tt)
+		tt.Test(t)
 	})
 }
 
 type cmdTest struct {
 	args   []string
 	stdin  string
-	cmd    *cobra.Command
 	status int
-}
-
-func testCmd(t *testing.T, cmd *cobra.Command, tt cmdTest) {
-	tt.cmd = cmd
-	tt.Test(t)
 }
 
 func (tt *cmdTest) Test(t *testing.T) {
 	t.Helper()
-	tt.cmd.SetArgs(tt.args)
+	cmd := rootCmd()
+
+	cmd.SetArgs(tt.args)
 	var status int
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
-		status = execute(context.Background(), tt.cmd)
+		status = execute(context.Background(), cmd)
 	})
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout); d != nil {
 		t.Errorf("STDOUT: %s", d)

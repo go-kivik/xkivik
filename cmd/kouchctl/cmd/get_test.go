@@ -40,8 +40,6 @@ func Test_get_RunE(t *testing.T) {
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
-		cmd := rootCmd()
-
-		testCmd(t, cmd, tt)
+		tt.Test(t)
 	})
 }
