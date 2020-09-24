@@ -36,21 +36,23 @@ type root struct {
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute(ctx context.Context) {
 	fmt.Println(os.Args)
-	root := rootCmd()
-	os.Exit(execute(ctx, root))
+	lg := log.New()
+	root := rootCmd(lg)
+	os.Exit(execute(ctx, lg, root))
 }
 
-func execute(ctx context.Context, cmd *cobra.Command) int {
-	if err := cmd.ExecuteContext(ctx); err != nil {
-		fmt.Println(err)
-		return 1
+func execute(ctx context.Context, _ log.Logger, cmd *cobra.Command) int {
+	err := cmd.ExecuteContext(ctx)
+	if err == nil {
+		return 0
 	}
-	return 0
+	fmt.Println(err)
+	return 1
 }
 
-func rootCmd() *cobra.Command {
+func rootCmd(lg log.Logger) *cobra.Command {
 	r := &root{
-		log:  log.New(),
+		log:  lg,
 		conf: config.New(),
 	}
 

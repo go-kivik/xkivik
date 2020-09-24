@@ -18,6 +18,8 @@ import (
 	"testing"
 
 	"gitlab.com/flimzy/testy"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
 func Test_root_RunE(t *testing.T) {
@@ -55,12 +57,13 @@ type cmdTest struct {
 
 func (tt *cmdTest) Test(t *testing.T) {
 	t.Helper()
-	cmd := rootCmd()
+	lg := log.New()
+	cmd := rootCmd(lg)
 
 	cmd.SetArgs(tt.args)
 	var status int
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
-		status = execute(context.Background(), cmd)
+		status = execute(context.Background(), lg, cmd)
 	})
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout); d != nil {
 		t.Errorf("STDOUT: %s", d)
