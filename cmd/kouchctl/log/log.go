@@ -33,8 +33,12 @@ type Logger interface {
 	Debugf(string, ...interface{})
 	// Info logs normal priority messages.
 	Info(...interface{})
-	// Infof logs normal priorty formatted messages.
+	// Infof logs formatted normal priorty messages.
 	Infof(string, ...interface{})
+	// Error logs error messages.
+	Error(...interface{})
+	// Errorf logs formatted error messages.
+	Errorf(string, ...interface{})
 }
 
 type logger struct {
@@ -82,4 +86,12 @@ func (l *logger) Info(args ...interface{}) {
 
 func (l *logger) Infof(format string, args ...interface{}) {
 	l.out(fmt.Sprintf(format, args...))
+}
+
+func (l *logger) Error(args ...interface{}) {
+	l.err(fmt.Sprint(args...))
+}
+
+func (l *logger) Errorf(format string, args ...interface{}) {
+	l.err(fmt.Sprintf(format, args...))
 }

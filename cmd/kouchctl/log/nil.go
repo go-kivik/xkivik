@@ -28,3 +28,5 @@ func (nilLogger) Debug(...interface{})          {}
 func (nilLogger) Debugf(string, ...interface{}) {}
 func (nilLogger) Info(...interface{})           {}
 func (nilLogger) Infof(string, ...interface{})  {}
+func (nilLogger) Error(...interface{})          {}
+func (nilLogger) Errorf(string, ...interface{}) {}
