@@ -30,7 +30,7 @@ func Test_ping_RunE(t *testing.T) {
 	})
 	tests.Add("invalid URL on command line", cmdTest{
 		args:   []string{"-d", "ping", "http://localhost:1/foo/bar/%xxx"},
-		status: 1,
+		status: 3,
 	})
 	tests.Add("full url on command line", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{

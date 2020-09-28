@@ -22,6 +22,7 @@ import (
 	_ "github.com/go-kivik/couchdb/v4" // CouchDB driver
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
@@ -45,6 +46,9 @@ func execute(ctx context.Context, _ log.Logger, cmd *cobra.Command) int {
 	err := cmd.ExecuteContext(ctx)
 	if err == nil {
 		return 0
+	}
+	if code := errors.InspectErrorCode(err); code != 0 {
+		return code
 	}
 	return 1
 }

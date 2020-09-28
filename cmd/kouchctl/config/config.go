@@ -13,7 +13,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -23,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
@@ -215,7 +215,7 @@ func (c *Config) setDefaultDSN(dsn string) error {
 func cxFromDSN(dsn string) (*Context, error) {
 	uri, err := url.Parse(dsn)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithCode(err, errors.ErrURLMalformed)
 	}
 	var user, password string
 	if u := uri.User; u != nil {

@@ -27,7 +27,7 @@ func Test_get_RunE(t *testing.T) {
 	})
 	tests.Add("invalid URL on command line", cmdTest{
 		args:   []string{"-d", "get", "http://localhost:1/foo/bar/%xxx"},
-		status: 1,
+		status: 3,
 	})
 	tests.Add("full url on command line", cmdTest{
 		args: []string{"-d", "get", "http://localhost:1/foo/bar"},
