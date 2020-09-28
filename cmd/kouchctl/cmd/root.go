@@ -16,6 +16,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -30,8 +31,10 @@ import (
 type root struct {
 	confFile string
 	debug    bool
+	fail     bool
 	log      log.Logger
 	conf     *config.Config
+	cmd      *cobra.Command
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -40,15 +43,21 @@ func Execute(ctx context.Context) {
 	fmt.Println(os.Args)
 	lg := log.New()
 	root := rootCmd(lg)
-	os.Exit(execute(ctx, lg, root))
+	os.Exit(root.execute(ctx))
 }
 
-func execute(ctx context.Context, _ log.Logger, cmd *cobra.Command) int {
-	err := cmd.ExecuteContext(ctx)
+func (r *root) execute(ctx context.Context) int {
+	err := r.cmd.ExecuteContext(ctx)
 	if err == nil {
 		return 0
 	}
 	if code := errors.InspectErrorCode(err); code != 0 {
+		if code >= http.StatusBadRequest {
+			if r.fail {
+				return errors.ErrHTTPPageNotRetrieved
+			}
+			return 0
+		}
 		return code
 	}
 
@@ -57,17 +66,17 @@ func execute(ctx context.Context, _ log.Logger, cmd *cobra.Command) int {
 		return errors.ErrFailedToConnect
 	}
 
-	// Any unhandled errors are assumed to be from Cobra, so return a failed to initialize error
+	// Any unhandled errors are assumed to be from Cobra, so return a "failed
+	// to initialize" error
 	return errors.ErrFailedToInitialize
 }
 
-func rootCmd(lg log.Logger) *cobra.Command {
+func rootCmd(lg log.Logger) *root {
 	r := &root{
 		log:  lg,
 		conf: config.New(),
 	}
-
-	cmd := &cobra.Command{
+	r.cmd = &cobra.Command{
 		Use:               "kouchctl",
 		Short:             "kouchctl facilitates controlling CouchDB instances",
 		Long:              `This tool makes it easier to administrate and interact with CouchDB's HTTP API`,
@@ -75,15 +84,16 @@ func rootCmd(lg log.Logger) *cobra.Command {
 		RunE:              r.RunE,
 	}
 
-	pf := cmd.PersistentFlags()
+	pf := r.cmd.PersistentFlags()
 
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
+	pf.BoolVarP(&r.fail, "fail", "f", false, "Fail silently (no output at all) on server errors")
 
-	cmd.AddCommand(getCmd(r.log, r.conf))
-	cmd.AddCommand(pingCmd(r.log, r.conf))
+	r.cmd.AddCommand(getCmd(r.log, r.conf))
+	r.cmd.AddCommand(pingCmd(r.log, r.conf))
 
-	return cmd
+	return r
 }
 
 func (r *root) init(cmd *cobra.Command, args []string) error {

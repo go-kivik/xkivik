@@ -13,11 +13,15 @@
 package cmd
 
 import (
+	"net/http"
+
 	"github.com/spf13/cobra"
 
+	"github.com/go-kivik/couchdb/v4/chttp"
 	"github.com/go-kivik/kivik/v4"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
@@ -50,11 +54,20 @@ func (c *ping) RunE(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	success, err := client.Ping(cmd.Context())
+	var status int
+	ctx := chttp.WithClientTrace(cmd.Context(), &chttp.ClientTrace{
+		HTTPResponse: func(res *http.Response) {
+			status = res.StatusCode
+		},
+	})
+	success, err := client.Ping(ctx)
+	if err != nil {
+		return err
+	}
 	if success {
 		c.log.Info("[ping] Server is up")
-	} else {
-		c.log.Info("[ping] Server down")
+		return err
 	}
-	return err
+	c.log.Info("[ping] Server down")
+	return errors.Code(status, "Server down")
 }

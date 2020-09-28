@@ -21,10 +21,11 @@ import (
 //
 // Where possible, copied from curl: https://ec.haxx.se/usingcurl/usingcurl-returns
 const (
-	ErrUnsupportedProtocol = 1
-	ErrFailedToInitialize  = 2
-	ErrURLMalformed        = 3
-	ErrFailedToConnect     = 7
+	ErrUnsupportedProtocol  = 1
+	ErrFailedToInitialize   = 2
+	ErrURLMalformed         = 3
+	ErrFailedToConnect      = 7
+	ErrHTTPPageNotRetrieved = 22
 )
 
 type curlErr struct {
@@ -40,7 +41,7 @@ func (e *curlErr) Unwrap() error {
 	return e.error
 }
 
-func (e *curlErr) ErrCode() int {
+func (e *curlErr) ExitStatus() int {
 	return e.code
 }
 
@@ -57,12 +58,22 @@ func New(text string) error {
 }
 
 func InspectErrorCode(err error) int {
+	if err == nil {
+		return 0
+	}
 	var codeErr interface {
-		ErrCode() int
+		ExitStatus() int
 	}
 	if errors.As(err, &codeErr) {
-		return codeErr.ErrCode()
+		return codeErr.ExitStatus()
 	}
+	var kivikErr interface {
+		StatusCode() int
+	}
+	if errors.As(err, &kivikErr) {
+		return kivikErr.StatusCode()
+	}
+
 	return 0
 }
 

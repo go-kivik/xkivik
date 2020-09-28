@@ -59,12 +59,12 @@ type cmdTest struct {
 func (tt *cmdTest) Test(t *testing.T) {
 	t.Helper()
 	lg := log.New()
-	cmd := rootCmd(lg)
+	root := rootCmd(lg)
 
-	cmd.SetArgs(tt.args)
+	root.cmd.SetArgs(tt.args)
 	var status int
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
-		status = execute(context.Background(), lg, cmd)
+		status = root.execute(context.Background())
 	})
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout); d != nil {
 		t.Errorf("STDOUT: %s", d)
