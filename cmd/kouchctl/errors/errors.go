@@ -12,7 +12,10 @@
 
 package errors
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Exit status codes
 //
@@ -21,6 +24,7 @@ const (
 	ErrUnsupportedProtocol = 1
 	ErrFailedToInitialize  = 2
 	ErrURLMalformed        = 3
+	ErrFailedToConnect     = 7
 )
 
 type curlErr struct {
@@ -60,4 +64,44 @@ func InspectErrorCode(err error) int {
 		return codeErr.ErrCode()
 	}
 	return 0
+}
+
+// Code returns a new error with an error code. If err is an existing error, it
+// is wrapped with the error code. All other values are passed to fmt.Sprint.
+func Code(code int, err ...interface{}) error {
+	if len(err) == 0 {
+		if e, ok := err[0].(error); ok {
+			return &curlErr{
+				error: e,
+				code:  code,
+			}
+		}
+	}
+	return &curlErr{
+		error: errors.New(fmt.Sprint(err...)),
+		code:  code,
+	}
+}
+
+// Codef wraps the output of fmt.Errorf with a code.
+func Codef(code int, format string, args ...interface{}) error {
+	return &curlErr{
+		error: fmt.Errorf(format, args...),
+		code:  code,
+	}
+}
+
+// As calls errors.As.
+func As(err error, target interface{}) bool {
+	return errors.As(err, target)
+}
+
+// Is calls errors.Is.
+func Is(err, target error) bool {
+	return errors.Is(err, target)
+}
+
+// Unwrap calls errors.Unwrap.
+func Unwrap(err error) error {
+	return errors.Unwrap(err)
 }

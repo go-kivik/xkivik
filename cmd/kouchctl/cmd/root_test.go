@@ -19,6 +19,7 @@ import (
 
 	"gitlab.com/flimzy/testy"
 
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
@@ -26,19 +27,19 @@ func Test_root_RunE(t *testing.T) {
 	tests := testy.NewTable()
 	tests.Add("unknown flag", cmdTest{
 		args:   []string{"--bogus"},
-		status: 1,
+		status: errors.ErrFailedToInitialize,
 	})
 	tests.Add("unknown command", cmdTest{
 		args:   []string{"bogus"},
-		status: 1,
+		status: errors.ErrFailedToInitialize,
 	})
 	tests.Add("Debug long", cmdTest{
 		args:   []string{"--debug"},
-		status: 1,
+		status: errors.ErrFailedToInitialize,
 	})
 	tests.Add("Debug short", cmdTest{
 		args:   []string{"-d"},
-		status: 1,
+		status: errors.ErrFailedToInitialize,
 	})
 	tests.Add("context from config file", cmdTest{
 		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml"},

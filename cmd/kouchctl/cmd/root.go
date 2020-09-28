@@ -15,6 +15,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -50,7 +51,14 @@ func execute(ctx context.Context, _ log.Logger, cmd *cobra.Command) int {
 	if code := errors.InspectErrorCode(err); code != 0 {
 		return code
 	}
-	return 1
+
+	var netErr net.Error
+	if errors.As(err, &netErr) {
+		return errors.ErrFailedToConnect
+	}
+
+	// Any unhandled errors are assumed to be from Cobra, so return a failed to initialize error
+	return errors.ErrFailedToInitialize
 }
 
 func rootCmd(lg log.Logger) *cobra.Command {

@@ -19,18 +19,16 @@ import (
 	"testing"
 
 	"gitlab.com/flimzy/testy"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
 func Test_ping_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
-	tests.Add("missing document", cmdTest{
-		args:   []string{"get"},
-		status: 1,
-	})
 	tests.Add("invalid URL on command line", cmdTest{
 		args:   []string{"-d", "ping", "http://localhost:1/foo/bar/%xxx"},
-		status: 3,
+		status: errors.ErrURLMalformed,
 	})
 	tests.Add("full url on command line", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
@@ -52,11 +50,11 @@ func Test_ping_RunE(t *testing.T) {
 	})
 	tests.Add("no server provided", cmdTest{
 		args:   []string{"ping", "foo/bar"},
-		status: 1,
+		status: errors.ErrFailedToInitialize,
 	})
 	tests.Add("network error", cmdTest{
 		args:   []string{"ping", "http://localhost:9999/"},
-		status: 1,
+		status: errors.ErrFailedToConnect,
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {

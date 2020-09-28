@@ -23,7 +23,7 @@ func Test_get_RunE(t *testing.T) {
 
 	tests.Add("missing document", cmdTest{
 		args:   []string{"get"},
-		status: 1,
+		status: 2,
 	})
 	tests.Add("invalid URL on command line", cmdTest{
 		args:   []string{"-d", "get", "http://localhost:1/foo/bar/%xxx"},

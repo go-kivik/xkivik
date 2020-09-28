@@ -13,7 +13,6 @@
 package config
 
 import (
-	"fmt"
 	"net/url"
 	"os"
 	"path"
@@ -121,7 +120,7 @@ func New() *Config {
 func (c *Config) Read(filename string, lg log.Logger) error {
 	c.log = lg
 	if err := c.readYAML(filename); err != nil {
-		return err
+		return errors.WithCode(err, errors.ErrFailedToInitialize)
 	}
 	if dsn := os.Getenv(envPrefix + "DSN"); dsn != "" {
 		if err := c.setDefaultDSN(dsn); err != nil {
@@ -160,11 +159,11 @@ func (c *Config) currentCx() (*Context, error) {
 				return cx, nil
 			}
 		}
-		return nil, errors.New("no context specified")
+		return nil, errors.Code(errors.ErrFailedToInitialize, "no context specified")
 	}
 	cx, ok := c.Contexts[c.CurrentContext]
 	if !ok {
-		return nil, fmt.Errorf("context %q not found", c.CurrentContext)
+		return nil, errors.Codef(errors.ErrFailedToInitialize, "context %q not found", c.CurrentContext)
 	}
 	return cx, nil
 }
@@ -184,7 +183,7 @@ func (c *Config) ServerDSN() (string, error) {
 	}
 	dsn := cx.ServerDSN()
 	if dsn == "" {
-		return "", errors.New("server hostname required")
+		return "", errors.Code(errors.ErrFailedToInitialize, "server hostname required")
 	}
 	return dsn, nil
 }
