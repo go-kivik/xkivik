@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/flimzy/parallel"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/go-kivik/kivik/v4"
 )
@@ -169,26 +169,26 @@ func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.O
 			return result.ReplicationResult, err
 		}
 	}
-	group := parallel.New(ctx)
+	group, ctx := errgroup.WithContext(ctx)
 	changes := make(chan *change)
-	group.Go(func(ctx context.Context) error {
+	group.Go(func() error {
 		defer close(changes)
 		return readChanges(ctx, source, changes, opts, cb)
 	})
 
 	diffs := make(chan *revDiff)
-	group.Go(func(ctx context.Context) error {
+	group.Go(func() error {
 		defer close(diffs)
 		return readDiffs(ctx, target, changes, diffs, cb)
 	})
 
 	docs := make(chan *Document)
-	group.Go(func(ctx context.Context) error {
+	group.Go(func() error {
 		defer close(docs)
 		return readDocs(ctx, source, diffs, docs, result, cb)
 	})
 
-	group.Go(func(ctx context.Context) error {
+	group.Go(func() error {
 		return storeDocs(ctx, target, docs, result, cb)
 	})
 

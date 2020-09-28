@@ -257,8 +257,6 @@ github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
 gitlab.com/flimzy/ale v0.0.1 h1:erCrm38bk9sXI5ZY6QedpLxp/uKVuvwlV80ZugdvsFI=
 gitlab.com/flimzy/ale v0.0.1/go.mod h1:syUOexUwVSRspcYmwah9zxq1X6XBtRHv4CgPADQtPKE=
-gitlab.com/flimzy/parallel v0.0.5 h1:VNWiCtE43rw1HsM2wX3nNhMyrhWPKfn0ItbO5iRTXoU=
-gitlab.com/flimzy/parallel v0.0.5/go.mod h1:4BTXrItF3cH8JQWsA17qEeTWFfLVXoB7pkADuaxrnqQ=
 gitlab.com/flimzy/testy v0.0.0-20190816103046-aca1ef5ffe7e/go.mod h1:MQwjgAyueIbBZv+qSYAMs6LaZwsJysPs0BK/niv9JiI=
 gitlab.com/flimzy/testy v0.0.2/go.mod h1:YObF4cq711ubd/3U0ydRQQVz7Cnq/ChgJpVwNr/AJac=
 gitlab.com/flimzy/testy v0.0.3/go.mod h1:YObF4cq711ubd/3U0ydRQQVz7Cnq/ChgJpVwNr/AJac=
