@@ -46,7 +46,6 @@ func execute(ctx context.Context, _ log.Logger, cmd *cobra.Command) int {
 	if err == nil {
 		return 0
 	}
-	fmt.Println(err)
 	return 1
 }
 
