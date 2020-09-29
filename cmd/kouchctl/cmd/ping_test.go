@@ -31,9 +31,7 @@ func Test_ping_RunE(t *testing.T) {
 		status: errors.ErrURLMalformed,
 	})
 	tests.Add("full url on command line", func(t *testing.T) interface{} {
-		s := testy.ServeResponse(&http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
-		})
+		s := testy.ServeResponse(&http.Response{})
 
 		return cmdTest{
 			args: []string{"ping", s.URL},
@@ -55,6 +53,36 @@ func Test_ping_RunE(t *testing.T) {
 	tests.Add("network error", cmdTest{
 		args:   []string{"ping", "http://localhost:9999/"},
 		status: errors.ErrFailedToConnect,
+	})
+	tests.Add("Couch 1.7, up", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusBadRequest,
+			Header: http.Header{
+				"Server": []string{"CouchDB/1.7.1"},
+			},
+		})
+
+		return cmdTest{
+			args: []string{"ping", s.URL},
+		}
+	})
+	tests.Add("Couch 3.0, up", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+		})
+
+		return cmdTest{
+			args: []string{"ping", s.URL},
+		}
+	})
+	tests.Add("Couch 3.0, down", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusNotFound,
+		})
+
+		return cmdTest{
+			args: []string{"ping", s.URL},
+		}
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
