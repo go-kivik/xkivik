@@ -6,7 +6,7 @@
       Client: (*chttp.Client)({
         UserAgents: ([]string) (len=2) {
           (string) (len=22) "Kivik/4.0.0-prerelease",
-          (string) (len=37) "Kivik CouchDB driver/2.0.0-prerelease"
+          (string) (len=37) "Kivik CouchDB driver/4.0.0-prerelease"
         },
         Client: (*http.Client)({
           Transport: (http.RoundTripper) <nil>,
@@ -46,7 +46,7 @@
       Client: (*chttp.Client)({
         UserAgents: ([]string) (len=2) {
           (string) (len=22) "Kivik/4.0.0-prerelease",
-          (string) (len=37) "Kivik CouchDB driver/2.0.0-prerelease"
+          (string) (len=37) "Kivik CouchDB driver/4.0.0-prerelease"
         },
         Client: (*http.Client)({
           Transport: (http.RoundTripper) <nil>,

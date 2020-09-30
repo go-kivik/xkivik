@@ -46,7 +46,7 @@ func TestReplicateMock(t *testing.T) {
 
 		return tt{
 			mockS:  mock,
-			source: source.DB(context.TODO(), "src"),
+			source: source.DB("src"),
 			status: http.StatusInternalServerError,
 			err:    "open changes feed: changes err",
 			result: &ReplicationResult{},
@@ -60,7 +60,7 @@ func TestReplicateMock(t *testing.T) {
 
 		return tt{
 			mockS:  mock,
-			source: source.DB(context.TODO(), "src"),
+			source: source.DB("src"),
 			result: &ReplicationResult{},
 		}
 	})
@@ -87,8 +87,8 @@ func TestReplicateMock(t *testing.T) {
 		return tt{
 			mockS:  smock,
 			mockT:  tmock,
-			source: source.DB(context.TODO(), "src"),
-			target: target.DB(context.TODO(), "tgt"),
+			source: source.DB("src"),
+			target: target.DB("tgt"),
 			result: &ReplicationResult{},
 		}
 	})
@@ -133,8 +133,8 @@ func TestReplicateMock(t *testing.T) {
 		return tt{
 			mockS:  smock,
 			mockT:  tmock,
-			source: source.DB(context.TODO(), "src"),
-			target: target.DB(context.TODO(), "tgt"),
+			source: source.DB("src"),
+			target: target.DB("tgt"),
 			result: &ReplicationResult{
 				DocsRead:       1,
 				DocsWritten:    1,
@@ -186,8 +186,8 @@ func TestReplicate(t *testing.T) {
 
 		return tt{
 			path:   tmpdir,
-			target: client.DB(context.TODO(), "target"),
-			source: client.DB(context.TODO(), "db4"),
+			target: client.DB("target"),
+			source: client.DB("db4"),
 		}
 	})
 

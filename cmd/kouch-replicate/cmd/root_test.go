@@ -13,7 +13,6 @@
 package cmd
 
 import (
-	"context"
 	"net/http"
 	"regexp"
 	"testing"
@@ -66,7 +65,7 @@ func TestConnect(t *testing.T) {
 	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
-		result, err := connect(context.TODO(), tt.dsn)
+		result, err := connect(tt.dsn)
 		testy.StatusErrorRE(t, tt.err, tt.status, err)
 		if d := testy.DiffInterface(testy.Snapshot(t, goVersion), result); d != nil {
 			t.Error(d)
