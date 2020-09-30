@@ -51,9 +51,15 @@ func (r *root) execute(ctx context.Context) int {
 	if err == nil {
 		return 0
 	}
+	code := extractExitCode(err, r.fail)
+
+	return code
+}
+
+func extractExitCode(err error, fail bool) int {
 	if code := errors.InspectErrorCode(err); code != 0 {
 		if code >= http.StatusBadRequest {
-			if r.fail {
+			if fail {
 				return errors.ErrHTTPPageNotRetrieved
 			}
 			return 0
@@ -73,8 +79,7 @@ func (r *root) execute(ctx context.Context) int {
 
 func rootCmd(lg log.Logger) *root {
 	r := &root{
-		log:  lg,
-		conf: config.New(),
+		log: lg,
 	}
 	r.cmd = &cobra.Command{
 		Use:               "kouchctl",
@@ -83,6 +88,9 @@ func rootCmd(lg log.Logger) *root {
 		PersistentPreRunE: r.init,
 		RunE:              r.RunE,
 	}
+	r.conf = config.New(func() {
+		r.cmd.SilenceUsage = true
+	})
 
 	pf := r.cmd.PersistentFlags()
 

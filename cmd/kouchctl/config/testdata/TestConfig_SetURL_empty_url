@@ -2,5 +2,6 @@
   Contexts: (map[string]*config.Context) {
   },
   CurrentContext: (string) "",
-  log: (log.Logger) <nil>
+  log: (log.Logger) <nil>,
+  finalizer: (func()) <nil>
 })

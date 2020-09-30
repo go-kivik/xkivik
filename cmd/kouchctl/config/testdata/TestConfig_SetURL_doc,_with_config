@@ -18,5 +18,6 @@
     })
   },
   CurrentContext: (string) (len=1) "*",
-  log: (log.Logger) <nil>
+  log: (log.Logger) <nil>,
+  finalizer: (func()) <nil>
 })

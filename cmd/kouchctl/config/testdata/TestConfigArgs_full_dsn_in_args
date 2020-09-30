@@ -18,5 +18,6 @@
     logs: ([]string) (len=1) {
       (string) (len=51) "[DEBUG] set default DSN from command line arguments"
     }
-  })
+  }),
+  finalizer: (func()) <nil>
 })

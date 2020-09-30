@@ -32,6 +32,7 @@ type Config struct {
 	Contexts       map[string]*Context `yaml:"contexts"`
 	CurrentContext string              `yaml:"current-context"`
 	log            log.Logger
+	finalizer      func()
 }
 
 // Context represents a complete, or partial CouchDB DSN context.
@@ -107,9 +108,10 @@ func (c *Context) UnmarshalYAML(v *yaml.Node) error {
 }
 
 // New returns an empty configuration object. Call Read() to populate it.
-func New() *Config {
+func New(finalizer func()) *Config {
 	return &Config{
-		Contexts: make(map[string]*Context),
+		Contexts:  make(map[string]*Context),
+		finalizer: finalizer,
 	}
 }
 
@@ -173,7 +175,14 @@ func (c *Config) DSN() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	c.finalize()
 	return cx.DSN(), nil
+}
+
+func (c *Config) finalize() {
+	if c.finalizer != nil {
+		c.finalizer()
+	}
 }
 
 func (c *Config) ServerDSN() (string, error) {
@@ -185,6 +194,7 @@ func (c *Config) ServerDSN() (string, error) {
 	if dsn == "" {
 		return "", errors.Code(errors.ErrFailedToInitialize, "server hostname required")
 	}
+	c.finalize()
 	return dsn, nil
 }
 

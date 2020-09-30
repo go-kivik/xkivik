@@ -10,5 +10,6 @@
     logs: ([]string) (len=1) {
       (string) (len=37) "[DEBUG] no kouchconfig file specified"
     }
-  })
+  }),
+  finalizer: (func()) <nil>
 })
