@@ -13,36 +13,79 @@
 package cmd
 
 import (
+	"io/ioutil"
+	"net/http"
+	"strings"
 	"testing"
 
 	"gitlab.com/flimzy/testy"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
 func Test_ping_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
-	tests.Add("missing document", cmdTest{
-		args: []string{"get"},
-		err:  "no context specified",
-	})
 	tests.Add("invalid URL on command line", cmdTest{
-		args: []string{"-d", "ping", "http://localhost:1/foo/bar/%xxx"},
-		err:  `parse "http://localhost:1/foo/bar/%xxx": invalid URL escape "%xx"`,
+		args:   []string{"-d", "ping", "http://localhost:1/foo/bar/%xxx"},
+		status: errors.ErrURLMalformed,
 	})
-	tests.Add("full url on command line", cmdTest{
-		args: []string{"-d", "ping", "http://localhost:1/foo/bar"},
+	tests.Add("full url on command line", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{})
+
+		return cmdTest{
+			args: []string{"ping", s.URL},
+		}
 	})
-	tests.Add("server only on command line", cmdTest{
-		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "ping", "http://localhost:1"},
+	tests.Add("server only on command line", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+		})
+
+		return cmdTest{
+			args: []string{"--kouchconfig", "./testdata/localhost.yaml", "ping", s.URL},
+		}
 	})
 	tests.Add("no server provided", cmdTest{
-		args: []string{"ping", "foo/bar"},
-		err:  "server hostname required",
+		args:   []string{"ping", "foo/bar"},
+		status: errors.ErrFailedToInitialize,
+	})
+	tests.Add("network error", cmdTest{
+		args:   []string{"ping", "http://localhost:9999/"},
+		status: errors.ErrFailedToConnect,
+	})
+	tests.Add("Couch 1.7, up", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusBadRequest,
+			Header: http.Header{
+				"Server": []string{"CouchDB/1.7.1"},
+			},
+		})
+
+		return cmdTest{
+			args: []string{"ping", s.URL},
+		}
+	})
+	tests.Add("Couch 3.0, up", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+		})
+
+		return cmdTest{
+			args: []string{"ping", s.URL},
+		}
+	})
+	tests.Add("Couch 3.0, down", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusNotFound,
+		})
+
+		return cmdTest{
+			args: []string{"ping", s.URL},
+		}
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
-		cmd := rootCmd()
-
-		testCmd(t, cmd, tt)
+		tt.Test(t)
 	})
 }

@@ -10,5 +10,6 @@
     logs: ([]string) (len=1) {
       (string) (len=77) "[DEBUG] failed to read kouchconfig: open not found: no such file or directory"
     }
-  })
+  }),
+  finalizer: (func()) <nil>
 })

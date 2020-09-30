@@ -13,54 +13,58 @@
 package cmd
 
 import (
+	"context"
 	"strings"
 	"testing"
 
-	"github.com/spf13/cobra"
 	"gitlab.com/flimzy/testy"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
 func Test_root_RunE(t *testing.T) {
 	tests := testy.NewTable()
 	tests.Add("unknown flag", cmdTest{
-		args: []string{"--bogus"},
-		err:  "unknown flag: --bogus",
+		args:   []string{"--bogus"},
+		status: errors.ErrFailedToInitialize,
 	})
 	tests.Add("unknown command", cmdTest{
-		args: []string{"bogus"},
-		err:  `unknown command "bogus" for "kouchctl"`,
+		args:   []string{"bogus"},
+		status: errors.ErrFailedToInitialize,
 	})
 	tests.Add("Debug long", cmdTest{
-		args: []string{"--debug"},
-		err:  "no context specified",
+		args:   []string{"--debug"},
+		status: errors.ErrFailedToInitialize,
 	})
 	tests.Add("Debug short", cmdTest{
-		args: []string{"-d"},
-		err:  "no context specified",
+		args:   []string{"-d"},
+		status: errors.ErrFailedToInitialize,
 	})
 	tests.Add("context from config file", cmdTest{
 		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml"},
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
-		cmd := rootCmd()
-
-		testCmd(t, cmd, tt)
+		tt.Test(t)
 	})
 }
 
 type cmdTest struct {
-	args  []string
-	stdin string
-	err   string
+	args   []string
+	stdin  string
+	status int
 }
 
-func testCmd(t *testing.T, cmd *cobra.Command, tt cmdTest) {
+func (tt *cmdTest) Test(t *testing.T) {
 	t.Helper()
-	cmd.SetArgs(tt.args)
-	var err error
+	lg := log.New()
+	root := rootCmd(lg)
+
+	root.cmd.SetArgs(tt.args)
+	var status int
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
-		err = cmd.Execute()
+		status = root.execute(context.Background())
 	})
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout); d != nil {
 		t.Errorf("STDOUT: %s", d)
@@ -68,5 +72,7 @@ func testCmd(t *testing.T, cmd *cobra.Command, tt cmdTest) {
 	if d := testy.DiffText(testy.Snapshot(t, "_stderr"), stderr); d != nil {
 		t.Errorf("STDERR: %s", d)
 	}
-	testy.Error(t, tt.err, err)
+	if tt.status != status {
+		t.Errorf("Unexpected exit status. Want %d, got %d", tt.status, status)
+	}
 }

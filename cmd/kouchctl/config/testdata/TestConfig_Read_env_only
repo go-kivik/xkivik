@@ -19,5 +19,6 @@
       (string) (len=37) "[DEBUG] no kouchconfig file specified",
       (string) (len=40) "[DEBUG] set default DSN from environment"
     }
-  })
+  }),
+  finalizer: (func()) <nil>
 })

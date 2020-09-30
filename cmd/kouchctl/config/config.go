@@ -13,8 +13,6 @@
 package config
 
 import (
-	"errors"
-	"fmt"
 	"net/url"
 	"os"
 	"path"
@@ -23,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
@@ -33,6 +32,7 @@ type Config struct {
 	Contexts       map[string]*Context `yaml:"contexts"`
 	CurrentContext string              `yaml:"current-context"`
 	log            log.Logger
+	finalizer      func()
 }
 
 // Context represents a complete, or partial CouchDB DSN context.
@@ -108,9 +108,10 @@ func (c *Context) UnmarshalYAML(v *yaml.Node) error {
 }
 
 // New returns an empty configuration object. Call Read() to populate it.
-func New() *Config {
+func New(finalizer func()) *Config {
 	return &Config{
-		Contexts: make(map[string]*Context),
+		Contexts:  make(map[string]*Context),
+		finalizer: finalizer,
 	}
 }
 
@@ -121,7 +122,7 @@ func New() *Config {
 func (c *Config) Read(filename string, lg log.Logger) error {
 	c.log = lg
 	if err := c.readYAML(filename); err != nil {
-		return err
+		return errors.WithCode(err, errors.ErrFailedToInitialize)
 	}
 	if dsn := os.Getenv(envPrefix + "DSN"); dsn != "" {
 		if err := c.setDefaultDSN(dsn); err != nil {
@@ -160,11 +161,11 @@ func (c *Config) currentCx() (*Context, error) {
 				return cx, nil
 			}
 		}
-		return nil, errors.New("no context specified")
+		return nil, errors.Code(errors.ErrFailedToInitialize, "no context specified")
 	}
 	cx, ok := c.Contexts[c.CurrentContext]
 	if !ok {
-		return nil, fmt.Errorf("context %q not found", c.CurrentContext)
+		return nil, errors.Codef(errors.ErrFailedToInitialize, "context %q not found", c.CurrentContext)
 	}
 	return cx, nil
 }
@@ -174,7 +175,14 @@ func (c *Config) DSN() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	c.finalize()
 	return cx.DSN(), nil
+}
+
+func (c *Config) finalize() {
+	if c.finalizer != nil {
+		c.finalizer()
+	}
 }
 
 func (c *Config) ServerDSN() (string, error) {
@@ -184,8 +192,9 @@ func (c *Config) ServerDSN() (string, error) {
 	}
 	dsn := cx.ServerDSN()
 	if dsn == "" {
-		return "", errors.New("server hostname required")
+		return "", errors.Code(errors.ErrFailedToInitialize, "server hostname required")
 	}
+	c.finalize()
 	return dsn, nil
 }
 
@@ -215,7 +224,7 @@ func (c *Config) setDefaultDSN(dsn string) error {
 func cxFromDSN(dsn string) (*Context, error) {
 	uri, err := url.Parse(dsn)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithCode(err, errors.ErrURLMalformed)
 	}
 	var user, password string
 	if u := uri.User; u != nil {

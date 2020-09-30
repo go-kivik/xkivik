@@ -31,6 +31,14 @@ type Logger interface {
 	Debug(...interface{})
 	// Debug logs formatted debug output.
 	Debugf(string, ...interface{})
+	// Info logs normal priority messages.
+	Info(...interface{})
+	// Infof logs formatted normal priorty messages.
+	Infof(string, ...interface{})
+	// Error logs error messages.
+	Error(...interface{})
+	// Errorf logs formatted error messages.
+	Errorf(string, ...interface{})
 }
 
 type logger struct {
@@ -56,9 +64,9 @@ func (l *logger) err(line string) {
 	fmt.Fprintln(l.stderr, strings.TrimSpace(line))
 }
 
-// func (l *logger) out(line string) {
-// 	fmt.Fprintln(l.stdout, strings.TrimSpace(line))
-// }
+func (l *logger) out(line string) {
+	fmt.Fprintln(l.stdout, strings.TrimSpace(line))
+}
 
 func (l *logger) Debug(args ...interface{}) {
 	if l.debug {
@@ -70,4 +78,20 @@ func (l *logger) Debugf(format string, args ...interface{}) {
 	if l.debug {
 		l.err(fmt.Sprintf(format, args...))
 	}
+}
+
+func (l *logger) Info(args ...interface{}) {
+	l.out(fmt.Sprint(args...))
+}
+
+func (l *logger) Infof(format string, args ...interface{}) {
+	l.out(fmt.Sprintf(format, args...))
+}
+
+func (l *logger) Error(args ...interface{}) {
+	l.err(fmt.Sprint(args...))
+}
+
+func (l *logger) Errorf(format string, args ...interface{}) {
+	l.err(fmt.Sprintf(format, args...))
 }

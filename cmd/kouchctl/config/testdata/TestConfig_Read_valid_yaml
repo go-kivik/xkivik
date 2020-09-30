@@ -26,5 +26,6 @@
     logs: ([]string) (len=1) {
       (string) (len=64) "[DEBUG] successfully read kouchconfig file \"testdata/valid.yaml\""
     }
-  })
+  }),
+  finalizer: (func()) <nil>
 })

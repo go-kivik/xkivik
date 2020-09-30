@@ -59,6 +59,22 @@ func (l *TestLogger) Debugf(format string, args ...interface{}) {
 	l.log("DEBUG", fmt.Sprintf(format, args...))
 }
 
+func (l *TestLogger) Info(args ...interface{}) {
+	l.log("INFO", fmt.Sprint(args...))
+}
+
+func (l *TestLogger) Infof(format string, args ...interface{}) {
+	l.log("INFO", fmt.Sprintf(format, args...))
+}
+
+func (l *TestLogger) Error(args ...interface{}) {
+	l.log("ERROR", fmt.Sprint(args...))
+}
+
+func (l *TestLogger) Errorf(format string, args ...interface{}) {
+	l.log("ERROR", fmt.Sprintf(format, args...))
+}
+
 // Check validates the logs received, against an on-disk golden snapshot.
 func (l *TestLogger) Check(t *testing.T) {
 	t.Helper()

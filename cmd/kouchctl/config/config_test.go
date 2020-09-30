@@ -109,7 +109,7 @@ func TestConfig_Read(t *testing.T) {
 	tests.Run(t, func(t *testing.T, tt tt) {
 		testEnv(t, tt.env)
 		l := log.NewTest()
-		cf := New()
+		cf := New(nil)
 		err := cf.Read(tt.filename, l)
 		testy.Error(t, tt.err, err)
 		if d := testy.DiffInterface(testy.Snapshot(t), cf); d != nil {
@@ -230,19 +230,19 @@ func TestConfig_SetURL(t *testing.T) {
 
 	tests := testy.NewTable()
 	tests.Add("empty url", tt{
-		cf:  New(),
+		cf:  New(nil),
 		url: "",
 	})
 	tests.Add("full dsn, empty config", tt{
-		cf:  New(),
+		cf:  New(nil),
 		url: "http://admin:abc123@localhost:5984/foo/bar",
 	})
 	tests.Add("db/doc, empty config", tt{
-		cf:  New(),
+		cf:  New(nil),
 		url: "foo/bar",
 	})
 	tests.Add("doc only, empty config", tt{
-		cf:  New(),
+		cf:  New(nil),
 		url: "bar",
 	})
 	tests.Add("db/doc, with config", tt{

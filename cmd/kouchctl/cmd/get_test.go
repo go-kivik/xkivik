@@ -22,12 +22,12 @@ func Test_get_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
 	tests.Add("missing document", cmdTest{
-		args: []string{"get"},
-		err:  "no context specified",
+		args:   []string{"get"},
+		status: 2,
 	})
 	tests.Add("invalid URL on command line", cmdTest{
-		args: []string{"-d", "get", "http://localhost:1/foo/bar/%xxx"},
-		err:  `parse "http://localhost:1/foo/bar/%xxx": invalid URL escape "%xx"`,
+		args:   []string{"-d", "get", "http://localhost:1/foo/bar/%xxx"},
+		status: 3,
 	})
 	tests.Add("full url on command line", cmdTest{
 		args: []string{"-d", "get", "http://localhost:1/foo/bar"},
@@ -40,8 +40,6 @@ func Test_get_RunE(t *testing.T) {
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
-		cmd := rootCmd()
-
-		testCmd(t, cmd, tt)
+		tt.Test(t)
 	})
 }
