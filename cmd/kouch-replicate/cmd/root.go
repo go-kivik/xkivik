@@ -45,11 +45,11 @@ protocol.`,
 		ctx := context.TODO()
 		sourceDSN, _ := cmd.Flags().GetString("source")
 		targetDSN, _ := cmd.Flags().GetString("target")
-		source, err := connect(ctx, sourceDSN)
+		source, err := connect(sourceDSN)
 		if err != nil {
 			return fmt.Errorf("connect source '%s': %w", sourceDSN, err)
 		}
-		target, err := connect(ctx, targetDSN)
+		target, err := connect(targetDSN)
 		if err != nil {
 			return fmt.Errorf("connect target '%s': %w", targetDSN, err)
 		}
@@ -58,7 +58,7 @@ protocol.`,
 	},
 }
 
-func connect(ctx context.Context, dsn string) (*kivik.DB, error) {
+func connect(dsn string) (*kivik.DB, error) {
 	uri, err := url.Parse(dsn)
 	if err != nil {
 		return nil, &kivik.Error{HTTPStatus: http.StatusBadRequest, Err: err}
@@ -70,7 +70,7 @@ func connect(ctx context.Context, dsn string) (*kivik.DB, error) {
 		if err != nil {
 			return nil, err
 		}
-		db := client.DB(ctx, dsn[idx+1:])
+		db := client.DB(dsn[idx+1:])
 		return db, db.Err()
 	case "file", "":
 		client, err := kivik.New("fs", "")
@@ -78,7 +78,7 @@ func connect(ctx context.Context, dsn string) (*kivik.DB, error) {
 			// WTF?
 			return nil, err
 		}
-		db := client.DB(ctx, dsn)
+		db := client.DB(dsn)
 		return db, db.Err()
 	default:
 		return nil, &kivik.Error{

@@ -60,8 +60,8 @@ func TestReplicate_live(t *testing.T) {
 		tests.Cleanup(func() {
 			_ = client.DestroyDB(ctx, targetName)
 		})
-		source := client.DB(ctx, sourceName)
-		target := client.DB(ctx, targetName)
+		source := client.DB(sourceName)
+		target := client.DB(targetName)
 		doc := map[string]string{"foo": "bar"}
 		if _, err := source.Put(ctx, "foo", doc); err != nil {
 			t.Fatal(err)
@@ -89,7 +89,7 @@ func TestReplicate_live(t *testing.T) {
 			t.Fatal(err)
 		}
 		ctx := context.Background()
-		source := fsclient.DB(ctx, "db1")
+		source := fsclient.DB("db1")
 		targetName := kt.TestDBName(t)
 		if err := client.CreateDB(ctx, targetName); err != nil {
 			t.Fatal(err)
@@ -97,7 +97,7 @@ func TestReplicate_live(t *testing.T) {
 		tests.Cleanup(func() {
 			_ = client.DestroyDB(ctx, targetName)
 		})
-		target := client.DB(ctx, targetName)
+		target := client.DB(targetName)
 
 		return tt{
 			source: source,
@@ -121,7 +121,7 @@ func TestReplicate_live(t *testing.T) {
 			t.Fatal(err)
 		}
 		ctx := context.Background()
-		source := fsclient.DB(ctx, "db1")
+		source := fsclient.DB("db1")
 		targetName := kt.TestDBName(t)
 		if err := client.CreateDB(ctx, targetName); err != nil {
 			t.Fatal(err)
@@ -129,14 +129,14 @@ func TestReplicate_live(t *testing.T) {
 		tests.Cleanup(func() {
 			_ = client.DestroyDB(ctx, targetName)
 		})
-		target := client.DB(ctx, targetName)
+		target := client.DB(targetName)
 
 		if _, err := Replicate(ctx, target, source); err != nil {
 			t.Fatalf("setup replication failed: %s", err)
 		}
 
 		return tt{
-			source: fsclient.DB(ctx, "db2"),
+			source: fsclient.DB("db2"),
 			target: target,
 			result: &ReplicationResult{
 				DocsRead:       1,
@@ -167,8 +167,8 @@ func TestReplicate_live(t *testing.T) {
 		tests.Cleanup(func() {
 			_ = client.DestroyDB(ctx, targetName)
 		})
-		source := client.DB(ctx, sourceName)
-		target := client.DB(ctx, targetName)
+		source := client.DB(sourceName)
+		target := client.DB(targetName)
 		doc := map[string]string{"foo": "bar"}
 		if _, err := source.Put(ctx, "foo", doc); err != nil {
 			t.Fatal(err)
@@ -212,10 +212,10 @@ func TestReplicate_live(t *testing.T) {
 		tests.Cleanup(func() {
 			_ = client.DestroyDB(ctx, targetName)
 		})
-		target := client.DB(ctx, targetName)
+		target := client.DB(targetName)
 
 		return tt{
-			source: fsclient.DB(ctx, "db3"),
+			source: fsclient.DB("db3"),
 			target: target,
 			result: &ReplicationResult{
 				DocsRead:       1,
@@ -238,7 +238,7 @@ func TestReplicate_live(t *testing.T) {
 			t.Fatal(err)
 		}
 		ctx := context.Background()
-		source := fsclient.DB(ctx, "db4")
+		source := fsclient.DB("db4")
 		targetName := kt.TestDBName(t)
 		if err := client.CreateDB(ctx, targetName); err != nil {
 			t.Fatal(err)
@@ -246,7 +246,7 @@ func TestReplicate_live(t *testing.T) {
 		tests.Cleanup(func() {
 			_ = client.DestroyDB(ctx, targetName)
 		})
-		target := client.DB(ctx, targetName)
+		target := client.DB(targetName)
 
 		return tt{
 			source: source,
@@ -288,8 +288,8 @@ func TestReplicate_live(t *testing.T) {
 		if err := tClient.CreateDB(ctx, dbName); err != nil {
 			t.Fatal(err)
 		}
-		source := client.DB(ctx, dbName)
-		target := tClient.DB(ctx, dbName)
+		source := client.DB(dbName)
+		target := tClient.DB(dbName)
 		doc := map[string]interface{}{
 			"foo": "bar",
 			"_attachments": map[string]interface{}{
@@ -325,7 +325,7 @@ func TestReplicate_live(t *testing.T) {
 			t.Fatal(err)
 		}
 		ctx := context.Background()
-		source := fsclient.DB(ctx, "dbdelete")
+		source := fsclient.DB("dbdelete")
 		targetName := kt.TestDBName(t)
 		if err := client.CreateDB(ctx, targetName); err != nil {
 			t.Fatal(err)
@@ -333,7 +333,7 @@ func TestReplicate_live(t *testing.T) {
 		tests.Cleanup(func() {
 			_ = client.DestroyDB(ctx, targetName)
 		})
-		target := client.DB(ctx, targetName)
+		target := client.DB(targetName)
 		if _, err := target.Put(ctx, "foo", map[string]string{"still": "here"}); err != nil {
 			t.Fatal(err)
 		}
