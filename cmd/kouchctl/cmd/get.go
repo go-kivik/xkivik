@@ -15,6 +15,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
@@ -38,10 +39,18 @@ func getCmd(lg log.Logger, conf *config.Config) *cobra.Command {
 }
 
 func (c *get) RunE(cmd *cobra.Command, _ []string) error {
-	dsn, err := c.conf.DSN()
+	dsn, db, doc, err := c.conf.DSNDoc()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch document: %q", dsn)
+	c.log.Debugf("[get] Will fetch document: %s%s/%s", dsn, db, doc)
+	client, err := kivik.New("couch", dsn)
+	if err != nil {
+		return err
+	}
+	row := client.DB(db).Get(cmd.Context(), doc)
+	if err := row.Err; err != nil {
+		return err
+	}
 	return nil
 }

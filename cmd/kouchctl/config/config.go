@@ -73,6 +73,13 @@ func (c *Context) ServerDSN() string {
 	return dsn.String()
 }
 
+func (c *Context) DSNDoc() (dsn, db, doc string) {
+	addr := c.dsn()
+	p := addr.Path
+	addr.Path = ""
+	return addr.String(), path.Dir(p), path.Base(p)
+}
+
 // UnmarshalYAML handles parsing of a Context from YAML input.
 func (c *Context) UnmarshalYAML(v *yaml.Node) error {
 	dsn := struct {
@@ -196,6 +203,19 @@ func (c *Config) ServerDSN() (string, error) {
 	}
 	c.finalize()
 	return dsn, nil
+}
+
+func (c *Config) DSNDoc() (dsn, db, doc string, err error) {
+	cx, err := c.currentCx()
+	if err != nil {
+		return "", "", "", err
+	}
+	dsn, db, doc = cx.DSNDoc()
+	if dsn == "" {
+		return "", "", "", errors.Code(errors.ErrFailedToInitialize, "document ID required")
+	}
+	c.finalize()
+	return dsn, db, doc, nil
 }
 
 // Config sets config from the cobra command.

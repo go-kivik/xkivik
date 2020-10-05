@@ -13,8 +13,10 @@
 package cmd
 
 import (
+	"net/http"
 	"testing"
 
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"gitlab.com/flimzy/testy"
 )
 
@@ -23,20 +25,43 @@ func Test_get_RunE(t *testing.T) {
 
 	tests.Add("missing document", cmdTest{
 		args:   []string{"get"},
-		status: 2,
+		status: errors.ErrFailedToInitialize,
 	})
 	tests.Add("invalid URL on command line", cmdTest{
 		args:   []string{"-d", "get", "http://localhost:1/foo/bar/%xxx"},
-		status: 3,
+		status: errors.ErrURLMalformed,
 	})
 	tests.Add("full url on command line", cmdTest{
-		args: []string{"-d", "get", "http://localhost:1/foo/bar"},
+		args:   []string{"-d", "get", "http://localhost:1/foo/bar"},
+		status: errors.ErrFailedToConnect,
 	})
 	tests.Add("path only on command line", cmdTest{
-		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "get", "/foo/bar"},
+		args:   []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "get", "/foo/bar"},
+		status: errors.ErrFailedToConnect,
 	})
 	tests.Add("document only on command line", cmdTest{
-		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "get", "bar"},
+		args:   []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "get", "bar"},
+		status: errors.ErrFailedToConnect,
+	})
+	tests.Add("not found", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusNotFound,
+		})
+
+		return cmdTest{
+			args:   []string{"get", s.URL},
+			status: errors.ErrHTTPPageNotRetrieved,
+		}
+	})
+	tests.Add("not found, -f", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusNotFound,
+		})
+
+		return cmdTest{
+			args:   []string{"-f", "get", s.URL},
+			status: errors.ErrHTTPPageNotRetrieved,
+		}
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
