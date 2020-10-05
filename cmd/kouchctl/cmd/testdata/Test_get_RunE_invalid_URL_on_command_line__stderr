@@ -9,6 +9,5 @@ Flags:
 
 Global Flags:
   -d, --debug                Enable debug output
-  -f, --fail                 Fail silently (no output at all) on server errors
       --kouchconfig string   Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")
 

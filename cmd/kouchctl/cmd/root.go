@@ -31,7 +31,6 @@ import (
 type root struct {
 	confFile string
 	debug    bool
-	fail     bool
 	log      log.Logger
 	conf     *config.Config
 	cmd      *cobra.Command
@@ -51,18 +50,15 @@ func (r *root) execute(ctx context.Context) int {
 	if err == nil {
 		return 0
 	}
-	code := extractExitCode(err, r.fail)
+	code := extractExitCode(err)
 
 	return code
 }
 
-func extractExitCode(err error, fail bool) int {
+func extractExitCode(err error) int {
 	if code := errors.InspectErrorCode(err); code != 0 {
 		if code >= http.StatusBadRequest {
-			if fail {
-				return errors.ErrHTTPPageNotRetrieved
-			}
-			return 0
+			return errors.ErrHTTPPageNotRetrieved
 		}
 		return code
 	}
@@ -96,7 +92,6 @@ func rootCmd(lg log.Logger) *root {
 
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
-	pf.BoolVarP(&r.fail, "fail", "f", false, "Fail silently (no output at all) on server errors")
 
 	r.cmd.AddCommand(getCmd(r.log, r.conf))
 	r.cmd.AddCommand(pingCmd(r.log, r.conf))

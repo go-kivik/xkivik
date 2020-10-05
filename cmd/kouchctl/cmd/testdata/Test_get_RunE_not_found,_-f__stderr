@@ -1,1 +1,2 @@
-Error: Not Found
+Error: unknown command "http://127.0.0.1:44275" for "kouchctl"
+Run 'kouchctl --help' for usage.

@@ -81,7 +81,8 @@ func Test_ping_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"ping", s.URL},
+			args:   []string{"ping", s.URL},
+			status: errors.ErrHTTPPageNotRetrieved,
 		}
 	})
 

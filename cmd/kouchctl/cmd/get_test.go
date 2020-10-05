@@ -53,16 +53,6 @@ func Test_get_RunE(t *testing.T) {
 			status: errors.ErrHTTPPageNotRetrieved,
 		}
 	})
-	tests.Add("not found, -f", func(t *testing.T) interface{} {
-		s := testy.ServeResponse(&http.Response{
-			StatusCode: http.StatusNotFound,
-		})
-
-		return cmdTest{
-			args:   []string{"-f", "get", s.URL},
-			status: errors.ErrHTTPPageNotRetrieved,
-		}
-	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
