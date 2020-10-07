@@ -27,19 +27,19 @@ func Test_root_RunE(t *testing.T) {
 	tests := testy.NewTable()
 	tests.Add("unknown flag", cmdTest{
 		args:   []string{"--bogus"},
-		status: errors.ErrFailedToInitialize,
+		status: errors.ErrUsage,
 	})
 	tests.Add("unknown command", cmdTest{
 		args:   []string{"bogus"},
-		status: errors.ErrFailedToInitialize,
+		status: errors.ErrUsage,
 	})
 	tests.Add("Debug long", cmdTest{
 		args:   []string{"--debug"},
-		status: errors.ErrFailedToInitialize,
+		status: errors.ErrUsage,
 	})
 	tests.Add("Debug short", cmdTest{
 		args:   []string{"-d"},
-		status: errors.ErrFailedToInitialize,
+		status: errors.ErrUsage,
 	})
 	tests.Add("context from config file", cmdTest{
 		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml"},

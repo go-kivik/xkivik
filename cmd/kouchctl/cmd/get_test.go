@@ -13,7 +13,9 @@
 package cmd
 
 import (
+	"io/ioutil"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
@@ -25,23 +27,23 @@ func Test_get_RunE(t *testing.T) {
 
 	tests.Add("missing document", cmdTest{
 		args:   []string{"get"},
-		status: errors.ErrFailedToInitialize,
+		status: errors.ErrUsage,
 	})
 	tests.Add("invalid URL on command line", cmdTest{
 		args:   []string{"-d", "get", "http://localhost:1/foo/bar/%xxx"},
-		status: errors.ErrURLMalformed,
+		status: errors.ErrUsage,
 	})
 	tests.Add("full url on command line", cmdTest{
 		args:   []string{"-d", "get", "http://localhost:1/foo/bar"},
-		status: errors.ErrFailedToConnect,
+		status: errors.ErrUnavailable,
 	})
 	tests.Add("path only on command line", cmdTest{
 		args:   []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "get", "/foo/bar"},
-		status: errors.ErrFailedToConnect,
+		status: errors.ErrUnavailable,
 	})
 	tests.Add("document only on command line", cmdTest{
 		args:   []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "get", "bar"},
-		status: errors.ErrFailedToConnect,
+		status: errors.ErrUnavailable,
 	})
 	tests.Add("not found", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
@@ -50,7 +52,22 @@ func Test_get_RunE(t *testing.T) {
 
 		return cmdTest{
 			args:   []string{"get", s.URL},
-			status: errors.ErrHTTPPageNotRetrieved,
+			status: errors.ErrNotFound,
+		}
+	})
+	tests.Add("invalid JSON response", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader("invalid")),
+		})
+
+		return cmdTest{
+			args:   []string{"get", s.URL},
+			status: errors.ErrProtocol,
 		}
 	})
 

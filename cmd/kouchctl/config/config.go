@@ -129,7 +129,7 @@ func New(finalizer func()) *Config {
 func (c *Config) Read(filename string, lg log.Logger) error {
 	c.log = lg
 	if err := c.readYAML(filename); err != nil {
-		return errors.WithCode(err, errors.ErrFailedToInitialize)
+		return errors.WithCode(err, errors.ErrUsage)
 	}
 	if dsn := os.Getenv(envPrefix + "DSN"); dsn != "" {
 		if err := c.setDefaultDSN(dsn); err != nil {
@@ -168,11 +168,11 @@ func (c *Config) currentCx() (*Context, error) {
 				return cx, nil
 			}
 		}
-		return nil, errors.Code(errors.ErrFailedToInitialize, "no context specified")
+		return nil, errors.Code(errors.ErrUsage, "no context specified")
 	}
 	cx, ok := c.Contexts[c.CurrentContext]
 	if !ok {
-		return nil, errors.Codef(errors.ErrFailedToInitialize, "context %q not found", c.CurrentContext)
+		return nil, errors.Codef(errors.ErrUsage, "context %q not found", c.CurrentContext)
 	}
 	return cx, nil
 }
@@ -199,7 +199,7 @@ func (c *Config) ServerDSN() (string, error) {
 	}
 	dsn := cx.ServerDSN()
 	if dsn == "" {
-		return "", errors.Code(errors.ErrFailedToInitialize, "server hostname required")
+		return "", errors.Code(errors.ErrUsage, "server hostname required")
 	}
 	c.finalize()
 	return dsn, nil
@@ -212,7 +212,7 @@ func (c *Config) DSNDoc() (dsn, db, doc string, err error) {
 	}
 	dsn, db, doc = cx.DSNDoc()
 	if dsn == "" {
-		return "", "", "", errors.Code(errors.ErrFailedToInitialize, "document ID required")
+		return "", "", "", errors.Code(errors.ErrUsage, "document ID required")
 	}
 	c.finalize()
 	return dsn, db, doc, nil
@@ -244,7 +244,7 @@ func (c *Config) setDefaultDSN(dsn string) error {
 func cxFromDSN(dsn string) (*Context, error) {
 	uri, err := url.Parse(dsn)
 	if err != nil {
-		return nil, errors.WithCode(err, errors.ErrURLMalformed)
+		return nil, errors.WithCode(err, errors.ErrUsage)
 	}
 	var user, password string
 	if u := uri.User; u != nil {

@@ -15,8 +15,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"net"
-	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -57,20 +55,12 @@ func (r *root) execute(ctx context.Context) int {
 
 func extractExitCode(err error) int {
 	if code := errors.InspectErrorCode(err); code != 0 {
-		if code >= http.StatusBadRequest {
-			return errors.ErrHTTPPageNotRetrieved
-		}
 		return code
-	}
-
-	var netErr net.Error
-	if errors.As(err, &netErr) {
-		return errors.ErrFailedToConnect
 	}
 
 	// Any unhandled errors are assumed to be from Cobra, so return a "failed
 	// to initialize" error
-	return errors.ErrFailedToInitialize
+	return errors.ErrUsage
 }
 
 func rootCmd(lg log.Logger) *root {

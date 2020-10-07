@@ -18,6 +18,8 @@ import (
 	"testing"
 
 	"gitlab.com/flimzy/testy"
+
+	"github.com/go-kivik/kivik/v4"
 )
 
 func TestInspectErrorCode(t *testing.T) {
@@ -38,6 +40,18 @@ func TestInspectErrorCode(t *testing.T) {
 	tests.Add("wrapped", tt{
 		err:  fmt.Errorf("%w", WithCode(errors.New("foo"), 123)),
 		want: 123,
+	})
+	tests.Add("kivik 404", tt{
+		err:  &kivik.Error{HTTPStatus: 400},
+		want: 14,
+	})
+	tests.Add("kivik internal server error", tt{
+		err:  &kivik.Error{HTTPStatus: 500},
+		want: ErrInternalServerError,
+	})
+	tests.Add("kivik 501", tt{
+		err:  &kivik.Error{HTTPStatus: 501},
+		want: ErrUnknown,
 	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {

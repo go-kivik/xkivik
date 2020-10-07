@@ -39,17 +39,21 @@ func getCmd(lg log.Logger, conf *config.Config) *cobra.Command {
 }
 
 func (c *get) RunE(cmd *cobra.Command, _ []string) error {
-	dsn, db, doc, err := c.conf.DSNDoc()
+	dsn, db, docID, err := c.conf.DSNDoc()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch document: %s%s/%s", dsn, db, doc)
+	c.log.Debugf("[get] Will fetch document: %s%s/%s", dsn, db, docID)
 	client, err := kivik.New("couch", dsn)
 	if err != nil {
 		return err
 	}
-	row := client.DB(db).Get(cmd.Context(), doc)
+	row := client.DB(db).Get(cmd.Context(), docID)
 	if err := row.Err; err != nil {
+		return err
+	}
+	var doc interface{}
+	if err := row.ScanDoc(&doc); err != nil {
 		return err
 	}
 	return nil
