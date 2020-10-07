@@ -10,6 +10,7 @@ require (
 	github.com/go-kivik/kiviktest/v4 v4.0.0-20200818183706-ea0963c26090
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.0.0
+	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.7.1
 	gitlab.com/flimzy/testy v0.3.0
 	golang.org/x/sync v0.0.0-20200930132711-30421366ff76

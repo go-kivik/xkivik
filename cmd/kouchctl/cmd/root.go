@@ -21,9 +21,13 @@ import (
 
 	_ "github.com/go-kivik/couchdb/v4" // CouchDB driver
 
+	// Formats
+	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/json"
+
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
 type root struct {
@@ -32,6 +36,7 @@ type root struct {
 	log      log.Logger
 	conf     *config.Config
 	cmd      *cobra.Command
+	fmt      *output.Formatter
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -66,6 +71,7 @@ func extractExitCode(err error) int {
 func rootCmd(lg log.Logger) *root {
 	r := &root{
 		log: lg,
+		fmt: output.New(),
 	}
 	r.cmd = &cobra.Command{
 		Use:               "kouchctl",
@@ -82,6 +88,7 @@ func rootCmd(lg log.Logger) *root {
 
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
+	r.fmt.ConfigFlags(pf)
 
 	r.cmd.AddCommand(getCmd(r.log, r.conf))
 	r.cmd.AddCommand(pingCmd(r.log, r.conf))
