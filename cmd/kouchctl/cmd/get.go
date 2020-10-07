@@ -13,6 +13,8 @@
 package cmd
 
 import (
+	"encoding/json"
+
 	"github.com/spf13/cobra"
 
 	"github.com/go-kivik/kivik/v4"
@@ -56,5 +58,7 @@ func (c *get) RunE(cmd *cobra.Command, _ []string) error {
 	if err := row.ScanDoc(&doc); err != nil {
 		return err
 	}
-	return nil
+	enc := json.NewEncoder(cmd.OutOrStdout())
+	enc.SetIndent("", "\t")
+	return enc.Encode(doc)
 }
