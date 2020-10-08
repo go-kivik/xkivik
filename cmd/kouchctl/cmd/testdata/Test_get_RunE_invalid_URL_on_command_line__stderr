@@ -12,4 +12,5 @@ Global Flags:
   -f, --format string        Output format. One of: json (default "json")
       --kouchconfig string   Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")
   -o, --output string        Output file/directory.
+  -O, --overwrite            Overwrite output file
 

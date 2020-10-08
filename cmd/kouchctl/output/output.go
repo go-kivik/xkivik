@@ -55,8 +55,9 @@ func names() []string {
 
 // Formatter manages output formatting.
 type Formatter struct {
-	format string
-	output string
+	format    string
+	output    string
+	overwrite bool
 }
 
 // New returns an output formatter instance.
@@ -68,9 +69,29 @@ func New() *Formatter {
 func (f *Formatter) ConfigFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&f.format, "format", "f", defaultFormat, "Output format. One of: "+strings.Join(names(), "|"))
 	fs.StringVarP(&f.output, "output", "o", "", "Output file/directory.")
+	fs.BoolVarP(&f.overwrite, "overwrite", "O", false, "Overwrite output file")
 }
 
 func (f *Formatter) Output(i interface{}) error {
 	fmt := formats[defaultFormat]
-	return fmt.Output(os.Stdout, i)
+	out, err := f.writer()
+	if err != nil {
+		return err
+	}
+	return fmt.Output(out, i)
+}
+
+func (f *Formatter) writer() (io.Writer, error) {
+	switch f.output {
+	case "", "-":
+		return os.Stdout, nil
+	}
+	return f.createFile(f.output)
+}
+
+func (f *Formatter) createFile(path string) (*os.File, error) {
+	if f.overwrite {
+		return os.Create(path)
+	}
+	return os.OpenFile(path, os.O_EXCL|os.O_CREATE|os.O_WRONLY, 0o666)
 }
