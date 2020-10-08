@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/spf13/pflag"
@@ -12,21 +13,23 @@ import (
 	"gitlab.com/flimzy/testy"
 
 	// Formats
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/json"
+	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/raw"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
 func TestOutput(t *testing.T) {
 	type tt struct {
 		args  []string
-		obj   interface{}
+		obj   string
 		err   string
 		check func()
 	}
 
 	tests := testy.NewTable()
 	tests.Add("defaults", tt{
-		obj: map[string]string{"x": "y"},
+		obj: `{"x":"y"}`,
 	})
 	tests.Add("output file", func(t *testing.T) interface{} {
 		var dir string
@@ -35,7 +38,7 @@ func TestOutput(t *testing.T) {
 
 		return tt{
 			args: []string{"-o", path},
-			obj:  map[string]string{"x": "y"},
+			obj:  `{"x":"y"}`,
 			check: func() {
 				buf, err := ioutil.ReadFile(path)
 				if err != nil {
@@ -60,7 +63,7 @@ func TestOutput(t *testing.T) {
 
 		return tt{
 			args: []string{"-o", path},
-			obj:  map[string]string{"x": "y"},
+			obj:  `{"x":"y"}`,
 			err:  "open " + path + ": file exists",
 		}
 	})
@@ -77,7 +80,7 @@ func TestOutput(t *testing.T) {
 
 		return tt{
 			args: []string{"-o", path, "-O"},
-			obj:  map[string]string{"x": "y"},
+			obj:  `{"x":"y"}`,
 			check: func() {
 				buf, err := ioutil.ReadFile(path)
 				if err != nil {
@@ -88,6 +91,14 @@ func TestOutput(t *testing.T) {
 				}
 			},
 		}
+	})
+	tests.Add("unsupported format", tt{
+		args: []string{"-f", "asdfasdf"},
+		err:  "unrecognized output format option: asdfasdf",
+	})
+	tests.Add("raw", tt{
+		args: []string{"-f", "raw"},
+		obj:  `{ "x": "y" }`,
 	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
@@ -104,7 +115,7 @@ func TestOutput(t *testing.T) {
 		}
 		var err error
 		stdout, stderr := testy.RedirIO(nil, func() {
-			err = fmt.Output(tt.obj)
+			err = fmt.Output(strings.NewReader(tt.obj))
 		})
 
 		testy.Error(t, tt.err, err)

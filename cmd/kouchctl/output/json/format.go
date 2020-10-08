@@ -15,8 +15,12 @@ type format struct{}
 
 var _ output.Format = &format{}
 
-func (format) Output(w io.Writer, i interface{}) error {
+func (format) Output(w io.Writer, r io.Reader) error {
+	var obj interface{}
+	if err := json.NewDecoder(r).Decode(&obj); err != nil {
+		return err
+	}
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "\t")
-	return enc.Encode(i)
+	return enc.Encode(obj)
 }

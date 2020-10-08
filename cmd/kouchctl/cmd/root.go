@@ -23,6 +23,7 @@ import (
 
 	// Formats
 	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/json"
+	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/raw"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"

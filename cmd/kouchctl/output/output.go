@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/spf13/pflag"
 )
 
@@ -14,7 +15,7 @@ const defaultFormat = "json"
 
 // Format is the output format interface.
 type Format interface {
-	Output(io.Writer, interface{}) error
+	Output(io.Writer, io.Reader) error
 }
 
 var (
@@ -72,13 +73,27 @@ func (f *Formatter) ConfigFlags(fs *pflag.FlagSet) {
 	fs.BoolVarP(&f.overwrite, "overwrite", "O", false, "Overwrite output file")
 }
 
-func (f *Formatter) Output(i interface{}) error {
-	fmt := formats[defaultFormat]
+func (f *Formatter) Output(r io.Reader) error {
+	fmt, err := f.formatter()
+	if err != nil {
+		return err
+	}
 	out, err := f.writer()
 	if err != nil {
 		return err
 	}
-	return fmt.Output(out, i)
+	return fmt.Output(out, r)
+}
+
+func (f *Formatter) formatter() (Format, error) {
+	if f.format == "" {
+		return formats[defaultFormat], nil
+	}
+	if fmt, ok := formats[f.format]; ok {
+		return fmt, nil
+	}
+
+	return nil, errors.Codef(errors.ErrUsage, "unrecognized output format option: %s", f.format)
 }
 
 func (f *Formatter) writer() (io.Writer, error) {
