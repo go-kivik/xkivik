@@ -2,6 +2,7 @@ package output
 
 import (
 	"io"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -9,9 +10,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const (
-	defaultFormat = "json"
-)
+const defaultFormat = "json"
 
 // Format is the output format interface.
 type Format interface {
@@ -37,6 +36,9 @@ func Register(name string, fmt Format) {
 }
 
 func names() []string {
+	if len(formats) == 0 {
+		panic("no formatters regiestered")
+	}
 	fmts := make([]string, 1, len(formats))
 	if _, ok := formats[defaultFormat]; !ok {
 		panic("default format not registered")
@@ -54,6 +56,7 @@ func names() []string {
 // Formatter manages output formatting.
 type Formatter struct {
 	format string
+	output string
 }
 
 // New returns an output formatter instance.
@@ -63,5 +66,11 @@ func New() *Formatter {
 
 // ConfigFlags sets up the CLI flags based on the configured formatters.
 func (f *Formatter) ConfigFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&f.format, "output", "o", defaultFormat, "Output format. One of: "+strings.Join(names(), "|"))
+	fs.StringVarP(&f.format, "format", "f", defaultFormat, "Output format. One of: "+strings.Join(names(), "|"))
+	fs.StringVarP(&f.output, "output", "o", "", "Output file/directory.")
+}
+
+func (f *Formatter) Output(i interface{}) error {
+	fmt := formats[defaultFormat]
+	return fmt.Output(os.Stdout, i)
 }
