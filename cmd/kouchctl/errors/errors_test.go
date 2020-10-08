@@ -42,7 +42,7 @@ func TestInspectErrorCode(t *testing.T) {
 		want: 123,
 	})
 	tests.Add("kivik 404", tt{
-		err:  &kivik.Error{HTTPStatus: 400},
+		err:  &kivik.Error{HTTPStatus: 404},
 		want: 14,
 	})
 	tests.Add("kivik internal server error", tt{
