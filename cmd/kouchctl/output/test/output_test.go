@@ -125,6 +125,14 @@ func TestOutput(t *testing.T) {
 		args: []string{"-f", "json=\t\t"},
 		obj:  `{ "x": "y" }`,
 	})
+	tests.Add("gotmpl, invalid", tt{
+		args: []string{"-f", "go-template={{ .x "},
+		err:  "template: :1: unclosed action",
+	})
+	tests.Add("gotmpl", tt{
+		args: []string{"-f", "go-template={{ .x }}"},
+		obj:  `{ "x": "y" }`,
+	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
 		fmt := output.New()

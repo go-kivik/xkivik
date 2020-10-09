@@ -15,6 +15,7 @@ package json
 import (
 	"encoding/json"
 	"io"
+	"text/template"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
@@ -23,14 +24,18 @@ func init() {
 	output.Register("go-template", &format{})
 }
 
-type format struct{}
+type format struct {
+	tmpl *template.Template
+}
 
 var _ output.Format = &format{}
 
 func (format) Required() bool { return true }
 
 func (f *format) Arg(arg string) error {
-	return nil
+	var err error
+	f.tmpl, err = template.New("").Parse(arg)
+	return err
 }
 
 func (f *format) Output(w io.Writer, r io.Reader) error {
@@ -38,7 +43,5 @@ func (f *format) Output(w io.Writer, r io.Reader) error {
 	if err := json.NewDecoder(r).Decode(&obj); err != nil {
 		return err
 	}
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", "\t")
-	return enc.Encode(obj)
+	return f.tmpl.Execute(w, obj)
 }
