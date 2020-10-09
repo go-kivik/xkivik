@@ -22,8 +22,10 @@ import (
 	_ "github.com/go-kivik/couchdb/v4" // CouchDB driver
 
 	// Formats
+	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/gotmpl"
 	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/json"
 	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/raw"
+	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/yaml"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"

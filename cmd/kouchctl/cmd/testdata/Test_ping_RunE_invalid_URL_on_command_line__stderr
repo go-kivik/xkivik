@@ -9,7 +9,7 @@ Flags:
 
 Global Flags:
   -d, --debug                Enable debug output
-  -f, --format string        Output format. One of: json[=...]|raw (default "json")
+  -f, --format string        Output format. One of: json[=...]|go-template=...|raw|yaml (default "json")
       --kouchconfig string   Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")
   -o, --output string        Output file/directory.
   -O, --overwrite            Overwrite output file

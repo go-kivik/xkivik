@@ -28,6 +28,7 @@ import (
 	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/gotmpl"
 	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/json"
 	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/raw"
+	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/yaml"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
@@ -131,6 +132,10 @@ func TestOutput(t *testing.T) {
 	})
 	tests.Add("gotmpl", tt{
 		args: []string{"-f", "go-template={{ .x }}"},
+		obj:  `{ "x": "y" }`,
+	})
+	tests.Add("yaml", tt{
+		args: []string{"-f", "yaml"},
 		obj:  `{ "x": "y" }`,
 	})
 
