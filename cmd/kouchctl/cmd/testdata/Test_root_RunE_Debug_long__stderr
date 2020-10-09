@@ -12,7 +12,7 @@ Available Commands:
 
 Flags:
   -d, --debug                Enable debug output
-  -f, --format string        Output format. One of: json|raw (default "json")
+  -f, --format string        Output format. One of: json[=...]|raw (default "json")
   -h, --help                 help for kouchctl
       --kouchconfig string   Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")
   -o, --output string        Output file/directory.

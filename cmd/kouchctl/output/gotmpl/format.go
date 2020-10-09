@@ -20,24 +20,16 @@ import (
 )
 
 func init() {
-	output.Register("json", &format{
-		indent: "\t",
-	})
+	output.Register("go-template", &format{})
 }
 
-type format struct {
-	indent string
-}
+type format struct{}
 
-var (
-	_ output.Format    = &format{}
-	_ output.FormatArg = &format{}
-)
+var _ output.Format = &format{}
 
-func (format) Required() bool { return false }
+func (format) Required() bool { return true }
 
 func (f *format) Arg(arg string) error {
-	f.indent = arg
 	return nil
 }
 
@@ -47,6 +39,6 @@ func (f *format) Output(w io.Writer, r io.Reader) error {
 		return err
 	}
 	enc := json.NewEncoder(w)
-	enc.SetIndent("", f.indent)
+	enc.SetIndent("", "\t")
 	return enc.Encode(obj)
 }

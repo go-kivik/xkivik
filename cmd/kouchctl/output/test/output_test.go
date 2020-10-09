@@ -25,6 +25,7 @@ import (
 	"gitlab.com/flimzy/testy"
 
 	// Formats
+	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/gotmpl"
 	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/json"
 	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/raw"
 
@@ -110,6 +111,18 @@ func TestOutput(t *testing.T) {
 	})
 	tests.Add("raw", tt{
 		args: []string{"-f", "raw"},
+		obj:  `{ "x": "y" }`,
+	})
+	tests.Add("too many args", tt{
+		args: []string{"-f", "raw=xxx"},
+		err:  "format raw takes no arguments",
+	})
+	tests.Add("missing required arg", tt{
+		args: []string{"-f", "go-template"},
+		err:  "format go-template requires an argument",
+	})
+	tests.Add("json indent", tt{
+		args: []string{"-f", "json=\t\t"},
 		obj:  `{ "x": "y" }`,
 	})
 
