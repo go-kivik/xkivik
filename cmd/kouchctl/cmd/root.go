@@ -91,7 +91,7 @@ func rootCmd(lg log.Logger) *root {
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
 	r.fmt.ConfigFlags(pf)
 
-	r.cmd.AddCommand(getCmd(r.log, r.conf))
+	r.cmd.AddCommand(getCmd(r.log, r.fmt, r.conf))
 	r.cmd.AddCommand(pingCmd(r.log, r.conf))
 
 	return r

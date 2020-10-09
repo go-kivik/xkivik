@@ -13,6 +13,7 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 
 	"github.com/spf13/cobra"
@@ -20,16 +21,19 @@ import (
 	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
 type get struct {
 	log  log.Logger
+	fmt  *output.Formatter
 	conf *config.Config
 }
 
-func getCmd(lg log.Logger, conf *config.Config) *cobra.Command {
+func getCmd(lg log.Logger, fmt *output.Formatter, conf *config.Config) *cobra.Command {
 	g := &get{
 		log:  lg,
+		fmt:  fmt,
 		conf: conf,
 	}
 	return &cobra.Command{
@@ -54,11 +58,9 @@ func (c *get) RunE(cmd *cobra.Command, _ []string) error {
 	if err := row.Err; err != nil {
 		return err
 	}
-	var doc interface{}
+	var doc json.RawMessage
 	if err := row.ScanDoc(&doc); err != nil {
 		return err
 	}
-	enc := json.NewEncoder(cmd.OutOrStdout())
-	enc.SetIndent("", "\t")
-	return enc.Encode(doc)
+	return c.fmt.Output(bytes.NewReader(doc))
 }
