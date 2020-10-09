@@ -7,6 +7,8 @@ Flags:
 
 Global Flags:
   -d, --debug                Enable debug output
-  -f, --fail                 Fail silently (no output at all) on server errors
+  -f, --format string        Output format. One of: json|raw (default "json")
       --kouchconfig string   Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")
+  -o, --output string        Output file/directory.
+  -O, --overwrite            Overwrite output file
 

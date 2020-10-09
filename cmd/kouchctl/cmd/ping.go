@@ -66,8 +66,8 @@ func (c *ping) RunE(cmd *cobra.Command, args []string) error {
 	}
 	if success {
 		c.log.Info("[ping] Server is up")
-		return err
+		return nil
 	}
 	c.log.Info("[ping] Server down")
-	return errors.Code(status, "Server down")
+	return errors.HTTPStatus(status, "Server down")
 }

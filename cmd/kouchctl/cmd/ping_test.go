@@ -28,7 +28,7 @@ func Test_ping_RunE(t *testing.T) {
 
 	tests.Add("invalid URL on command line", cmdTest{
 		args:   []string{"-d", "ping", "http://localhost:1/foo/bar/%xxx"},
-		status: errors.ErrURLMalformed,
+		status: errors.ErrUsage,
 	})
 	tests.Add("full url on command line", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{})
@@ -48,11 +48,11 @@ func Test_ping_RunE(t *testing.T) {
 	})
 	tests.Add("no server provided", cmdTest{
 		args:   []string{"ping", "foo/bar"},
-		status: errors.ErrFailedToInitialize,
+		status: errors.ErrUsage,
 	})
 	tests.Add("network error", cmdTest{
 		args:   []string{"ping", "http://localhost:9999/"},
-		status: errors.ErrFailedToConnect,
+		status: errors.ErrUnavailable,
 	})
 	tests.Add("Couch 1.7, up", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
@@ -81,7 +81,8 @@ func Test_ping_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"ping", s.URL},
+			args:   []string{"ping", s.URL},
+			status: errors.ErrNotFound,
 		}
 	})
 

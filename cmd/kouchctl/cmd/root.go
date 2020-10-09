@@ -15,26 +15,29 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"net"
-	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
 
 	_ "github.com/go-kivik/couchdb/v4" // CouchDB driver
 
+	// Formats
+	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/json"
+	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/raw"
+
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
 type root struct {
 	confFile string
 	debug    bool
-	fail     bool
 	log      log.Logger
 	conf     *config.Config
 	cmd      *cobra.Command
+	fmt      *output.Formatter
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -51,35 +54,25 @@ func (r *root) execute(ctx context.Context) int {
 	if err == nil {
 		return 0
 	}
-	code := extractExitCode(err, r.fail)
+	code := extractExitCode(err)
 
 	return code
 }
 
-func extractExitCode(err error, fail bool) int {
+func extractExitCode(err error) int {
 	if code := errors.InspectErrorCode(err); code != 0 {
-		if code >= http.StatusBadRequest {
-			if fail {
-				return errors.ErrHTTPPageNotRetrieved
-			}
-			return 0
-		}
 		return code
-	}
-
-	var netErr net.Error
-	if errors.As(err, &netErr) {
-		return errors.ErrFailedToConnect
 	}
 
 	// Any unhandled errors are assumed to be from Cobra, so return a "failed
 	// to initialize" error
-	return errors.ErrFailedToInitialize
+	return errors.ErrUsage
 }
 
 func rootCmd(lg log.Logger) *root {
 	r := &root{
 		log: lg,
+		fmt: output.New(),
 	}
 	r.cmd = &cobra.Command{
 		Use:               "kouchctl",
@@ -96,9 +89,9 @@ func rootCmd(lg log.Logger) *root {
 
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
-	pf.BoolVarP(&r.fail, "fail", "f", false, "Fail silently (no output at all) on server errors")
+	r.fmt.ConfigFlags(pf)
 
-	r.cmd.AddCommand(getCmd(r.log, r.conf))
+	r.cmd.AddCommand(getCmd(r.log, r.fmt, r.conf))
 	r.cmd.AddCommand(pingCmd(r.log, r.conf))
 
 	return r

@@ -13,40 +13,95 @@
 package errors
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
+	"net/http"
 )
 
 // Exit status codes
 //
-// Where possible, copied from curl: https://ec.haxx.se/usingcurl/usingcurl-returns
+// See https://man.openbsd.org/sysexits.3
 const (
-	ErrUnsupportedProtocol  = 1
-	ErrFailedToInitialize   = 2
-	ErrURLMalformed         = 3
-	ErrFailedToConnect      = 7
-	ErrHTTPPageNotRetrieved = 22
+	// ErrUsageError indicates an incorrect command, option, or unparseable
+	// configuration or command line options.
+	ErrUsage = 2
+	// ErrUnknown indicates that the server responded with an HTTP status > 500.
+	// Probably an indication of a proxy server interfering.
+	ErrUnknown = 3
+	// ErrInternalServerError indicates that the server responded with a 500
+	// error.
+	ErrInternalServerError = 4
+
+	// ErrBadReuqest indicates that the server responded with a 400 error.
+	ErrBadRequest = 10
+	// ErrUnauthorized indicates that the server responded with a 401 error.
+	ErrUnauthorized = 11
+	// ErrForbidden indicates that the server responded with a 403 error.
+	ErrForbidden = 13
+	// ErrNotFound indicates that the server responded with a 404 error.
+	ErrNotFound = 14
+	// ErrMethodNotAllowed indicates that the server responded with a 405 error.
+	ErrMethodNotAllowed = 15
+	// ErrNotAcceptable indicates that the server responded with a 406 error.
+	ErrNotAcceptable = 16
+	// ErrConflict indicates that the server responded with a 409 error.
+	ErrConflict = 19
+	// ErrPreconditionFailed indicates that the server responded with a 412
+	// error.
+	ErrPreconditionFailed = 22
+	// ErrRequestEntityTooLarge indicates that the server responded with a 413
+	// error.
+	ErrRequestEntityTooLarge = 23
+	// ErrUnsupportedMediaType indicates that the server responded with a 415
+	// error.
+	ErrUnsupportedMediaType = 25
+	// ErrRequestedRangeNotSatisfiable indicates that the server responded with
+	// a 416 error.
+	ErrRequestedRangeNotSatisfiable = 26
+	// ErrExpectationFailed indicates that the server responded with a 417 error.
+	ErrExpectationFailed = 27
+
+	// ErrData indicates an input file is invalid, such as malformed JSON or
+	// YAML.
+	ErrData = 65
+	// ErrNoInput indicates that an input file does not exist or cannot be read.
+	ErrNoInput = 66
+	// ErrNoHost indicates that the host does not exist or cannot be looked up.
+	ErrNoHost = 67
+	// ErrUnavailable indicates that the server could not be reached, such as
+	// a connection refused.
+	ErrUnavailable = 69
+	// ErrCantCreate indicates that an output file cannot be created.
+	ErrCantCreate = 73
+	// ErrIO indicates an I/O error while reading from or writing to a file or
+	// the network.
+	ErrIO = 74
+	// ErrProtocol indicates a protocol error, such as a CouchDB server
+	// returning a non-JSON response.
+	ErrProtocol = 76
 )
 
-type curlErr struct {
+type statusErr struct {
 	error
 	code int
 }
 
-func (e *curlErr) Error() string {
+func (e *statusErr) Error() string {
 	return e.error.Error()
 }
 
-func (e *curlErr) Unwrap() error {
+func (e *statusErr) Unwrap() error {
 	return e.error
 }
 
-func (e *curlErr) ExitStatus() int {
+func (e *statusErr) ExitStatus() int {
 	return e.code
 }
 
 func WithCode(err error, code int) error {
-	return &curlErr{
+	return &statusErr{
 		error: err,
 		code:  code,
 	}
@@ -61,20 +116,49 @@ func InspectErrorCode(err error) int {
 	if err == nil {
 		return 0
 	}
-	var codeErr interface {
-		ExitStatus() int
+	exitErr := new(statusErr)
+	if errors.As(err, &exitErr) {
+		return exitErr.ExitStatus()
 	}
-	if errors.As(err, &codeErr) {
-		return codeErr.ExitStatus()
+	var netErr net.Error
+	if errors.As(err, &netErr) {
+		return ErrUnavailable
 	}
+
+	jsonSyntax := new(json.SyntaxError)
+	if errors.As(err, &jsonSyntax) {
+		return ErrProtocol
+	}
+
 	var kivikErr interface {
 		StatusCode() int
 	}
 	if errors.As(err, &kivikErr) {
-		return kivikErr.StatusCode()
+		return fromHTTPStatus(kivikErr.StatusCode())
 	}
 
 	return 0
+}
+
+func fromHTTPStatus(status int) int {
+	switch {
+	case status == http.StatusInternalServerError:
+		return ErrInternalServerError
+	case status >= 400 && status < 500:
+		return status - 390
+	default:
+		return ErrUnknown
+	}
+}
+
+// HTTPStatus converts status to an error code, and passes it to Code().
+func HTTPStatus(status int, err ...interface{}) error {
+	return Code(fromHTTPStatus(status), err...)
+}
+
+// HTTPStatusf converts status to an error code, and passes it to Codef().
+func HTTPStatusf(status int, format string, args ...interface{}) error {
+	return Codef(fromHTTPStatus(status), format, args...)
 }
 
 // Code returns a new error with an error code. If err is an existing error, it
@@ -82,13 +166,13 @@ func InspectErrorCode(err error) int {
 func Code(code int, err ...interface{}) error {
 	if len(err) == 0 {
 		if e, ok := err[0].(error); ok {
-			return &curlErr{
+			return &statusErr{
 				error: e,
 				code:  code,
 			}
 		}
 	}
-	return &curlErr{
+	return &statusErr{
 		error: errors.New(fmt.Sprint(err...)),
 		code:  code,
 	}
@@ -96,7 +180,7 @@ func Code(code int, err ...interface{}) error {
 
 // Codef wraps the output of fmt.Errorf with a code.
 func Codef(code int, format string, args ...interface{}) error {
-	return &curlErr{
+	return &statusErr{
 		error: fmt.Errorf(format, args...),
 		code:  code,
 	}

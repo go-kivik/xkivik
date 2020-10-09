@@ -13,20 +13,27 @@
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
+
 	"github.com/spf13/cobra"
 
+	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
 type get struct {
 	log  log.Logger
+	fmt  *output.Formatter
 	conf *config.Config
 }
 
-func getCmd(lg log.Logger, conf *config.Config) *cobra.Command {
+func getCmd(lg log.Logger, fmt *output.Formatter, conf *config.Config) *cobra.Command {
 	g := &get{
 		log:  lg,
+		fmt:  fmt,
 		conf: conf,
 	}
 	return &cobra.Command{
@@ -38,10 +45,22 @@ func getCmd(lg log.Logger, conf *config.Config) *cobra.Command {
 }
 
 func (c *get) RunE(cmd *cobra.Command, _ []string) error {
-	dsn, err := c.conf.DSN()
+	dsn, db, docID, err := c.conf.DSNDoc()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch document: %q", dsn)
-	return nil
+	c.log.Debugf("[get] Will fetch document: %s%s/%s", dsn, db, docID)
+	client, err := kivik.New("couch", dsn)
+	if err != nil {
+		return err
+	}
+	row := client.DB(db).Get(cmd.Context(), docID)
+	if err := row.Err; err != nil {
+		return err
+	}
+	var doc json.RawMessage
+	if err := row.ScanDoc(&doc); err != nil {
+		return err
+	}
+	return c.fmt.Output(bytes.NewReader(doc))
 }
