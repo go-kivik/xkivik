@@ -10,7 +10,7 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
-package json
+package yaml
 
 import (
 	"encoding/json"
@@ -21,13 +21,14 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-func init() {
-	output.Register("yaml", &format{})
-}
-
 type format struct{}
 
 var _ output.Format = &format{}
+
+// New returns the yaml formatter.
+func New() output.Format {
+	return &format{}
+}
 
 func (f *format) Output(w io.Writer, r io.Reader) error {
 	var obj interface{}

@@ -19,12 +19,6 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-func init() {
-	output.Register("json", &format{
-		indent: "\t",
-	})
-}
-
 type format struct {
 	indent string
 }
@@ -33,6 +27,13 @@ var (
 	_ output.Format    = &format{}
 	_ output.FormatArg = &format{}
 )
+
+// New returns a json formatter.
+func New() output.Format {
+	return &format{
+		indent: "\t",
+	}
+}
 
 func (format) Required() bool { return false }
 

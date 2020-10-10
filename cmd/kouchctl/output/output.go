@@ -23,7 +23,23 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const defaultFormat = "json"
+// Formatter manages output formatting.
+type Formatter struct {
+	mu      sync.Mutex
+	formats map[string]Format
+
+	defaultFormat string
+	format        string
+	output        string
+	overwrite     bool
+}
+
+// New returns an output formatter instance.
+func New() *Formatter {
+	return &Formatter{
+		formats: map[string]Format{},
+	}
+}
 
 // Format is the output format interface.
 type Format interface {
@@ -37,36 +53,31 @@ type FormatArg interface {
 	Required() bool
 }
 
-var (
-	mu      sync.Mutex
-	formats map[string]Format
-)
-
 // Register registers an output formatter.
-func Register(name string, fmt Format) {
-	mu.Lock()
-	defer mu.Unlock()
-	if formats == nil {
-		formats = make(map[string]Format)
+func (f *Formatter) Register(name string, fmt Format) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.defaultFormat == "" {
+		f.defaultFormat = name
 	}
-	if _, ok := formats[name]; ok {
+	if _, ok := f.formats[name]; ok {
 		panic(name + " already registered")
 	}
-	formats[name] = fmt
+	f.formats[name] = fmt
 }
 
-func options() []string {
-	if len(formats) == 0 {
+func (f *Formatter) options() []string {
+	if len(f.formats) == 0 {
 		panic("no formatters regiestered")
 	}
-	fmts := make([]string, 1, len(formats))
-	def, ok := formats[defaultFormat]
+	fmts := make([]string, 1, len(f.formats))
+	def, ok := f.formats[f.defaultFormat]
 	if !ok {
 		panic("default format not registered")
 	}
-	fmts[0] = formatOptions(defaultFormat, def)
-	for name, fmt := range formats {
-		if name != defaultFormat {
+	fmts[0] = formatOptions(f.defaultFormat, def)
+	for name, fmt := range f.formats {
+		if name != f.defaultFormat {
 			fmts = append(fmts, formatOptions(name, fmt))
 		}
 	}
@@ -84,21 +95,9 @@ func formatOptions(name string, f Format) string {
 	return name
 }
 
-// Formatter manages output formatting.
-type Formatter struct {
-	format    string
-	output    string
-	overwrite bool
-}
-
-// New returns an output formatter instance.
-func New() *Formatter {
-	return &Formatter{}
-}
-
 // ConfigFlags sets up the CLI flags based on the configured formatters.
 func (f *Formatter) ConfigFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&f.format, "format", "f", defaultFormat, "Output format. One of: "+strings.Join(options(), "|"))
+	fs.StringVarP(&f.format, "format", "f", f.defaultFormat, "Output format. One of: "+strings.Join(f.options(), "|"))
 	fs.StringVarP(&f.output, "output", "o", "", "Output file/directory.")
 	fs.BoolVarP(&f.overwrite, "overwrite", "O", false, "Overwrite output file")
 }
@@ -117,12 +116,12 @@ func (f *Formatter) Output(r io.Reader) error {
 
 func (f *Formatter) formatter() (Format, error) {
 	if f.format == "" {
-		return formats[defaultFormat], nil
+		return f.formats[f.defaultFormat], nil
 	}
 	args := strings.SplitN(f.format, "=", 2)
 	name := args[0]
-	if fmt, ok := formats[name]; ok {
-		if fmtArg, ok := fmt.(FormatArg); ok {
+	if format, ok := f.formats[name]; ok {
+		if fmtArg, ok := format.(FormatArg); ok {
 			if fmtArg.Required() && len(args) == 1 {
 				return nil, errors.Codef(errors.ErrUsage, "format %s requires an argument", name)
 			}
@@ -135,7 +134,7 @@ func (f *Formatter) formatter() (Format, error) {
 			return nil, errors.Codef(errors.ErrUsage, "format %s takes no arguments", name)
 		}
 
-		return fmt, nil
+		return format, nil
 	}
 
 	return nil, errors.Codef(errors.ErrUsage, "unrecognized output format option: %s", name)

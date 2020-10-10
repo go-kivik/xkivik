@@ -10,7 +10,7 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
-package json
+package gotmpl
 
 import (
 	"encoding/json"
@@ -20,15 +20,16 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-func init() {
-	output.Register("go-template", &format{})
-}
-
 type format struct {
 	tmpl *template.Template
 }
 
 var _ output.Format = &format{}
+
+// New returns a go-template formatter.
+func New() output.Format {
+	return &format{}
+}
 
 func (format) Required() bool { return true }
 
