@@ -10,36 +10,24 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
-package json
+package yaml
 
 import (
 	"encoding/json"
 	"io"
 
+	"gopkg.in/yaml.v3"
+
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-type format struct {
-	indent string
-}
+type format struct{}
 
-var (
-	_ output.Format    = &format{}
-	_ output.FormatArg = &format{}
-)
+var _ output.Format = &format{}
 
-// New returns a json formatter.
+// New returns the yaml formatter.
 func New() output.Format {
-	return &format{
-		indent: "\t",
-	}
-}
-
-func (format) Required() bool { return false }
-
-func (f *format) Arg(arg string) error {
-	f.indent = arg
-	return nil
+	return &format{}
 }
 
 func (f *format) Output(w io.Writer, r io.Reader) error {
@@ -47,7 +35,5 @@ func (f *format) Output(w io.Writer, r io.Reader) error {
 	if err := json.NewDecoder(r).Decode(&obj); err != nil {
 		return err
 	}
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", f.indent)
-	return enc.Encode(obj)
+	return yaml.NewEncoder(w).Encode(obj)
 }

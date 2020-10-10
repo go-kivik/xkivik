@@ -24,12 +24,22 @@ import (
 
 	"gitlab.com/flimzy/testy"
 
-	// Formats
-	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/json"
-	_ "github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/raw"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/gotmpl"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/json"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/raw"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/yaml"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
+
+func testFormatter() *output.Formatter {
+	f := output.New()
+	f.Register("json", json.New())
+	f.Register("raw", raw.New())
+	f.Register("yaml", yaml.New())
+	f.Register("go-template", gotmpl.New())
+	return f
+}
 
 func TestOutput(t *testing.T) {
 	type tt struct {
@@ -112,9 +122,33 @@ func TestOutput(t *testing.T) {
 		args: []string{"-f", "raw"},
 		obj:  `{ "x": "y" }`,
 	})
+	tests.Add("too many args", tt{
+		args: []string{"-f", "raw=xxx"},
+		err:  "format raw takes no arguments",
+	})
+	tests.Add("missing required arg", tt{
+		args: []string{"-f", "go-template"},
+		err:  "format go-template requires an argument",
+	})
+	tests.Add("json indent", tt{
+		args: []string{"-f", "json=\t\t"},
+		obj:  `{ "x": "y" }`,
+	})
+	tests.Add("gotmpl, invalid", tt{
+		args: []string{"-f", "go-template={{ .x "},
+		err:  "template: :1: unclosed action",
+	})
+	tests.Add("gotmpl", tt{
+		args: []string{"-f", "go-template={{ .x }}"},
+		obj:  `{ "x": "y" }`,
+	})
+	tests.Add("yaml", tt{
+		args: []string{"-f", "yaml"},
+		obj:  `{ "x": "y" }`,
+	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
-		fmt := output.New()
+		fmt := testFormatter()
 		flags := pflag.NewFlagSet("x", pflag.ContinueOnError)
 		fmt.ConfigFlags(flags)
 

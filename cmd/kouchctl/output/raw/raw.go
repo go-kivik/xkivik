@@ -10,7 +10,7 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
-package json
+package raw
 
 import (
 	"io"
@@ -18,13 +18,14 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-func init() {
-	output.Register("raw", &format{})
-}
-
 type format struct{}
 
 var _ output.Format = &format{}
+
+// New returns the raw formatter.
+func New() output.Format {
+	return &format{}
+}
 
 func (format) Output(w io.Writer, r io.Reader) error {
 	_, err := io.Copy(w, r)

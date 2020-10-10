@@ -10,36 +10,33 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
-package json
+package gotmpl
 
 import (
 	"encoding/json"
 	"io"
+	"text/template"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
 type format struct {
-	indent string
+	tmpl *template.Template
 }
 
-var (
-	_ output.Format    = &format{}
-	_ output.FormatArg = &format{}
-)
+var _ output.Format = &format{}
 
-// New returns a json formatter.
+// New returns a go-template formatter.
 func New() output.Format {
-	return &format{
-		indent: "\t",
-	}
+	return &format{}
 }
 
-func (format) Required() bool { return false }
+func (format) Required() bool { return true }
 
 func (f *format) Arg(arg string) error {
-	f.indent = arg
-	return nil
+	var err error
+	f.tmpl, err = template.New("").Parse(arg)
+	return err
 }
 
 func (f *format) Output(w io.Writer, r io.Reader) error {
@@ -47,7 +44,5 @@ func (f *format) Output(w io.Writer, r io.Reader) error {
 	if err := json.NewDecoder(r).Decode(&obj); err != nil {
 		return err
 	}
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", f.indent)
-	return enc.Encode(obj)
+	return f.tmpl.Execute(w, obj)
 }
