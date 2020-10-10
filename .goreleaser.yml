@@ -5,17 +5,15 @@ before:
 builds:
 - env:
   - CGO_ENABLED=0
+  id: kouchctl
   goos:
   - linux
   - windows
   - darwin
+  main: ./cmd/kouchctl
 archives:
-- replacements:
-    darwin: Darwin
-    linux: Linux
-    windows: Windows
-    386: i386
-    amd64: x86_64
+- format: tar.gz
+  wrap_in_directory: true
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -26,3 +24,8 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
+release:
+  github:
+    owner: go-kivik
+    name: xkivik
+  prerelease: auto

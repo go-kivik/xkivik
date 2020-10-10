@@ -1,6 +1,7 @@
 ---
 stages:
 - test
+- release
 
 .test: &test_template
   stage: test
@@ -44,3 +45,21 @@ go-rc:
   <<: *test_template
   image: golang:rc
   allow_failure: true
+
+release-test:
+  stage: test
+  image:
+    name: goreleaser/goreleaser:latest
+    entrypoint: [""]
+  script:
+  - goreleaser check
+
+release:
+  stage: release
+  image:
+    name: goreleaser/goreleaser:latest
+    entrypoint: [""]
+  script:
+  - goreleaser
+  only:
+  - /^v\d+\.\d+\.\d+$/
