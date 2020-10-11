@@ -9,8 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Trigger Job
-      uses: appleboy/gitlab-ci-action@master
+      uses: appleboy/gitlab-ci-action@v0.0.2
       with:
-        url: "http://gitlab.com"
         token: ${{ secrets.GITLAB_TOKEN }}
         project_id: 13151405
