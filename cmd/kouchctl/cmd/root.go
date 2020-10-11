@@ -188,3 +188,7 @@ func (r *root) RunE(cmd *cobra.Command, args []string) error {
 
 	return nil
 }
+
+func (r *root) retry(fn func() error) error {
+	return fn()
+}
