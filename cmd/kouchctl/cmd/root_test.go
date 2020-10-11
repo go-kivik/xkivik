@@ -64,6 +64,9 @@ func Test_root_RunE(t *testing.T) {
 			status: errors.ErrUnavailable,
 		}
 	})
+	tests.Add("retry", cmdTest{
+		args: []string{"--retry", "3", "ping", "http://localhost:5984"},
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
@@ -139,6 +142,42 @@ func Test_parseTimeout(t *testing.T) {
 		got, err := parseTimeout(tt.input)
 		testy.ErrorRE(t, tt.err, err)
 		if got.String() != tt.want {
+			t.Errorf("Want: %s\n Got: %s", tt.want, got)
+		}
+	})
+}
+
+func Test_fmtDuration(t *testing.T) {
+	type tt struct {
+		d    time.Duration
+		want string
+	}
+
+	tests := testy.NewTable()
+	tests.Add("1.8s", tt{
+		d:    1800 * time.Millisecond,
+		want: "1.80s",
+	})
+	tests.Add("3m2s", tt{
+		d:    182 * time.Second,
+		want: "3m2s",
+	})
+	tests.Add("3m", tt{
+		d:    3 * time.Minute,
+		want: "3m0s",
+	})
+	tests.Add("1h3m4s", tt{
+		d:    63*time.Minute + 4*time.Second,
+		want: "1h3m",
+	})
+	tests.Add("3d1h3m4s", tt{
+		d:    3*24*time.Hour + 63*time.Minute + 4*time.Second,
+		want: "3d1h3m",
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		got := fmtDuration(tt.d)
+		if got != tt.want {
 			t.Errorf("Want: %s\n Got: %s", tt.want, got)
 		}
 	})

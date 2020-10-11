@@ -3,6 +3,7 @@ module github.com/go-kivik/xkivik/v4
 go 1.13
 
 require (
+	github.com/cenkalti/backoff/v4 v4.1.0
 	github.com/go-kivik/couchdb/v4 v4.0.0-20201011105359-723a6da29d45
 	github.com/go-kivik/fsdb/v4 v4.0.0-20201011102818-b9ac3fbc1e55
 	github.com/go-kivik/kivik/v4 v4.0.0-20201011094523-ab1764d67e62

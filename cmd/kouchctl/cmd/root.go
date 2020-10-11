@@ -15,11 +15,13 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/spf13/cobra"
 
 	"github.com/go-kivik/couchdb/v4"
@@ -45,11 +47,16 @@ type root struct {
 
 	client         *kivik.Client
 	requestTimeout string
+
+	// retry attempts
+	retryCount int
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute(ctx context.Context) {
+	// Init the pRNG here, so it doesn't affect tests.
+	rand.Seed(time.Now().Unix())
 	fmt.Println(os.Args)
 	lg := log.New()
 	root := rootCmd(lg)
@@ -107,6 +114,7 @@ func rootCmd(lg log.Logger) *root {
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
 	pf.StringVar(&r.requestTimeout, "request-timeout", "", "The time limit for each request. May be specified in h, m, s (default), us, ns")
+	pf.IntVar(&r.retryCount, "retry", 0, "In case of transient error, retry up to this many times. A negative value retries forever.")
 
 	r.cmd.AddCommand(getCmd(r))
 	r.cmd.AddCommand(pingCmd(r))
@@ -190,5 +198,52 @@ func (r *root) RunE(cmd *cobra.Command, args []string) error {
 }
 
 func (r *root) retry(fn func() error) error {
-	return fn()
+	if r.retryCount == 0 {
+		return fn()
+	}
+	var bo backoff.BackOff
+	bo = backoff.NewExponentialBackOff()
+	if r.retryCount >= 0 {
+		// WithMaxRetries really means WithMaxTries, so +1
+		bo = backoff.WithMaxRetries(bo, uint64(r.retryCount+1))
+	}
+	var count int
+	var err error
+	return backoff.Retry(func() error {
+		if count > 0 {
+			msg := fmt.Sprintf("Warning: Transient problem: %s.", err)
+			if nbo := bo.NextBackOff(); nbo != backoff.Stop {
+				msg += fmt.Sprintf(" Will retry in %s.", fmtDuration(nbo))
+			}
+			if remain := r.retryCount - count; remain > 0 {
+				msg += fmt.Sprintf(" %d retries left", remain)
+			}
+			r.log.Info(msg)
+		}
+		count++
+		fmt.Println(count)
+		err = fn()
+		return err
+	}, bo)
+}
+
+// nolint:gomnd
+func fmtDuration(dur time.Duration) string {
+	s := dur.Seconds()
+	if s < 60 {
+		return fmt.Sprintf("%0.2fs", s)
+	}
+	m := int(s / 60)
+	s -= float64(m) * 60
+	if m < 60 {
+		return fmt.Sprintf("%dm%ds", m, int(s))
+	}
+	h := m / 60
+	m -= h * 60
+	if h < 24 {
+		return fmt.Sprintf("%dh%dm", h, m)
+	}
+	d := h / 24
+	h -= d * 24
+	return fmt.Sprintf("%dd%dh%dm", d, h, m)
 }
