@@ -62,4 +62,4 @@ release:
   script:
   - goreleaser
   only:
-  - /^v\d+\.\d+\.\d+$/
+  - /^v\d+\.\d+\.\d+/
