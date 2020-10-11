@@ -17,24 +17,15 @@ import (
 	"encoding/json"
 
 	"github.com/spf13/cobra"
-
-	"github.com/go-kivik/kivik/v4"
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
 type get struct {
-	log  log.Logger
-	fmt  *output.Formatter
-	conf *config.Config
+	*root
 }
 
-func getCmd(lg log.Logger, fmt *output.Formatter, conf *config.Config) *cobra.Command {
+func getCmd(r *root) *cobra.Command {
 	g := &get{
-		log:  lg,
-		fmt:  fmt,
-		conf: conf,
+		root: r,
 	}
 	return &cobra.Command{
 		Use:   "get [dsn]",
@@ -45,16 +36,12 @@ func getCmd(lg log.Logger, fmt *output.Formatter, conf *config.Config) *cobra.Co
 }
 
 func (c *get) RunE(cmd *cobra.Command, _ []string) error {
-	dsn, db, docID, err := c.conf.DSNDoc()
+	db, docID, err := c.conf.DBDoc()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch document: %s%s/%s", dsn, db, docID)
-	client, err := kivik.New("couch", dsn)
-	if err != nil {
-		return err
-	}
-	row := client.DB(db).Get(cmd.Context(), docID)
+	c.log.Debugf("[get] Will fetch document: %s%s/%s", c.client.DSN(), db, docID)
+	row := c.client.DB(db).Get(cmd.Context(), docID)
 	if err := row.Err; err != nil {
 		return err
 	}
