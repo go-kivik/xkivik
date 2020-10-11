@@ -11,8 +11,10 @@ builds:
   - windows
   - darwin
   main: ./cmd/kouchctl
+  binary: kouchctl
 archives:
 - format: tar.gz
+  name_template: "kouchctl_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
   wrap_in_directory: true
 checksum:
   name_template: 'checksums.txt'

@@ -1,0 +1,16 @@
+name: Trigger GitLab release
+on:
+  create:
+    tags:
+    - v*
+jobs:
+  build:
+    name: Build
+    runs-on: alpine-latest
+    steps:
+    - name: Trigger Job
+      uses: appleboy/gitlab-ci-action@master
+      with:
+        url: "http://gitlab.com"
+        token: ${{ secrets.GITLAB_TOKEN }}
+        project_id: 13151405
