@@ -65,11 +65,28 @@ func Test_root_RunE(t *testing.T) {
 		}
 	})
 	tests.Add("retry", cmdTest{
-		args: []string{"--retry", "3", "ping", "http://localhost:5984"},
+		args:   []string{"--retry", "3", "ping", "http://localhost:5984"},
+		status: errors.ErrUnavailable,
+	})
+	tests.Add("retry delay invalid", cmdTest{
+		args:   []string{"--retry", "3", "--retry-delay", "oink", "ping", "http://localhost:5984"},
+		status: errors.ErrUsage,
+	})
+	tests.Add("retry delay", cmdTest{
+		args:   []string{"--retry", "3", "--retry-delay", "15ms", "ping", "http://localhost:5984"},
+		status: errors.ErrUnavailable,
+	})
+	tests.Add("disable retry delay", cmdTest{
+		args:   []string{"--retry", "3", "--retry-delay", "0", "ping", "http://localhost:5984"},
+		status: errors.ErrUnavailable,
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
-		tt.Test(t)
+		re := testy.Replacement{
+			Regexp:      regexp.MustCompile(`time: invalid duration oink`),
+			Replacement: `time: invalid duration "oink"`,
+		}
+		tt.Test(t, re)
 	})
 }
 
@@ -79,7 +96,7 @@ type cmdTest struct {
 	status int
 }
 
-func (tt *cmdTest) Test(t *testing.T) {
+func (tt *cmdTest) Test(t *testing.T, re ...testy.Replacement) {
 	t.Helper()
 	lg := log.New()
 	root := rootCmd(lg)
@@ -89,12 +106,12 @@ func (tt *cmdTest) Test(t *testing.T) {
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
 		status = root.execute(context.Background())
 	})
-	repl := []testy.Replacement{
+	repl := append([]testy.Replacement{
 		{
 			Regexp:      regexp.MustCompile(`http://127\.0\.0\.1:\d+/`),
 			Replacement: "http://127.0.0.1:XXX/",
 		},
-	}
+	}, re...)
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout, repl...); d != nil {
 		t.Errorf("STDOUT: %s", d)
 	}

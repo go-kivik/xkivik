@@ -45,11 +45,14 @@ type root struct {
 	cmd      *cobra.Command
 	fmt      *output.Formatter
 
-	client         *kivik.Client
 	requestTimeout string
+	retryDelay     string
+
+	client *kivik.Client
 
 	// retry attempts
-	retryCount int
+	retryCount       int
+	retryDelayParsed time.Duration
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -115,6 +118,7 @@ func rootCmd(lg log.Logger) *root {
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
 	pf.StringVar(&r.requestTimeout, "request-timeout", "", "The time limit for each request. May be specified in h, m, s (default), us, ns")
 	pf.IntVar(&r.retryCount, "retry", 0, "In case of transient error, retry up to this many times. A negative value retries forever.")
+	pf.StringVar(&r.retryDelay, "retry-delay", "", "Delay between retry attempts. Disables the default exponential backoff algorithm. May be specified in h, m, s (default), us, ns")
 
 	r.cmd.AddCommand(getCmd(r))
 	r.cmd.AddCommand(pingCmd(r))
@@ -150,6 +154,10 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 	r.log.Debug("Debug mode enabled")
 
 	requestTimeout, err := parseTimeout(r.requestTimeout)
+	if err != nil {
+		return err
+	}
+	r.retryDelayParsed, err = parseTimeout(r.retryDelay)
 	if err != nil {
 		return err
 	}
@@ -202,7 +210,14 @@ func (r *root) retry(fn func() error) error {
 		return fn()
 	}
 	var bo backoff.BackOff
-	bo = backoff.NewExponentialBackOff()
+	switch {
+	case r.retryDelayParsed == 0 && r.retryDelay != "": // Disables retry delay
+		bo = &backoff.ZeroBackOff{}
+	case r.retryDelayParsed != 0:
+		bo = backoff.NewConstantBackOff(r.retryDelayParsed)
+	default:
+		bo = backoff.NewExponentialBackOff()
+	}
 	if r.retryCount >= 0 {
 		// WithMaxRetries really means WithMaxTries, so +1
 		bo = backoff.WithMaxRetries(bo, uint64(r.retryCount+1))
@@ -212,11 +227,13 @@ func (r *root) retry(fn func() error) error {
 	return backoff.Retry(func() error {
 		if count > 0 {
 			msg := fmt.Sprintf("Warning: Transient problem: %s.", err)
-			if nbo := bo.NextBackOff(); nbo != backoff.Stop {
+			switch nbo := bo.NextBackOff(); nbo {
+			case backoff.Stop, 0:
+			default:
 				msg += fmt.Sprintf(" Will retry in %s.", fmtDuration(nbo))
 			}
 			if remain := r.retryCount - count; remain > 0 {
-				msg += fmt.Sprintf(" %d retries left", remain)
+				msg += fmt.Sprintf(" %d retries left.", remain)
 			}
 			r.log.Info(msg)
 		}

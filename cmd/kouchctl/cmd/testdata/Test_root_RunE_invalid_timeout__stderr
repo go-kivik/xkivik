@@ -16,6 +16,8 @@ Flags:
   -o, --output string            Output file/directory.
   -O, --overwrite                Overwrite output file
       --request-timeout string   The time limit for each request. May be specified in h, m, s (default), us, ns
+      --retry int                In case of transient error, retry up to this many times. A negative value retries forever.
+      --retry-delay string       Delay between retry attempts. Disables the default exponential backoff algorithm. May be specified in h, m, s (default), us, ns
 
 Use "kouchctl [command] --help" for more information about a command.
 
