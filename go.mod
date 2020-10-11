@@ -3,10 +3,10 @@ module github.com/go-kivik/xkivik/v4
 go 1.13
 
 require (
-	github.com/go-kivik/couchdb/v4 v4.0.0-20200923102911-2b3f405a60b7
-	github.com/go-kivik/fsdb/v4 v4.0.0-20200818192222-49d1e3fc1be0
-	github.com/go-kivik/kivik/v4 v4.0.0-20200923093016-4e2199b1bb34
-	github.com/go-kivik/kivikmock/v4 v4.0.0-20200818192212-0b7a2b44426a
+	github.com/go-kivik/couchdb/v4 v4.0.0-20201011105359-723a6da29d45
+	github.com/go-kivik/fsdb/v4 v4.0.0-20201011102818-b9ac3fbc1e55
+	github.com/go-kivik/kivik/v4 v4.0.0-20201011094523-ab1764d67e62
+	github.com/go-kivik/kivikmock/v4 v4.0.0-20201011105747-d4ebdf080861
 	github.com/go-kivik/kiviktest/v4 v4.0.0-20200818183706-ea0963c26090
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.0.0

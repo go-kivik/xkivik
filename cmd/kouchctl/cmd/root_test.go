@@ -14,8 +14,12 @@ package cmd
 
 import (
 	"context"
+	"io/ioutil"
+	"net/http"
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"gitlab.com/flimzy/testy"
 
@@ -44,6 +48,22 @@ func Test_root_RunE(t *testing.T) {
 	tests.Add("context from config file", cmdTest{
 		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml"},
 	})
+	tests.Add("invalid timeout", cmdTest{
+		args:   []string{"--request-timeout", "-78"},
+		status: errors.ErrUsage,
+	})
+	tests.Add("timeout", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+		}, func(*testing.T, *http.Request) {
+			time.Sleep(time.Second)
+		})
+
+		return cmdTest{
+			args:   []string{"--kouchconfig", "./testdata/localhost.yaml", "ping", s.URL, "--request-timeout", "1ms"},
+			status: errors.ErrUnavailable,
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
@@ -66,13 +86,60 @@ func (tt *cmdTest) Test(t *testing.T) {
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
 		status = root.execute(context.Background())
 	})
-	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout); d != nil {
+	repl := []testy.Replacement{
+		{
+			Regexp:      regexp.MustCompile(`http://127\.0\.0\.1:\d+/`),
+			Replacement: "http://127.0.0.1:XXX/",
+		},
+	}
+	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout, repl...); d != nil {
 		t.Errorf("STDOUT: %s", d)
 	}
-	if d := testy.DiffText(testy.Snapshot(t, "_stderr"), stderr); d != nil {
+	if d := testy.DiffText(testy.Snapshot(t, "_stderr"), stderr, repl...); d != nil {
 		t.Errorf("STDERR: %s", d)
 	}
 	if tt.status != status {
 		t.Errorf("Unexpected exit status. Want %d, got %d", tt.status, status)
 	}
+}
+
+func Test_parseTimeout(t *testing.T) {
+	type tt struct {
+		input string
+		want  string
+		err   string
+	}
+
+	tests := testy.NewTable()
+	tests.Add("empty", tt{
+		want: "0s",
+	})
+	tests.Add("invalid", tt{
+		input: "bogus",
+		err:   `time: invalid duration "?bogus"?`,
+	})
+	tests.Add("ms", tt{
+		input: "100ms",
+		want:  "100ms",
+	})
+	tests.Add("default to seconds", tt{
+		input: "15",
+		want:  "15s",
+	})
+	tests.Add("negative", tt{
+		input: "-1.5s",
+		err:   "negative timeout not permitted",
+	})
+	tests.Add("negative seconds", tt{
+		input: "-1.5",
+		err:   "negative timeout not permitted",
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		got, err := parseTimeout(tt.input)
+		testy.ErrorRE(t, tt.err, err)
+		if got.String() != tt.want {
+			t.Errorf("Want: %s\n Got: %s", tt.want, got)
+		}
+	})
 }

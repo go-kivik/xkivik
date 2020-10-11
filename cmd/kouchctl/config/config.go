@@ -73,11 +73,14 @@ func (c *Context) ServerDSN() string {
 	return dsn.String()
 }
 
-func (c *Context) DSNDoc() (dsn, db, doc string) {
+func (c *Context) DBDoc() (db, doc string, err error) {
 	addr := c.dsn()
 	p := addr.Path
 	addr.Path = ""
-	return addr.String(), path.Dir(p), path.Base(p)
+	if addr.String() == "" {
+		return "", "", errors.Code(errors.ErrUsage, "document ID required")
+	}
+	return path.Dir(p), path.Base(p), nil
 }
 
 // UnmarshalYAML handles parsing of a Context from YAML input.
@@ -177,6 +180,24 @@ func (c *Config) currentCx() (*Context, error) {
 	return cx, nil
 }
 
+// ClientInfo returns the URL scheme, and DSN, for use by the root command to
+// establish the kivik client connection.
+func (c *Config) ClientInfo() (string, string, error) {
+	cx, err := c.currentCx()
+	if err != nil {
+		return "", "", err
+	}
+	dsn := cx.ServerDSN()
+	if dsn == "" {
+		return "", "", errors.Code(errors.ErrUsage, "server hostname required")
+	}
+	scheme := cx.Scheme
+	if scheme == "" {
+		scheme = "http"
+	}
+	return scheme, dsn, nil
+}
+
 func (c *Config) DSN() (string, error) {
 	cx, err := c.currentCx()
 	if err != nil {
@@ -192,6 +213,10 @@ func (c *Config) finalize() {
 	}
 }
 
+func (c *Config) Finalize() {
+	c.finalize()
+}
+
 func (c *Config) ServerDSN() (string, error) {
 	cx, err := c.currentCx()
 	if err != nil {
@@ -205,17 +230,13 @@ func (c *Config) ServerDSN() (string, error) {
 	return dsn, nil
 }
 
-func (c *Config) DSNDoc() (dsn, db, doc string, err error) {
+func (c *Config) DBDoc() (db, doc string, err error) {
 	cx, err := c.currentCx()
 	if err != nil {
-		return "", "", "", err
-	}
-	dsn, db, doc = cx.DSNDoc()
-	if dsn == "" {
-		return "", "", "", errors.Code(errors.ErrUsage, "document ID required")
+		return "", "", err
 	}
 	c.finalize()
-	return dsn, db, doc, nil
+	return cx.DBDoc()
 }
 
 // Config sets config from the cobra command.

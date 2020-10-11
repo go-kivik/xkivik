@@ -15,11 +15,15 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 
-	_ "github.com/go-kivik/couchdb/v4" // CouchDB driver
+	"github.com/go-kivik/couchdb/v4"
+	"github.com/go-kivik/kivik/v4"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
@@ -38,6 +42,9 @@ type root struct {
 	conf     *config.Config
 	cmd      *cobra.Command
 	fmt      *output.Formatter
+
+	client         *kivik.Client
+	requestTimeout string
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -96,14 +103,35 @@ func rootCmd(lg log.Logger) *root {
 
 	pf := r.cmd.PersistentFlags()
 
+	r.fmt.ConfigFlags(pf)
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
-	r.fmt.ConfigFlags(pf)
+	pf.StringVar(&r.requestTimeout, "request-timeout", "", "The time limit for each request. May be specified in h, m, s (default), us, ns")
 
-	r.cmd.AddCommand(getCmd(r.log, r.fmt, r.conf))
-	r.cmd.AddCommand(pingCmd(r.log, r.conf))
+	r.cmd.AddCommand(getCmd(r))
+	r.cmd.AddCommand(pingCmd(r))
 
 	return r
+}
+
+func parseTimeout(val string) (time.Duration, error) {
+	if val == "" {
+		return 0, nil
+	}
+	if d, err := strconv.ParseFloat(val, 64); err == nil {
+		if d < 0 {
+			return 0, errors.Code(errors.ErrUsage, "negative timeout not permitted")
+		}
+		return time.Duration(d) * time.Second, nil
+	}
+	d, err := time.ParseDuration(val)
+	if err != nil {
+		return 0, errors.Code(errors.ErrUsage, err)
+	}
+	if d < 0 {
+		return 0, errors.Code(errors.ErrUsage, "negative timeout not permitted")
+	}
+	return d, nil
 }
 
 func (r *root) init(cmd *cobra.Command, args []string) error {
@@ -113,6 +141,11 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 
 	r.log.Debug("Debug mode enabled")
 
+	requestTimeout, err := parseTimeout(r.requestTimeout)
+	if err != nil {
+		return err
+	}
+
 	if err := r.conf.Read(r.confFile, r.log); err != nil {
 		return err
 	}
@@ -121,6 +154,26 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 		if err := r.conf.SetURL(args[0]); err != nil {
 			return err
 		}
+	}
+
+	scheme, dsn, err := r.conf.ClientInfo()
+	if err != nil {
+		return err
+	}
+
+	switch scheme {
+	case "http", "https", "couch", "couchs", "couchdb", "couchdbs":
+		var err error
+		r.client, err = kivik.New("couch", dsn, kivik.Options{
+			couchdb.OptionHTTPClient: &http.Client{
+				Timeout: requestTimeout,
+			},
+		})
+		if err != nil {
+			return err
+		}
+	default:
+		return errors.Codef(errors.ErrUsage, "unsupported URL scheme: %s", scheme)
 	}
 
 	return nil

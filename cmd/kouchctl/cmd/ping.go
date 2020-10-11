@@ -18,22 +18,17 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/go-kivik/couchdb/v4/chttp"
-	"github.com/go-kivik/kivik/v4"
 
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
 
 type ping struct {
-	log  log.Logger
-	conf *config.Config
+	*root
 }
 
-func pingCmd(lg log.Logger, conf *config.Config) *cobra.Command {
+func pingCmd(r *root) *cobra.Command {
 	c := &ping{
-		log:  lg,
-		conf: conf,
+		root: r,
 	}
 
 	return &cobra.Command{
@@ -45,22 +40,15 @@ func pingCmd(lg log.Logger, conf *config.Config) *cobra.Command {
 }
 
 func (c *ping) RunE(cmd *cobra.Command, args []string) error {
-	dsn, err := c.conf.ServerDSN()
-	if err != nil {
-		return err
-	}
-	c.log.Debugf("[ping] Will ping server: %q", dsn)
-	client, err := kivik.New("couch", dsn)
-	if err != nil {
-		return err
-	}
+	c.conf.Finalize()
+	c.log.Debugf("[ping] Will ping server: %q", c.client.DSN())
 	var status int
 	ctx := chttp.WithClientTrace(cmd.Context(), &chttp.ClientTrace{
 		HTTPResponse: func(res *http.Response) {
 			status = res.StatusCode
 		},
 	})
-	success, err := client.Ping(ctx)
+	success, err := c.client.Ping(ctx)
 	if err != nil {
 		return err
 	}
