@@ -1,0 +1,31 @@
+before:
+  hooks:
+  - go mod download
+  # - go generate ./...
+builds:
+- env:
+  - CGO_ENABLED=0
+  id: kouchctl
+  goos:
+  - linux
+  - windows
+  - darwin
+  main: ./cmd/kouchctl
+archives:
+- format: tar.gz
+  wrap_in_directory: true
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+release:
+  github:
+    owner: go-kivik
+    name: xkivik
+  prerelease: auto
