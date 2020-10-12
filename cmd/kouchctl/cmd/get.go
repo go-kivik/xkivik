@@ -41,13 +41,15 @@ func (c *get) RunE(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 	c.log.Debugf("[get] Will fetch document: %s%s/%s", c.client.DSN(), db, docID)
-	row := c.client.DB(db).Get(cmd.Context(), docID)
-	if err := row.Err; err != nil {
-		return err
-	}
-	var doc json.RawMessage
-	if err := row.ScanDoc(&doc); err != nil {
-		return err
-	}
-	return c.fmt.Output(bytes.NewReader(doc))
+	return c.retry(func() error {
+		row := c.client.DB(db).Get(cmd.Context(), docID)
+		if err := row.Err; err != nil {
+			return err
+		}
+		var doc json.RawMessage
+		if err := row.ScanDoc(&doc); err != nil {
+			return err
+		}
+		return c.fmt.Output(bytes.NewReader(doc))
+	})
 }

@@ -64,9 +64,29 @@ func Test_root_RunE(t *testing.T) {
 			status: errors.ErrUnavailable,
 		}
 	})
+	tests.Add("retry", cmdTest{
+		args:   []string{"--retry", "3", "ping", "http://localhost:5984"},
+		status: errors.ErrUnavailable,
+	})
+	tests.Add("retry delay invalid", cmdTest{
+		args:   []string{"--retry", "3", "--retry-delay", "oink", "ping", "http://localhost:5984"},
+		status: errors.ErrUsage,
+	})
+	tests.Add("retry delay", cmdTest{
+		args:   []string{"--retry", "3", "--retry-delay", "15ms", "ping", "http://localhost:5984"},
+		status: errors.ErrUnavailable,
+	})
+	tests.Add("disable retry delay", cmdTest{
+		args:   []string{"--retry", "3", "--retry-delay", "0", "ping", "http://localhost:5984"},
+		status: errors.ErrUnavailable,
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
-		tt.Test(t)
+		re := testy.Replacement{
+			Regexp:      regexp.MustCompile(`time: invalid duration oink`),
+			Replacement: `time: invalid duration "oink"`,
+		}
+		tt.Test(t, re)
 	})
 }
 
@@ -76,7 +96,7 @@ type cmdTest struct {
 	status int
 }
 
-func (tt *cmdTest) Test(t *testing.T) {
+func (tt *cmdTest) Test(t *testing.T, re ...testy.Replacement) {
 	t.Helper()
 	lg := log.New()
 	root := rootCmd(lg)
@@ -86,12 +106,12 @@ func (tt *cmdTest) Test(t *testing.T) {
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
 		status = root.execute(context.Background())
 	})
-	repl := []testy.Replacement{
+	repl := append([]testy.Replacement{
 		{
 			Regexp:      regexp.MustCompile(`http://127\.0\.0\.1:\d+/`),
 			Replacement: "http://127.0.0.1:XXX/",
 		},
-	}
+	}, re...)
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout, repl...); d != nil {
 		t.Errorf("STDOUT: %s", d)
 	}
@@ -139,6 +159,42 @@ func Test_parseTimeout(t *testing.T) {
 		got, err := parseTimeout(tt.input)
 		testy.ErrorRE(t, tt.err, err)
 		if got.String() != tt.want {
+			t.Errorf("Want: %s\n Got: %s", tt.want, got)
+		}
+	})
+}
+
+func Test_fmtDuration(t *testing.T) {
+	type tt struct {
+		d    time.Duration
+		want string
+	}
+
+	tests := testy.NewTable()
+	tests.Add("1.8s", tt{
+		d:    1800 * time.Millisecond,
+		want: "1.80s",
+	})
+	tests.Add("3m2s", tt{
+		d:    182 * time.Second,
+		want: "3m2s",
+	})
+	tests.Add("3m", tt{
+		d:    3 * time.Minute,
+		want: "3m0s",
+	})
+	tests.Add("1h3m4s", tt{
+		d:    63*time.Minute + 4*time.Second,
+		want: "1h3m",
+	})
+	tests.Add("3d1h3m4s", tt{
+		d:    3*24*time.Hour + 63*time.Minute + 4*time.Second,
+		want: "3d1h3m",
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		got := fmtDuration(tt.d)
+		if got != tt.want {
 			t.Errorf("Want: %s\n Got: %s", tt.want, got)
 		}
 	})

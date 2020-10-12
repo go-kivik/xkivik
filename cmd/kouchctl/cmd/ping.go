@@ -42,20 +42,22 @@ func pingCmd(r *root) *cobra.Command {
 func (c *ping) RunE(cmd *cobra.Command, args []string) error {
 	c.conf.Finalize()
 	c.log.Debugf("[ping] Will ping server: %q", c.client.DSN())
-	var status int
-	ctx := chttp.WithClientTrace(cmd.Context(), &chttp.ClientTrace{
-		HTTPResponse: func(res *http.Response) {
-			status = res.StatusCode
-		},
+	return c.retry(func() error {
+		var status int
+		ctx := chttp.WithClientTrace(cmd.Context(), &chttp.ClientTrace{
+			HTTPResponse: func(res *http.Response) {
+				status = res.StatusCode
+			},
+		})
+		success, err := c.client.Ping(ctx)
+		if err != nil {
+			return err
+		}
+		if success {
+			c.log.Info("[ping] Server is up")
+			return nil
+		}
+		c.log.Info("[ping] Server down")
+		return errors.HTTPStatus(status, "Server down")
 	})
-	success, err := c.client.Ping(ctx)
-	if err != nil {
-		return err
-	}
-	if success {
-		c.log.Info("[ping] Server is up")
-		return nil
-	}
-	c.log.Info("[ping] Server down")
-	return errors.HTTPStatus(status, "Server down")
 }
