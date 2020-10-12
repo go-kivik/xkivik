@@ -80,6 +80,14 @@ func Test_root_RunE(t *testing.T) {
 		args:   []string{"--retry", "3", "--retry-delay", "0", "ping", "http://localhost:5984"},
 		status: errors.ErrUnavailable,
 	})
+	tests.Add("connect timeout invalid", cmdTest{
+		args:   []string{"--connect-timeout", "oink", "ping", "http://localhost:5984"},
+		status: errors.ErrUsage,
+	})
+	tests.Add("retry max time", cmdTest{
+		args:   []string{"--retry", "100", "--retry-delay", "40ms", "--retry-timeout", "100ms", "ping", "http://localhost:5984"},
+		status: errors.ErrUnavailable,
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		re := testy.Replacement{
@@ -156,7 +164,7 @@ func Test_parseTimeout(t *testing.T) {
 	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
-		got, err := parseTimeout(tt.input)
+		got, err := parseDuration(tt.input)
 		testy.ErrorRE(t, tt.err, err)
 		if got.String() != tt.want {
 			t.Errorf("Want: %s\n Got: %s", tt.want, got)
