@@ -50,6 +50,7 @@ type root struct {
 	retryDelay     string
 	connectTimeout string
 	retryTimeout   string
+	options        map[string]string
 
 	client *kivik.Client
 
@@ -121,6 +122,7 @@ func rootCmd(lg log.Logger) *root {
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
 	pf.IntVar(&r.retryCount, "retry", 0, "In case of transient error, retry up to this many times. A negative value retries forever.")
+	pf.StringToStringVarP(&r.options, "option", "O", nil, "CouchDB options, specified as key=value. May be repeated.")
 
 	// Timeouts
 	// Might consider adding:
@@ -218,6 +220,10 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 		return errors.Codef(errors.ErrUsage, "unsupported URL scheme: %s", scheme)
 	}
 
+	if len(r.options) > 0 {
+		r.log.Debug("CouchDB options: %v", r.options)
+	}
+
 	return nil
 }
 
@@ -295,4 +301,12 @@ func fmtDuration(dur time.Duration) string {
 	d := h / 24
 	h -= d * 24
 	return fmt.Sprintf("%dd%dh%dm", d, h, m)
+}
+
+func (r *root) opts() kivik.Options {
+	opts := make(kivik.Options, len(r.options))
+	for k, v := range r.options {
+		opts[k] = v
+	}
+	return opts
 }

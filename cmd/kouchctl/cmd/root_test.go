@@ -88,6 +88,10 @@ func Test_root_RunE(t *testing.T) {
 		args:   []string{"--retry", "100", "--retry-delay", "40ms", "--retry-timeout", "100ms", "ping", "http://localhost:5984"},
 		status: errors.ErrUnavailable,
 	})
+	tests.Add("options", cmdTest{
+		args:   []string{"-d", "-O", "foo=bar", "--option", "bar=baz", "ping", "http://localhost:5984/"},
+		status: errors.ErrUnavailable,
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		re := testy.Replacement{

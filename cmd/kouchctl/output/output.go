@@ -99,7 +99,7 @@ func formatOptions(name string, f Format) string {
 func (f *Formatter) ConfigFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&f.format, "format", "f", f.defaultFormat, "Output format. One of: "+strings.Join(f.options(), "|"))
 	fs.StringVarP(&f.output, "output", "o", "", "Output file/directory.")
-	fs.BoolVarP(&f.overwrite, "overwrite", "O", false, "Overwrite output file")
+	fs.BoolVarP(&f.overwrite, "overwrite", "F", false, "Overwrite output file")
 }
 
 func (f *Formatter) Output(r io.Reader) error {
