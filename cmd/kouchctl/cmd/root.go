@@ -16,6 +16,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -47,6 +48,7 @@ type root struct {
 
 	requestTimeout string
 	retryDelay     string
+	connectTimeout string
 
 	client *kivik.Client
 
@@ -116,9 +118,15 @@ func rootCmd(lg log.Logger) *root {
 	r.fmt.ConfigFlags(pf)
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
-	pf.StringVar(&r.requestTimeout, "request-timeout", "", "The time limit for each request. May be specified in h, m, s (default), us, ns")
 	pf.IntVar(&r.retryCount, "retry", 0, "In case of transient error, retry up to this many times. A negative value retries forever.")
-	pf.StringVar(&r.retryDelay, "retry-delay", "", "Delay between retry attempts. Disables the default exponential backoff algorithm. May be specified in h, m, s (default), us, ns")
+
+	// Timeouts
+	// Might consider adding http.Transport.TLSHandshakeTimeout,
+	// http.Transport.ResponseHeaderTimeout,
+	// http.Transport.ExpectContinueTimeout (not sure this is relevant, as I'm not sure CouchDB ever uses a 100)
+	pf.StringVar(&r.requestTimeout, "request-timeout", "", "The time limit for each request.")
+	pf.StringVar(&r.retryDelay, "retry-delay", "", "Delay between retry attempts. Disables the default exponential backoff algorithm.")
+	pf.StringVar(&r.connectTimeout, "connect-timeout", "", "Limits the time spent establishing a TCP connection.")
 
 	r.cmd.AddCommand(getCmd(r))
 	r.cmd.AddCommand(pingCmd(r))
@@ -157,6 +165,10 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	connectTimeout, err := parseTimeout(r.connectTimeout)
+	if err != nil {
+		return err
+	}
 	r.retryDelayParsed, err = parseTimeout(r.retryDelay)
 	if err != nil {
 		return err
@@ -182,6 +194,11 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 		var err error
 		r.client, err = kivik.New("couch", dsn, kivik.Options{
 			couchdb.OptionHTTPClient: &http.Client{
+				Transport: &http.Transport{
+					DialContext: (&net.Dialer{
+						Timeout: connectTimeout,
+					}).DialContext,
+				},
 				Timeout: requestTimeout,
 			},
 		})

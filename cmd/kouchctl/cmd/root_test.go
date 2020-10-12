@@ -80,6 +80,10 @@ func Test_root_RunE(t *testing.T) {
 		args:   []string{"--retry", "3", "--retry-delay", "0", "ping", "http://localhost:5984"},
 		status: errors.ErrUnavailable,
 	})
+	tests.Add("connect timeout invalid", cmdTest{
+		args:   []string{"--connect-timeout", "oink", "ping", "http://localhost:5984"},
+		status: errors.ErrUsage,
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		re := testy.Replacement{
