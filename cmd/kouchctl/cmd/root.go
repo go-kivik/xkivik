@@ -49,12 +49,14 @@ type root struct {
 	requestTimeout string
 	retryDelay     string
 	connectTimeout string
+	retryTimeout   string
 
 	client *kivik.Client
 
 	// retry attempts
-	retryCount       int
-	retryDelayParsed time.Duration
+	retryCount         int
+	retryDelayParsed   time.Duration
+	retryTimeoutParsed time.Duration
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -121,12 +123,15 @@ func rootCmd(lg log.Logger) *root {
 	pf.IntVar(&r.retryCount, "retry", 0, "In case of transient error, retry up to this many times. A negative value retries forever.")
 
 	// Timeouts
-	// Might consider adding http.Transport.TLSHandshakeTimeout,
-	// http.Transport.ResponseHeaderTimeout,
-	// http.Transport.ExpectContinueTimeout (not sure this is relevant, as I'm not sure CouchDB ever uses a 100)
+	// Might consider adding:
+	// - http.Transport.TLSHandshakeTimeout
+	// - http.Transport.ResponseHeaderTimeout
+	// - http.Transport.ExpectContinueTimeout (not sure this is relevant, as I'm not sure CouchDB ever uses a 100)
+	// - Read timeout (would have to be an HTTP transport that wraps the Response.Body reader with a context-aware reader that extends the timeout every time more data is read)
 	pf.StringVar(&r.requestTimeout, "request-timeout", "", "The time limit for each request.")
 	pf.StringVar(&r.retryDelay, "retry-delay", "", "Delay between retry attempts. Disables the default exponential backoff algorithm.")
 	pf.StringVar(&r.connectTimeout, "connect-timeout", "", "Limits the time spent establishing a TCP connection.")
+	pf.StringVar(&r.retryTimeout, "retry-timeout", "", "When used with --retry, no more retries will be attempted after this timeout.")
 
 	r.cmd.AddCommand(getCmd(r))
 	r.cmd.AddCommand(pingCmd(r))
@@ -134,7 +139,7 @@ func rootCmd(lg log.Logger) *root {
 	return r
 }
 
-func parseTimeout(val string) (time.Duration, error) {
+func parseDuration(val string) (time.Duration, error) {
 	if val == "" {
 		return 0, nil
 	}
@@ -161,15 +166,19 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 
 	r.log.Debug("Debug mode enabled")
 
-	requestTimeout, err := parseTimeout(r.requestTimeout)
+	requestTimeout, err := parseDuration(r.requestTimeout)
 	if err != nil {
 		return err
 	}
-	connectTimeout, err := parseTimeout(r.connectTimeout)
+	connectTimeout, err := parseDuration(r.connectTimeout)
 	if err != nil {
 		return err
 	}
-	r.retryDelayParsed, err = parseTimeout(r.retryDelay)
+	r.retryDelayParsed, err = parseDuration(r.retryDelay)
+	if err != nil {
+		return err
+	}
+	r.retryTimeoutParsed, err = parseDuration(r.retryTimeout)
 	if err != nil {
 		return err
 	}
@@ -238,6 +247,12 @@ func (r *root) retry(fn func() error) error {
 	if r.retryCount >= 0 {
 		// WithMaxRetries really means WithMaxTries, so +1
 		bo = backoff.WithMaxRetries(bo, uint64(r.retryCount+1))
+	}
+	if r.retryTimeoutParsed > 0 {
+		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(ctx, r.retryTimeoutParsed)
+		defer cancel()
+		bo = backoff.WithContext(bo, ctx)
 	}
 	var count int
 	var err error
