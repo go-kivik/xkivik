@@ -101,7 +101,7 @@ func TestOutput(t *testing.T) {
 		_ = f.Close()
 
 		return tt{
-			args: []string{"-o", path, "-O"},
+			args: []string{"-o", path, "-F"},
 			obj:  `{"x":"y"}`,
 			check: func() {
 				buf, err := ioutil.ReadFile(path)
