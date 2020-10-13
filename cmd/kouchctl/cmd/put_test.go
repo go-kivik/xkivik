@@ -13,6 +13,9 @@
 package cmd
 
 import (
+	"io/ioutil"
+	"net/http"
+	"strings"
 	"testing"
 
 	"gitlab.com/flimzy/testy"
@@ -26,6 +29,24 @@ func Test_put_RunE(t *testing.T) {
 	tests.Add("missing document", cmdTest{
 		args:   []string{"put"},
 		status: errors.ErrUsage,
+	})
+	tests.Add("full url on command line", cmdTest{
+		args:   []string{"--debug", "put", "http://localhost:1/foo/bar", "-d", "{}"},
+		status: errors.ErrUnavailable,
+	})
+	tests.Add("json data string", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+		}, func(t *testing.T, req *http.Request) {
+			defer req.Body.Close() // nolint:errcheck
+			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"--debug", "put", s.URL + "/foo/bar", "--data", `{"foo":"bar"}`},
+		}
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {

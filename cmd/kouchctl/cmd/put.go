@@ -12,22 +12,49 @@
 
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/doc"
+	"github.com/spf13/cobra"
+)
 
-type put struct{ *root }
+type put struct {
+	*root
+	doc *doc.Doc
+}
 
 func putCmd(r *root) *cobra.Command {
-	p := &get{
+	p := &put{
 		root: r,
+		doc:  doc.New(),
 	}
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "put [dsn]/[database]/[document]",
 		Short: "Put a document",
 		Long:  `Update or create a named document`,
 		RunE:  p.RunE,
 	}
+
+	p.doc.ConfigFlags(cmd.Flags())
+
+	return cmd
 }
 
 func (c *put) RunE(cmd *cobra.Command, _ []string) error {
-	return nil
+	doc, err := c.doc.Data()
+	if err != nil {
+		return err
+	}
+	db, docID, err := c.conf.DBDoc()
+	if err != nil {
+		return err
+	}
+	c.log.Debugf("[put] Will put document: %s%s/%s", c.client.DSN(), db, docID)
+	return c.retry(func() error {
+		rev, err := c.client.DB(db).Put(cmd.Context(), docID, doc, c.opts())
+		if err != nil {
+			return err
+		}
+		c.log.Info(rev)
+		return nil
+	})
 }

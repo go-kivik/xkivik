@@ -42,11 +42,11 @@ func Test_root_RunE(t *testing.T) {
 		status: errors.ErrUsage,
 	})
 	tests.Add("Debug short", cmdTest{
-		args:   []string{"-d"},
+		args:   []string{"--debug"},
 		status: errors.ErrUsage,
 	})
 	tests.Add("context from config file", cmdTest{
-		args: []string{"-d", "--kouchconfig", "./testdata/localhost.yaml"},
+		args: []string{"--debug", "--kouchconfig", "./testdata/localhost.yaml"},
 	})
 	tests.Add("invalid timeout", cmdTest{
 		args:   []string{"--request-timeout", "-78"},
@@ -89,7 +89,7 @@ func Test_root_RunE(t *testing.T) {
 		status: errors.ErrUnavailable,
 	})
 	tests.Add("options", cmdTest{
-		args:   []string{"-d", "-O", "foo=bar", "--option", "bar=baz", "ping", "http://localhost:5984/"},
+		args:   []string{"--debug", "-O", "foo=bar", "--option", "bar=baz", "ping", "http://localhost:5984/"},
 		status: errors.ErrUnavailable,
 	})
 

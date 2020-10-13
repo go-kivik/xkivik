@@ -3,11 +3,12 @@ Usage:
   kouchctl put [dsn]/[database]/[document] [flags]
 
 Flags:
-  -h, --help   help for put
+  -d, --data string   Document data. Should be valid JSON or YAML.
+  -h, --help          help for put
 
 Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.
-  -d, --debug                    Enable debug output
+      --debug                    Enable debug output
   -f, --format string            Output format. One of: json[=...]|go-template=...|raw|yaml (default "json")
       --kouchconfig string       Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")
   -O, --option stringToString    CouchDB options, specified as key=value. May be repeated. (default [])

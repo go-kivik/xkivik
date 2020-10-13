@@ -120,7 +120,7 @@ func rootCmd(lg log.Logger) *root {
 
 	r.fmt.ConfigFlags(pf)
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
-	pf.BoolVarP(&r.debug, "debug", "d", false, "Enable debug output")
+	pf.BoolVar(&r.debug, "debug", false, "Enable debug output")
 	pf.IntVar(&r.retryCount, "retry", 0, "In case of transient error, retry up to this many times. A negative value retries forever.")
 	pf.StringToStringVarP(&r.options, "option", "O", nil, "CouchDB options, specified as key=value. May be repeated.")
 
@@ -304,6 +304,7 @@ func fmtDuration(dur time.Duration) string {
 	return fmt.Sprintf("%dd%dh%dm", d, h, m)
 }
 
+// opts returns the kivik options gathered from the command line.
 func (r *root) opts() kivik.Options {
 	opts := make(kivik.Options, len(r.options))
 	for k, v := range r.options {

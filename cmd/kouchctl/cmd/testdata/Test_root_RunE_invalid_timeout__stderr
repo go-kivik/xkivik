@@ -11,7 +11,7 @@ Available Commands:
 
 Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.
-  -d, --debug                    Enable debug output
+      --debug                    Enable debug output
   -f, --format string            Output format. One of: json[=...]|go-template=...|raw|yaml (default "json")
   -h, --help                     help for kouchctl
       --kouchconfig string       Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")

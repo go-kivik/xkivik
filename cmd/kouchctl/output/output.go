@@ -19,8 +19,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/spf13/pflag"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
 // Formatter manages output formatting.
