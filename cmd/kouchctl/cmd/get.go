@@ -28,8 +28,8 @@ func getCmd(r *root) *cobra.Command {
 		root: r,
 	}
 	return &cobra.Command{
-		Use:   "get [dsn]",
-		Short: "get a document",
+		Use:   "get [dsn]/[database]/[document]",
+		Short: "Get a document",
 		Long:  `Fetch a document with the HTTP GET verb`,
 		RunE:  g.RunE,
 	}

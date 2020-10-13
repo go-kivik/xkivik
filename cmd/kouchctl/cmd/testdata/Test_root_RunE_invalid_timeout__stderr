@@ -4,9 +4,10 @@ Usage:
   kouchctl [command]
 
 Available Commands:
-  get         get a document
+  get         Get a document
   help        Help about any command
   ping        Ping a server
+  put         Put a document
 
 Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.
