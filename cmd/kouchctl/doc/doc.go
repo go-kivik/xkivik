@@ -16,6 +16,7 @@ package doc
 
 import (
 	"io"
+	"os"
 	"strings"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
@@ -24,6 +25,7 @@ import (
 
 type Doc struct {
 	data string
+	file string
 }
 
 func New() *Doc {
@@ -32,11 +34,20 @@ func New() *Doc {
 
 func (d *Doc) ConfigFlags(pf *pflag.FlagSet) {
 	pf.StringVarP(&d.data, "data", "d", "", "Document data. Should be valid JSON or YAML.")
+	pf.StringVarP(&d.file, "data-file", "D", "", "Read document data from the named file. Use - for stdin.")
 }
 
 func (d *Doc) Data() (io.Reader, error) {
 	if d.data != "" {
 		return strings.NewReader(d.data), nil
+	}
+	switch d.file {
+	case "-":
+		return os.Stdin, nil
+	case "":
+	default:
+		f, err := os.Open(d.file)
+		return f, errors.Code(errors.ErrNoInput, err)
 	}
 	return nil, errors.Code(errors.ErrUsage, "no document provided")
 }

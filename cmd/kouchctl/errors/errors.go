@@ -163,8 +163,13 @@ func HTTPStatusf(status int, format string, args ...interface{}) error {
 
 // Code returns a new error with an error code. If err is an existing error, it
 // is wrapped with the error code. All other values are passed to fmt.Sprint.
+//
+// If err is a single nil value, nil is returned.
 func Code(code int, err ...interface{}) error {
-	if len(err) == 0 {
+	if len(err) == 1 {
+		if err[0] == nil {
+			return nil
+		}
 		if e, ok := err[0].(error); ok {
 			return &statusErr{
 				error: e,

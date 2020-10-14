@@ -48,6 +48,36 @@ func Test_put_RunE(t *testing.T) {
 			args: []string{"--debug", "put", s.URL + "/foo/bar", "--data", `{"foo":"bar"}`},
 		}
 	})
+	tests.Add("json data stdin", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+		}, func(t *testing.T, req *http.Request) {
+			defer req.Body.Close() // nolint:errcheck
+			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args:  []string{"--debug", "put", s.URL + "/foo/bar", "--data-file", "-"},
+			stdin: `{"foo":"bar"}`,
+		}
+	})
+	tests.Add("json data file", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+		}, func(t *testing.T, req *http.Request) {
+			defer req.Body.Close() // nolint:errcheck
+			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args:  []string{"--debug", "put", s.URL + "/foo/bar", "--data-file", "./testdata/doc.json"},
+			stdin: `{"foo":"bar"}`,
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
