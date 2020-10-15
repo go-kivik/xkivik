@@ -78,6 +78,20 @@ func Test_put_RunE(t *testing.T) {
 			stdin: `{"foo":"bar"}`,
 		}
 	})
+	tests.Add("yaml data string", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+		}, func(t *testing.T, req *http.Request) {
+			defer req.Body.Close() // nolint:errcheck
+			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"--debug", "put", s.URL + "/foo/bar", "--yaml-data", `foo: bar`},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)

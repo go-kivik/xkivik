@@ -58,6 +58,8 @@ github.com/go-kivik/fsdb/v4 v4.0.0-20201011102818-b9ac3fbc1e55/go.mod h1:CmwqaXq
 github.com/go-kivik/kivik/v4 v4.0.0-20200818182325-bd69ec6a93ff/go.mod h1:O2fxy5xMXO7vaVr2gQG38sYTj/mHwg5Md/8kP7qUZQk=
 github.com/go-kivik/kivik/v4 v4.0.0-20201011094523-ab1764d67e62 h1:BHpOPeyQQnx9SvGJDipUls95YTO5FTPFV/qik0NSfeo=
 github.com/go-kivik/kivik/v4 v4.0.0-20201011094523-ab1764d67e62/go.mod h1:O2fxy5xMXO7vaVr2gQG38sYTj/mHwg5Md/8kP7qUZQk=
+github.com/go-kivik/kivik/v4 v4.0.0-20201015190251-5d5c2f1c89fa h1:s1Q03Mwcx7EJNq+mgFpFoWfGwsx2r5jyUek7kNlYv0s=
+github.com/go-kivik/kivik/v4 v4.0.0-20201015190251-5d5c2f1c89fa/go.mod h1:O2fxy5xMXO7vaVr2gQG38sYTj/mHwg5Md/8kP7qUZQk=
 github.com/go-kivik/kivikmock/v4 v4.0.0-20201011105747-d4ebdf080861 h1:WY+j7hQwabB5o6lBMJ1R9KIvl/VO9m+XovMc/+hV1gw=
 github.com/go-kivik/kivikmock/v4 v4.0.0-20201011105747-d4ebdf080861/go.mod h1:0VQY+92DYvYFN+1tOHTadHUI+eZj49WoTcIYcV4K5SU=
 github.com/go-kivik/kiviktest/v4 v4.0.0-20200818183706-ea0963c26090 h1:yRNmZ4AYqrS0K7n74nkSDH9147RJgGJc3KaymMtzF6A=
