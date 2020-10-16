@@ -3,11 +3,10 @@ Usage:
   kouchctl put [dsn]/[database]/[document] [flags]
 
 Flags:
-  -d, --data string             JSON document data.
-  -D, --data-file string        Read document data from the named file. Use - for stdin.
-  -h, --help                    help for put
-  -y, --yaml-data string        YAML document data.
-  -Y, --yaml-data-file string   Read document data from the named YAML file. Use - for stdin.
+  -d, --data string        JSON document data.
+  -D, --data-file string   Read document data from the named file. Use - for stdin. Assumed to be JSON, unless the file extension is .yaml or .yml, or the --yaml flag is used.
+  -h, --help               help for put
+      --yaml               Treat input data as YAML
 
 Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.

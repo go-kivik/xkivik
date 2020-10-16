@@ -54,19 +54,22 @@ func Test_Data(t *testing.T) {
 		err:    "open ./testdata/missing.json: no such file or directory",
 	})
 	tests.Add("yaml string", tt{
-		args: []string{"--yaml-data", `foo: bar`},
+		args: []string{"--yaml", "--data", `foo: bar`},
 	})
 	tests.Add("yaml stdin", tt{
-		args:  []string{"--yaml-data-file", `-`},
+		args:  []string{"--yaml", "--data-file", `-`},
 		stdin: "foo: 1234",
 	})
 	tests.Add("yaml file", tt{
-		args: []string{"--yaml-data-file", `./testdata/doc.yaml`},
+		args: []string{"--yaml", "--data-file", `./testdata/doc.yaml`},
 	})
 	tests.Add("yaml file missing", tt{
-		args:   []string{"--yaml-data-file", `./testdata/missing.yaml`},
+		args:   []string{"--yaml", "--data-file", `./testdata/missing.yaml`},
 		status: errors.ErrNoInput,
 		err:    "open ./testdata/missing.yaml: no such file or directory",
+	})
+	tests.Add("yaml file extension", tt{
+		args: []string{"--data-file", `./testdata/doc.yaml`},
 	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {

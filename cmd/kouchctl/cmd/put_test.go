@@ -89,7 +89,7 @@ func Test_put_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"--debug", "put", s.URL + "/foo/bar", "--yaml-data", `foo: bar`},
+			args: []string{"--debug", "put", s.URL + "/foo/bar", "--yaml", "--data", `foo: bar`},
 		}
 	})
 

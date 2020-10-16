@@ -29,10 +29,9 @@ import (
 )
 
 type Doc struct {
-	data     string
-	file     string
-	yamlData string
-	yamlFile string
+	data string
+	file string
+	yaml bool
 }
 
 func New() *Doc {
@@ -41,9 +40,8 @@ func New() *Doc {
 
 func (d *Doc) ConfigFlags(pf *pflag.FlagSet) {
 	pf.StringVarP(&d.data, "data", "d", "", "JSON document data.")
-	pf.StringVarP(&d.file, "data-file", "D", "", "Read document data from the named file. Use - for stdin.")
-	pf.StringVarP(&d.yamlData, "yaml-data", "y", "", "YAML document data.")
-	pf.StringVarP(&d.yamlFile, "yaml-data-file", "Y", "", "Read document data from the named YAML file. Use - for stdin.")
+	pf.StringVarP(&d.file, "data-file", "D", "", "Read document data from the named file. Use - for stdin. Assumed to be JSON, unless the file extension is .yaml or .yml, or the --yaml flag is used.")
+	pf.BoolVar(&d.yaml, "yaml", false, "Treat input data as YAML")
 }
 
 // jsonReader converts an io.Reader into a json.Marshaler.
@@ -74,26 +72,30 @@ func (o *jsonObject) MarshalJSON() ([]byte, error) {
 
 // Data returns a JSON-marshalable object.
 func (d *Doc) Data() (json.Marshaler, error) {
+	if !d.yaml {
+		if d.data != "" {
+			return json.RawMessage(d.data), nil
+		}
+		switch d.file {
+		case "-":
+			return &jsonReader{os.Stdin}, nil
+		case "":
+		default:
+			if !strings.HasSuffix(d.file, ".yaml") && !strings.HasSuffix(d.file, ".yml") {
+				f, err := os.Open(d.file)
+				return &jsonReader{f}, errors.Code(errors.ErrNoInput, err)
+			}
+		}
+	}
 	if d.data != "" {
-		return json.RawMessage(d.data), nil
+		return yaml2json(ioutil.NopCloser(strings.NewReader(d.data)))
 	}
 	switch d.file {
-	case "-":
-		return &jsonReader{os.Stdin}, nil
-	case "":
-	default:
-		f, err := os.Open(d.file)
-		return &jsonReader{f}, errors.Code(errors.ErrNoInput, err)
-	}
-	if d.yamlData != "" {
-		return yaml2json(ioutil.NopCloser(strings.NewReader(d.yamlData)))
-	}
-	switch d.yamlFile {
 	case "-":
 		return yaml2json(os.Stdin)
 	case "":
 	default:
-		f, err := os.Open(d.yamlFile)
+		f, err := os.Open(d.file)
 		if err != nil {
 			return nil, errors.Code(errors.ErrNoInput, err)
 		}
