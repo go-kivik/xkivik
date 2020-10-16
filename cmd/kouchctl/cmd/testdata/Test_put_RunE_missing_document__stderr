@@ -1,11 +1,12 @@
-Debug mode enabled
-failed to read kouchconfig: open ~/.kouchctl/config: no such file or directory
-Error: parse "http://localhost:1/foo/bar/%xxx": invalid URL escape "%xx"
+Error: no context specified
 Usage:
-  kouchctl get [dsn]/[database]/[document] [flags]
+  kouchctl put [dsn]/[database]/[document] [flags]
 
 Flags:
-  -h, --help   help for get
+  -d, --data string        JSON document data.
+  -D, --data-file string   Read document data from the named file. Use - for stdin. Assumed to be JSON, unless the file extension is .yaml or .yml, or the --yaml flag is used.
+  -h, --help               help for put
+      --yaml               Treat input data as YAML
 
 Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.

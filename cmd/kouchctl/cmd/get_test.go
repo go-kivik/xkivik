@@ -30,19 +30,19 @@ func Test_get_RunE(t *testing.T) {
 		status: errors.ErrUsage,
 	})
 	tests.Add("invalid URL on command line", cmdTest{
-		args:   []string{"-d", "get", "http://localhost:1/foo/bar/%xxx"},
+		args:   []string{"--debug", "get", "http://localhost:1/foo/bar/%xxx"},
 		status: errors.ErrUsage,
 	})
 	tests.Add("full url on command line", cmdTest{
-		args:   []string{"-d", "get", "http://localhost:1/foo/bar"},
+		args:   []string{"--debug", "get", "http://localhost:1/foo/bar"},
 		status: errors.ErrUnavailable,
 	})
 	tests.Add("path only on command line", cmdTest{
-		args:   []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "get", "/foo/bar"},
+		args:   []string{"--debug", "--kouchconfig", "./testdata/localhost.yaml", "get", "/foo/bar"},
 		status: errors.ErrUnavailable,
 	})
 	tests.Add("document only on command line", cmdTest{
-		args:   []string{"-d", "--kouchconfig", "./testdata/localhost.yaml", "get", "bar"},
+		args:   []string{"--debug", "--kouchconfig", "./testdata/localhost.yaml", "get", "bar"},
 		status: errors.ErrUnavailable,
 	})
 	tests.Add("not found", func(t *testing.T) interface{} {

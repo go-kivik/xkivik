@@ -27,7 +27,7 @@ func Test_ping_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
 	tests.Add("invalid URL on command line", cmdTest{
-		args:   []string{"-d", "ping", "http://localhost:1/foo/bar/%xxx"},
+		args:   []string{"--debug", "ping", "http://localhost:1/foo/bar/%xxx"},
 		status: errors.ErrUsage,
 	})
 	tests.Add("full url on command line", func(t *testing.T) interface{} {

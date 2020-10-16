@@ -6,9 +6,10 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.0
 	github.com/go-kivik/couchdb/v4 v4.0.0-20201011105359-723a6da29d45
 	github.com/go-kivik/fsdb/v4 v4.0.0-20201011102818-b9ac3fbc1e55
-	github.com/go-kivik/kivik/v4 v4.0.0-20201011094523-ab1764d67e62
+	github.com/go-kivik/kivik/v4 v4.0.0-20201015190251-5d5c2f1c89fa
 	github.com/go-kivik/kivikmock/v4 v4.0.0-20201011105747-d4ebdf080861
 	github.com/go-kivik/kiviktest/v4 v4.0.0-20200818183706-ea0963c26090
+	github.com/icza/dyno v0.0.0-20200205103839-49cb13720835
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.3
