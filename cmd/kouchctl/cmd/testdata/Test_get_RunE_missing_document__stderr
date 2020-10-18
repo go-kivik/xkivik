@@ -1,6 +1,6 @@
 Error: no context specified
 Usage:
-  kouchctl get [dsn]/[database]/[document] [flags]
+  kouchctl get [command] [flags]
 
 Flags:
   -h, --help   help for get

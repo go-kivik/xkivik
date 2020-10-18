@@ -6,7 +6,7 @@ Usage:
   kouchctl [command]
 
 Available Commands:
-  get         Get a document
+  get         Get a resource
   help        Help about any command
   ping        Ping a server
   put         Put a document

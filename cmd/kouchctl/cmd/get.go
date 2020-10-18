@@ -13,9 +13,6 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
-
 	"github.com/spf13/cobra"
 )
 
@@ -24,32 +21,14 @@ type get struct {
 }
 
 func getCmd(r *root) *cobra.Command {
-	g := &get{
-		root: r,
+	cmd := &cobra.Command{
+		Use:   "get [command]",
+		Short: "Get a resource",
+		Long:  `Fetch a resource. Defaults to fetching a document.`,
 	}
-	return &cobra.Command{
-		Use:   "get [dsn]/[database]/[document]",
-		Short: "Get a document",
-		Long:  `Fetch a document with the HTTP GET verb`,
-		RunE:  g.RunE,
-	}
-}
 
-func (c *get) RunE(cmd *cobra.Command, _ []string) error {
-	db, docID, err := c.conf.DBDoc()
-	if err != nil {
-		return err
-	}
-	c.log.Debugf("[get] Will fetch document: %s%s/%s", c.client.DSN(), db, docID)
-	return c.retry(func() error {
-		row := c.client.DB(db).Get(cmd.Context(), docID, c.opts())
-		if err := row.Err; err != nil {
-			return err
-		}
-		var doc json.RawMessage
-		if err := row.ScanDoc(&doc); err != nil {
-			return err
-		}
-		return c.fmt.Output(bytes.NewReader(doc))
-	})
+	doc := getDocCmd(r)
+	cmd.RunE = doc.RunE
+
+	return cmd
 }
