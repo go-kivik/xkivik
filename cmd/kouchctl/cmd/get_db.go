@@ -14,43 +14,38 @@ package cmd
 
 import (
 	"bytes"
-	"encoding/json"
 
 	"github.com/spf13/cobra"
 )
 
-type getDoc struct {
+type getDB struct {
 	*root
 }
 
-func getDocCmd(r *root) *cobra.Command {
-	g := &getDoc{
+func getDBCmd(r *root) *cobra.Command {
+	g := &getDB{
 		root: r,
 	}
 	return &cobra.Command{
-		Use:     "document [dsn]/[database]/[document]",
-		Aliases: []string{"doc"},
-		Short:   "Get a document",
-		Long:    `Fetch a document with the HTTP GET verb`,
+		Use:     "database [dsn]/[database]",
+		Aliases: []string{"db"},
+		Short:   "Get a database",
+		Long:    `Fetch information about a database`,
 		RunE:    g.RunE,
 	}
 }
 
-func (c *getDoc) RunE(cmd *cobra.Command, _ []string) error {
-	db, docID, err := c.conf.DBDoc()
+func (c *getDB) RunE(cmd *cobra.Command, _ []string) error {
+	db, _, err := c.conf.DBDoc()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch document: %s/%s/%s", c.client.DSN(), db, docID)
+	c.log.Debugf("[get] Will fetch database: %s/%s", c.client.DSN(), db)
 	return c.retry(func() error {
-		row := c.client.DB(db).Get(cmd.Context(), docID, c.opts())
-		if err := row.Err; err != nil {
+		stats, err := c.client.DB(db).Stats(cmd.Context())
+		if err != nil {
 			return err
 		}
-		var doc json.RawMessage
-		if err := row.ScanDoc(&doc); err != nil {
-			return err
-		}
-		return c.fmt.Output(bytes.NewReader(doc))
+		return c.fmt.Output(bytes.NewReader(stats.RawResponse))
 	})
 }
