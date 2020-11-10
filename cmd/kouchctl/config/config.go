@@ -80,7 +80,9 @@ func (c *Context) DBDoc() (db, doc string, err error) {
 	if addr.String() == "" {
 		return "", "", errors.Code(errors.ErrUsage, "document ID required")
 	}
-	return path.Dir(p), path.Base(p), nil
+	return strings.Trim(path.Dir(p), "/"),
+		strings.Trim(path.Base(p), "/"),
+		nil
 }
 
 // UnmarshalYAML handles parsing of a Context from YAML input.
@@ -228,6 +230,17 @@ func (c *Config) ServerDSN() (string, error) {
 	}
 	c.finalize()
 	return dsn, nil
+}
+
+func (c *Config) HasDoc() bool {
+	cx, err := c.currentCx()
+	if err != nil {
+		return false
+	}
+	c.finalize()
+	_, doc, err := cx.DBDoc()
+	return err == nil && doc != ""
+
 }
 
 func (c *Config) DBDoc() (db, doc string, err error) {

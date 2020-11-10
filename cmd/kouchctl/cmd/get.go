@@ -14,21 +14,31 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
 type get struct {
+	doc *cobra.Command
 	*root
 }
 
 func getCmd(r *root) *cobra.Command {
-	cmd := &cobra.Command{
+	g := &get{
+		root: r,
+		doc:  getDocCmd(r),
+	}
+	return &cobra.Command{
 		Use:   "get [command]",
 		Short: "Get a resource",
-		Long:  `Fetch a resource. Defaults to fetching a document.`,
+		Long:  `Fetch a resource described by the URL`,
+		RunE:  g.RunE,
 	}
+}
 
-	doc := getDocCmd(r)
-	cmd.RunE = doc.RunE
-
-	return cmd
+func (g *get) RunE(cmd *cobra.Command, args []string) error {
+	if g.conf.HasDoc() {
+		return g.doc.RunE(cmd, args)
+	}
+	return errors.Codef(errors.ErrUsage, "unable to determine resource from dsn: %s", args[0])
 }

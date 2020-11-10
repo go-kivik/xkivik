@@ -41,7 +41,7 @@ func (c *get_doc) RunE(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch document: %s%s/%s", c.client.DSN(), db, docID)
+	c.log.Debugf("[get] Will fetch document: %s/%s/%s", c.client.DSN(), db, docID)
 	return c.retry(func() error {
 		row := c.client.DB(db).Get(cmd.Context(), docID, c.opts())
 		if err := row.Err; err != nil {

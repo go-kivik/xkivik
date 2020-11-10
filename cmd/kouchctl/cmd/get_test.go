@@ -33,6 +33,14 @@ func Test_get_RunE(t *testing.T) {
 		args:   []string{"--debug", "get", "http://localhost:1/foo/bar/%xxx"},
 		status: errors.ErrUsage,
 	})
+	tests.Add("invalid URL on command line, doc command", cmdTest{
+		args:   []string{"--debug", "get", "document", "http://localhost:1/foo/bar/%xxx"},
+		status: errors.ErrUsage,
+	})
+	tests.Add("url missing resource", cmdTest{
+		args:   []string{"--debug", "get", "http://localhost:1/"},
+		status: errors.ErrUsage,
+	})
 	tests.Add("full url on command line", cmdTest{
 		args:   []string{"--debug", "get", "http://localhost:1/foo/bar"},
 		status: errors.ErrUnavailable,
