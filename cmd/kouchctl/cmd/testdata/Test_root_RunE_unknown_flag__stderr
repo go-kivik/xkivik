@@ -4,7 +4,8 @@ Usage:
   kouchctl [command]
 
 Available Commands:
-  get         Get a document
+  describe    Describe a resource
+  get         Get a resource
   help        Help about any command
   ping        Ping a server
   put         Put a document

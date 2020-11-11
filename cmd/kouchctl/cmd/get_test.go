@@ -33,6 +33,14 @@ func Test_get_RunE(t *testing.T) {
 		args:   []string{"--debug", "get", "http://localhost:1/foo/bar/%xxx"},
 		status: errors.ErrUsage,
 	})
+	tests.Add("invalid URL on command line, doc command", cmdTest{
+		args:   []string{"--debug", "get", "document", "http://localhost:1/foo/bar/%xxx"},
+		status: errors.ErrUsage,
+	})
+	tests.Add("url missing resource", cmdTest{
+		args:   []string{"--debug", "get", "http://localhost:1/"},
+		status: errors.ErrUsage,
+	})
 	tests.Add("full url on command line", cmdTest{
 		args:   []string{"--debug", "get", "http://localhost:1/foo/bar"},
 		status: errors.ErrUnavailable,
@@ -86,6 +94,84 @@ func Test_get_RunE(t *testing.T) {
 
 		return cmdTest{
 			args: []string{"get", s.URL},
+		}
+	})
+	tests.Add("get database", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"db_name":"foo","purge_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","update_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","sizes":{"file":16692,"external":0,"active":0},"props":{},"doc_del_count":0,"doc_count":0,"disk_format_version":8,"compact_running":false,"cluster":{"q":2,"n":1,"w":1,"r":1},"instance_start_time":"0"}
+			`)),
+		})
+		return cmdTest{
+			args: []string{"get", "database", s.URL + "/foo"},
+		}
+	})
+	tests.Add("auto get database", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"db_name":"foo","purge_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","update_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","sizes":{"file":16692,"external":0,"active":0},"props":{},"doc_del_count":0,"doc_count":0,"disk_format_version":8,"compact_running":false,"cluster":{"q":2,"n":1,"w":1,"r":1},"instance_start_time":"0"}
+			`)),
+		})
+		return cmdTest{
+			args: []string{"--debug", "get", s.URL + "/foo"},
+		}
+	})
+	tests.Add("describe database", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"db_name":"foo","purge_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","update_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","sizes":{"file":16692,"external":0,"active":0},"props":{},"doc_del_count":0,"doc_count":0,"disk_format_version":8,"compact_running":false,"cluster":{"q":2,"n":1,"w":1,"r":1},"instance_start_time":"0"}
+			`)),
+		})
+		return cmdTest{
+			args: []string{"describe", "database", s.URL + "/foo"},
+		}
+	})
+	tests.Add("describe doc", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{
+				"_id":"foo",
+				"_rev":"1-xxx",
+				"foo":"bar"
+			}`)),
+		})
+
+		return cmdTest{
+			args: []string{"describe", "doc", s.URL + "/foo/bar"},
+		}
+	})
+	tests.Add("auto describe doc", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{
+				"_id":"foo",
+				"_rev":"1-xxx",
+				"foo":"bar"
+			}`)),
+		})
+
+		return cmdTest{
+			args: []string{"describe", s.URL + "/foo/bar"},
 		}
 	})
 

@@ -18,22 +18,22 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
-type get struct {
+type describe struct {
 	doc *cobra.Command
 	db  *cobra.Command
 	*root
 }
 
-func getCmd(r *root) *cobra.Command {
-	g := &get{
+func descrCmd(r *root) *cobra.Command {
+	g := &describe{
 		root: r,
-		doc:  getDocCmd(r),
-		db:   getDBCmd(r),
+		doc:  descrDocCmd(r),
+		db:   descrDBCmd(r),
 	}
 	cmd := &cobra.Command{
-		Use:   "get [command]",
-		Short: "Get a resource",
-		Long:  `Fetch a resource described by the URL`,
+		Use:   "describe [command]",
+		Short: "Describe a resource",
+		Long:  `Describe a resource described by the URL`,
 		RunE:  g.RunE,
 	}
 
@@ -43,7 +43,7 @@ func getCmd(r *root) *cobra.Command {
 	return cmd
 }
 
-func (g *get) RunE(cmd *cobra.Command, args []string) error {
+func (g *describe) RunE(cmd *cobra.Command, args []string) error {
 	if g.conf.HasDoc() {
 		return g.doc.RunE(cmd, args)
 	}

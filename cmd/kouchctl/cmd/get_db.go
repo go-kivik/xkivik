@@ -13,48 +13,47 @@
 package cmd
 
 import (
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/doc"
+	"bytes"
+	"encoding/json"
+
 	"github.com/spf13/cobra"
 )
 
-type put struct {
+type getDB struct {
 	*root
-	doc *doc.Doc
 }
 
-func putCmd(r *root) *cobra.Command {
-	p := &put{
+func getDBCmd(r *root) *cobra.Command {
+	g := &getDB{
 		root: r,
-		doc:  doc.New(),
 	}
-	cmd := &cobra.Command{
-		Use:   "put [dsn]/[database]/[document]",
-		Short: "Put a document",
-		Long:  `Update or create a named document`,
-		RunE:  p.RunE,
+	return &cobra.Command{
+		Use:     "database [dsn]/[database]",
+		Aliases: []string{"db"},
+		Short:   "Get a database",
+		Long:    `Fetch information about a database`,
+		RunE:    g.RunE,
 	}
-
-	p.doc.ConfigFlags(cmd.Flags())
-
-	return cmd
 }
 
-func (c *put) RunE(cmd *cobra.Command, _ []string) error {
-	doc, err := c.doc.Data()
+func (c *getDB) RunE(cmd *cobra.Command, _ []string) error {
+	db, _, err := c.conf.DBDoc()
 	if err != nil {
 		return err
 	}
-	db, docID, err := c.conf.DBDoc()
-	if err != nil {
-		return err
-	}
-	c.log.Debugf("[put] Will put document: %s/%s/%s", c.client.DSN(), db, docID)
+	c.log.Debugf("[get] Will fetch database: %s/%s", c.client.DSN(), db)
 	return c.retry(func() error {
-		rev, err := c.client.DB(db).Put(cmd.Context(), docID, doc, c.opts())
+		ok, err := c.client.DBExists(cmd.Context(), db)
 		if err != nil {
 			return err
 		}
-		c.log.Info(rev)
-		return nil
+		doc, err := json.Marshal(map[string]interface{}{
+			"name":   db,
+			"exists": ok,
+		})
+		if err != nil {
+			panic(err)
+		}
+		return c.fmt.Output(bytes.NewReader(doc))
 	})
 }
