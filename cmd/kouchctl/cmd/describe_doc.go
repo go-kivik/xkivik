@@ -19,37 +19,37 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type getDB struct {
+type descrDoc struct {
 	*root
 }
 
-func getDBCmd(r *root) *cobra.Command {
-	g := &getDB{
+func descrDocCmd(r *root) *cobra.Command {
+	g := descrDoc{
 		root: r,
 	}
 	return &cobra.Command{
-		Use:     "database [dsn]/[database]",
-		Aliases: []string{"db"},
-		Short:   "Get a database",
-		Long:    `Fetch information about a database`,
+		Use:     "document [dsn]/[database]/[document]",
+		Aliases: []string{"doc"},
+		Short:   "Describe a document",
+		Long:    `Fetch document metadata with the HTTP HEAD verb`,
 		RunE:    g.RunE,
 	}
 }
 
-func (c *getDB) RunE(cmd *cobra.Command, _ []string) error {
-	db, _, err := c.conf.DBDoc()
+func (c *descrDoc) RunE(cmd *cobra.Command, _ []string) error {
+	db, docID, err := c.conf.DBDoc()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch database: %s/%s", c.client.DSN(), db)
+	c.log.Debugf("[get] Will fetch document: %s/%s/%s", c.client.DSN(), db, docID)
 	return c.retry(func() error {
-		ok, err := c.client.DBExists(cmd.Context(), db)
+		_, rev, err := c.client.DB(db).GetMeta(cmd.Context(), docID, c.opts())
 		if err != nil {
 			return err
 		}
 		doc, err := json.Marshal(map[string]interface{}{
-			"name":   db,
-			"exists": ok,
+			"_id":  docID,
+			"_rev": rev,
 		})
 		if err != nil {
 			panic(err)

@@ -14,46 +14,38 @@ package cmd
 
 import (
 	"bytes"
-	"encoding/json"
 
 	"github.com/spf13/cobra"
 )
 
-type getDB struct {
+type descrDB struct {
 	*root
 }
 
-func getDBCmd(r *root) *cobra.Command {
-	g := &getDB{
+func descrDBCmd(r *root) *cobra.Command {
+	g := &descrDB{
 		root: r,
 	}
 	return &cobra.Command{
 		Use:     "database [dsn]/[database]",
 		Aliases: []string{"db"},
-		Short:   "Get a database",
+		Short:   "Describe a database",
 		Long:    `Fetch information about a database`,
 		RunE:    g.RunE,
 	}
 }
 
-func (c *getDB) RunE(cmd *cobra.Command, _ []string) error {
+func (c *descrDB) RunE(cmd *cobra.Command, _ []string) error {
 	db, _, err := c.conf.DBDoc()
 	if err != nil {
 		return err
 	}
 	c.log.Debugf("[get] Will fetch database: %s/%s", c.client.DSN(), db)
 	return c.retry(func() error {
-		ok, err := c.client.DBExists(cmd.Context(), db)
+		stats, err := c.client.DB(db).Stats(cmd.Context())
 		if err != nil {
 			return err
 		}
-		doc, err := json.Marshal(map[string]interface{}{
-			"name":   db,
-			"exists": ok,
-		})
-		if err != nil {
-			panic(err)
-		}
-		return c.fmt.Output(bytes.NewReader(doc))
+		return c.fmt.Output(bytes.NewReader(stats.RawResponse))
 	})
 }

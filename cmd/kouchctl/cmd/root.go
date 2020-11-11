@@ -138,6 +138,7 @@ func rootCmd(lg log.Logger) *root {
 	r.cmd.AddCommand(getCmd(r))
 	r.cmd.AddCommand(pingCmd(r))
 	r.cmd.AddCommand(putCmd(r))
+	r.cmd.AddCommand(descrCmd(r))
 
 	return r
 }
