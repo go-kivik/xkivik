@@ -13,8 +13,19 @@
 package output
 
 import (
+	"encoding/json"
 	"io"
 )
+
+// JSONReader marshals i as JSON.
+func JSONReader(i interface{}) io.Reader {
+	r, w := io.Pipe()
+	go func() {
+		err := json.NewEncoder(w).Encode(i)
+		_ = w.CloseWithError(err)
+	}()
+	return r
+}
 
 // FriendlyOutput produces friendly output.
 type FriendlyOutput interface {

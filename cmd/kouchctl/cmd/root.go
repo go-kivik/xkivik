@@ -32,6 +32,7 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/friendly"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/gotmpl"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/json"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output/raw"
@@ -93,6 +94,7 @@ func extractExitCode(err error) int {
 
 func formatter() *output.Formatter {
 	f := output.New()
+	f.Register("", friendly.New())
 	f.Register("json", json.New())
 	f.Register("raw", raw.New())
 	f.Register("yaml", yaml.New())
