@@ -138,24 +138,6 @@ func Test_get_RunE(t *testing.T) {
 			args: []string{"describe", "database", s.URL + "/foo"},
 		}
 	})
-	tests.Add("describe doc", func(t *testing.T) interface{} {
-		s := testy.ServeResponse(&http.Response{
-			StatusCode: http.StatusOK,
-			Header: http.Header{
-				"Content-Type": []string{"application/json"},
-				"ETag":         []string{"1-xxx"},
-			},
-			Body: ioutil.NopCloser(strings.NewReader(`{
-				"_id":"foo",
-				"_rev":"1-xxx",
-				"foo":"bar"
-			}`)),
-		})
-
-		return cmdTest{
-			args: []string{"describe", "doc", s.URL + "/foo/bar"},
-		}
-	})
 	tests.Add("auto describe doc", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
 			StatusCode: http.StatusOK,

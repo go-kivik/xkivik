@@ -13,10 +13,9 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
-
 	"github.com/spf13/cobra"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
 type descrDoc struct {
@@ -42,18 +41,27 @@ func (c *descrDoc) RunE(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 	c.log.Debugf("[get] Will fetch document: %s/%s/%s", c.client.DSN(), db, docID)
+
+	type result struct {
+		ID   string `json:"_id"`
+		Rev  string `json:"_rev"`
+		Size int64  `json:"-"`
+	}
 	return c.retry(func() error {
-		_, rev, err := c.client.DB(db).GetMeta(cmd.Context(), docID, c.opts())
+		size, rev, err := c.client.DB(db).GetMeta(cmd.Context(), docID, c.opts())
 		if err != nil {
 			return err
 		}
-		doc, err := json.Marshal(map[string]interface{}{
-			"_id":  docID,
-			"_rev": rev,
-		})
-		if err != nil {
-			panic(err)
+		data := result{
+			ID:   docID,
+			Rev:  rev,
+			Size: size,
 		}
-		return c.fmt.Output(bytes.NewReader(doc))
+
+		format := `      ID: {{ .ID }}
+Revision: {{ .Rev }}
+    Size: {{ .Size }}`
+		result := output.TemplateReader(format, data, output.JSONReader(data))
+		return c.fmt.Output(result)
 	})
 }

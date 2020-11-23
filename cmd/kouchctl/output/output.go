@@ -15,7 +15,6 @@ package output
 import (
 	"io"
 	"os"
-	"sort"
 	"strings"
 	"sync"
 
@@ -26,13 +25,13 @@ import (
 
 // Formatter manages output formatting.
 type Formatter struct {
-	mu      sync.Mutex
-	formats map[string]Format
+	mu         sync.Mutex
+	formats    map[string]Format
+	formatOpts []string
 
-	defaultFormat string
-	format        string
-	output        string
-	overwrite     bool
+	format    string
+	output    string
+	overwrite bool
 }
 
 // New returns an output formatter instance.
@@ -58,32 +57,20 @@ type FormatArg interface {
 func (f *Formatter) Register(name string, fmt Format) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	if f.defaultFormat == "" {
-		f.defaultFormat = name
-	}
 	if _, ok := f.formats[name]; ok {
 		panic(name + " already registered")
 	}
 	f.formats[name] = fmt
+	if name != "" {
+		f.formatOpts = append(f.formatOpts, formatOptions(name, fmt))
+	}
 }
 
 func (f *Formatter) options() []string {
 	if len(f.formats) == 0 {
 		panic("no formatters regiestered")
 	}
-	fmts := make([]string, 1, len(f.formats))
-	def, ok := f.formats[f.defaultFormat]
-	if !ok {
-		panic("default format not registered")
-	}
-	fmts[0] = formatOptions(f.defaultFormat, def)
-	for name, fmt := range f.formats {
-		if name != f.defaultFormat {
-			fmts = append(fmts, formatOptions(name, fmt))
-		}
-	}
-	sort.Strings(fmts[1:])
-	return fmts
+	return f.formatOpts
 }
 
 func formatOptions(name string, f Format) string {
@@ -98,7 +85,7 @@ func formatOptions(name string, f Format) string {
 
 // ConfigFlags sets up the CLI flags based on the configured formatters.
 func (f *Formatter) ConfigFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&f.format, "format", "f", f.defaultFormat, "Output format. One of: "+strings.Join(f.options(), "|"))
+	fs.StringVarP(&f.format, "format", "f", "", "Output format. One of: "+strings.Join(f.options(), "|"))
 	fs.StringVarP(&f.output, "output", "o", "", "Output file/directory.")
 	fs.BoolVarP(&f.overwrite, "overwrite", "F", false, "Overwrite output file")
 }
@@ -116,9 +103,6 @@ func (f *Formatter) Output(r io.Reader) error {
 }
 
 func (f *Formatter) formatter() (Format, error) {
-	if f.format == "" {
-		return f.formats[f.defaultFormat], nil
-	}
 	args := strings.SplitN(f.format, "=", 2)
 	name := args[0]
 	if format, ok := f.formats[name]; ok {
