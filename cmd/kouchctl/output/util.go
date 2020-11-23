@@ -15,6 +15,7 @@ package output
 import (
 	"encoding/json"
 	"io"
+	"text/template"
 )
 
 // JSONReader marshals i as JSON.
@@ -29,5 +30,26 @@ func JSONReader(i interface{}) io.Reader {
 
 // FriendlyOutput produces friendly output.
 type FriendlyOutput interface {
+	io.Reader
 	Execute(io.Writer) error
+}
+
+type tmplReader struct {
+	io.Reader
+	data interface{}
+	tmpl *template.Template
+}
+
+var _ FriendlyOutput = &tmplReader{}
+
+func TemplateReader(tmpl string, data interface{}, r io.Reader) FriendlyOutput {
+	return &tmplReader{
+		Reader: r,
+		data:   data,
+		tmpl:   template.Must(template.New("").Parse(tmpl)),
+	}
+}
+
+func (t *tmplReader) Execute(w io.Writer) error {
+	return t.tmpl.Execute(w, t.data)
 }
