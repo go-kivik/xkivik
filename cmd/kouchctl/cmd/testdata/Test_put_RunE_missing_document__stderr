@@ -12,6 +12,7 @@ Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.
       --debug                    Enable debug output
   -f, --format string            Output format. One of: json[=...]|raw|yaml|go-template=...
+  -H, --header                   Output response header
       --kouchconfig string       Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")
   -O, --option stringToString    CouchDB options, specified as key=value. May be repeated. (default [])
   -o, --output string            Output file/directory.

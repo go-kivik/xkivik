@@ -1,0 +1,10 @@
+< HTTP/1.1 200 OK
+< Content-Length: 59
+< Content-Type: application/json
+< Date: Tue, 24 Nov 2020 21:23:18 GMT
+< Etag: 1-xxx
+<
+<
+      ID: bar
+Revision: 1-xxx
+    Size: 59

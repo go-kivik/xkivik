@@ -60,6 +60,24 @@ func Test_describe_doc_RunE(t *testing.T) {
 			args: []string{"describe", "-f", "json", "doc", s.URL + "/foo/bar"},
 		}
 	})
+	tests.Add("describe doc header", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{
+				"_id":"foo",
+				"_rev":"1-xxx",
+				"foo":"bar"
+			}`)),
+		})
+
+		return cmdTest{
+			args: []string{"describe", "-H", "doc", s.URL + "/foo/bar"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
