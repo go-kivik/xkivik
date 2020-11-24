@@ -123,6 +123,18 @@ func (tt *cmdTest) Test(t *testing.T, re ...testy.Replacement) {
 			Regexp:      regexp.MustCompile(`http://127\.0\.0\.1:\d+/`),
 			Replacement: "http://127.0.0.1:XXX/",
 		},
+		{
+			Regexp:      regexp.MustCompile(`Date: .*`),
+			Replacement: `Date: XXX`,
+		},
+		{
+			Regexp:      regexp.MustCompile(`Host: .*`),
+			Replacement: `Host: XXX`,
+		},
+		{
+			Regexp:      regexp.MustCompile(`Language=go\d\.\d+\.\d+;`),
+			Replacement: `Language=goX.XX.X;`,
+		},
 	}, re...)
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout, repl...); d != nil {
 		t.Errorf("STDOUT: %s", d)

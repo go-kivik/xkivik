@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/go-kivik/couchdb/v4"
+	"github.com/go-kivik/couchdb/v4/chttp"
 	"github.com/go-kivik/kivik/v4"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
@@ -53,6 +54,10 @@ type root struct {
 	retryTimeout   string
 	options        map[string]string
 
+	trace      *chttp.ClientTrace
+	dumpHeader bool
+	verbose    bool
+
 	client *kivik.Client
 
 	// retry attempts
@@ -73,6 +78,7 @@ func Execute(ctx context.Context) {
 }
 
 func (r *root) execute(ctx context.Context) int {
+	ctx = chttp.WithClientTrace(ctx, r.clientTrace())
 	err := r.cmd.ExecuteContext(ctx)
 	if err == nil {
 		return 0
@@ -125,6 +131,8 @@ func rootCmd(lg log.Logger) *root {
 	pf.BoolVar(&r.debug, "debug", false, "Enable debug output")
 	pf.IntVar(&r.retryCount, "retry", 0, "In case of transient error, retry up to this many times. A negative value retries forever.")
 	pf.StringToStringVarP(&r.options, "option", "O", nil, "CouchDB options, specified as key=value. May be repeated.")
+	pf.BoolVarP(&r.dumpHeader, "header", "H", false, "Output response header")
+	pf.BoolVarP(&r.verbose, "verbose", "v", false, "Output bi-directional network traffic")
 
 	// Timeouts
 	// Might consider adding:
@@ -227,6 +235,8 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 	if len(r.options) > 0 {
 		r.log.Debug("CouchDB options: %v", r.options)
 	}
+
+	r.setTrace()
 
 	return nil
 }
