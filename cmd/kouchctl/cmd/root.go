@@ -13,13 +13,11 @@
 package cmd
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"math/rand"
 	"net"
 	"net/http"
-	"net/http/httputil"
 	"os"
 	"strconv"
 	"time"
@@ -56,7 +54,9 @@ type root struct {
 	retryTimeout   string
 	options        map[string]string
 
+	trace      *chttp.ClientTrace
 	dumpHeader bool
+	verbose    bool
 
 	client *kivik.Client
 
@@ -86,22 +86,6 @@ func (r *root) execute(ctx context.Context) int {
 	code := extractExitCode(err)
 
 	return code
-}
-
-func (r *root) clientTrace() *chttp.ClientTrace {
-	return &chttp.ClientTrace{
-		HTTPResponse: r.traceHTTPResponse,
-	}
-}
-
-func (r *root) traceHTTPResponse(resp *http.Response) {
-	if !r.dumpHeader {
-		return
-	}
-	dump, _ := httputil.DumpResponse(resp, false)
-	for _, line := range bytes.Split(dump, []byte("\n")) {
-		r.log.Infof("< %s", string(line))
-	}
 }
 
 func extractExitCode(err error) int {
@@ -148,6 +132,7 @@ func rootCmd(lg log.Logger) *root {
 	pf.IntVar(&r.retryCount, "retry", 0, "In case of transient error, retry up to this many times. A negative value retries forever.")
 	pf.StringToStringVarP(&r.options, "option", "O", nil, "CouchDB options, specified as key=value. May be repeated.")
 	pf.BoolVarP(&r.dumpHeader, "header", "H", false, "Output response header")
+	pf.BoolVarP(&r.verbose, "verbose", "v", false, "Output bi-directional network traffic")
 
 	// Timeouts
 	// Might consider adding:
@@ -250,6 +235,8 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 	if len(r.options) > 0 {
 		r.log.Debug("CouchDB options: %v", r.options)
 	}
+
+	r.setTrace()
 
 	return nil
 }

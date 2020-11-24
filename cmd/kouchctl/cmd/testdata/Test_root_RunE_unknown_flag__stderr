@@ -24,6 +24,7 @@ Flags:
       --retry int                In case of transient error, retry up to this many times. A negative value retries forever.
       --retry-delay string       Delay between retry attempts. Disables the default exponential backoff algorithm.
       --retry-timeout string     When used with --retry, no more retries will be attempted after this timeout.
+  -v, --verbose                  Output bi-directional network traffic
 
 Use "kouchctl [command] --help" for more information about a command.
 
