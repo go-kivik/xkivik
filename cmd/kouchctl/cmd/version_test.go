@@ -13,9 +13,6 @@
 package cmd
 
 import (
-	"io/ioutil"
-	"net/http"
-	"strings"
 	"testing"
 
 	"gitlab.com/flimzy/testy"
@@ -24,32 +21,14 @@ import (
 func Test_version_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
-	tests.Add("version with url", func(t *testing.T) interface{} {
-		s := testy.ServeResponse(&http.Response{
-			StatusCode: http.StatusOK,
-			Header: http.Header{
-				"Content-Type": []string{"application/json"},
-			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"0ae5d1a72d60e4e1370a444f1cf7ce7c","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
-			`)),
-		})
-
+	tests.Add("version", func(t *testing.T) interface{} {
 		return cmdTest{
-			args: []string{"version", s.URL},
+			args: []string{"version"},
 		}
 	})
-	tests.Add("version with url, json", func(t *testing.T) interface{} {
-		s := testy.ServeResponse(&http.Response{
-			StatusCode: http.StatusOK,
-			Header: http.Header{
-				"Content-Type": []string{"application/json"},
-			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"0ae5d1a72d60e4e1370a444f1cf7ce7c","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
-			`)),
-		})
-
+	tests.Add("version json", func(t *testing.T) interface{} {
 		return cmdTest{
-			args: []string{"version", s.URL, "-f", "json"},
+			args: []string{"version", "-f", "json"},
 		}
 	})
 

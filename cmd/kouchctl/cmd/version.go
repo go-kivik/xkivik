@@ -13,13 +13,9 @@
 package cmd
 
 import (
-	"bytes"
-	"fmt"
 	"runtime"
 
 	"github.com/spf13/cobra"
-
-	"github.com/go-kivik/kivik/v4"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 	v "github.com/go-kivik/xkivik/v4/cmd/kouchctl/version"
@@ -35,49 +31,31 @@ func versionCmd(r *root) *cobra.Command {
 	c := &version{
 		root: r,
 	}
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:     "version",
 		Aliases: []string{"ver"},
 		Short:   "Print client and server version information",
 		Long:    "Print client and server versions for the provided context",
 		RunE:    c.RunE,
 	}
-
-	pf := r.cmd.LocalFlags()
-
-	pf.BoolVarP(&c.clientOnly, "client", "c", false, "Client version information only")
-	pf.BoolVarP(&c.serverOnly, "server", "s", false, "Server version information only")
-
-	return cmd
 }
 
 func (c *version) RunE(cmd *cobra.Command, _ []string) error {
 	c.conf.Finalize()
 
-	client, err := c.client()
-	if err != nil {
-		return err
+	data := struct {
+		Version   string `json:"version"`
+		GoVersion string `json:"goVersion"`
+		GOARCH    string `json:"GOARCH"`
+		GOOS      string `json:"GOOS"`
+	}{
+		Version:   v.Version,
+		GoVersion: runtime.Version(),
+		GOOS:      runtime.GOOS,
+		GOARCH:    runtime.GOARCH,
 	}
 
-	return c.retry(func() error {
-		ver, err := client.Version(cmd.Context())
-		if err != nil {
-			return err
-		}
-
-		data := struct {
-			ClientVersion string
-			GoVersion     string
-			Server        *kivik.Version
-		}{
-			ClientVersion: v.Version,
-			GoVersion:     fmt.Sprintf("%s, %s/%s", runtime.Version(), runtime.GOOS, runtime.GOARCH),
-			Server:        ver,
-		}
-
-		format := `kubectl Client Version: {{ .ClientVersion }}, {{ .GoVersion }}
-CouchDB Server Version: {{ .Server.Version }}, {{ .Server.Vendor }}`
-		result := output.TemplateReader(format, data, bytes.NewReader(ver.RawResponse))
-		return c.fmt.Output(result)
-	})
+	format := `kubectl version {{ .Version }} {{ .GoVersion }} {{ .GOOS }}/{{ .GOARCH }}`
+	result := output.TemplateReader(format, data, output.JSONReader(data))
+	return c.fmt.Output(result)
 }
