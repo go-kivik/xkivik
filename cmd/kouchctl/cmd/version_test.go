@@ -52,11 +52,6 @@ func Test_version_RunE(t *testing.T) {
 			args: []string{"version", s.URL, "-f", "json"},
 		}
 	})
-	tests.Add("version with no url", func(t *testing.T) interface{} {
-		return cmdTest{
-			args: []string{"version"},
-		}
-	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)

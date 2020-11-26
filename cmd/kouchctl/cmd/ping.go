@@ -40,8 +40,12 @@ func pingCmd(r *root) *cobra.Command {
 }
 
 func (c *ping) RunE(cmd *cobra.Command, args []string) error {
+	client, err := c.client()
+	if err != nil {
+		return err
+	}
 	c.conf.Finalize()
-	c.log.Debugf("[ping] Will ping server: %q", c.client.DSN())
+	c.log.Debugf("[ping] Will ping server: %q", client.DSN())
 	return c.retry(func() error {
 		var status int
 		ctx := chttp.WithClientTrace(cmd.Context(), &chttp.ClientTrace{
@@ -49,7 +53,7 @@ func (c *ping) RunE(cmd *cobra.Command, args []string) error {
 				status = res.StatusCode
 			},
 		})
-		success, err := c.client.Ping(ctx)
+		success, err := client.Ping(ctx)
 		if err != nil {
 			return err
 		}

@@ -54,8 +54,13 @@ func versionCmd(r *root) *cobra.Command {
 func (c *version) RunE(cmd *cobra.Command, _ []string) error {
 	c.conf.Finalize()
 
+	client, err := c.client()
+	if err != nil {
+		return err
+	}
+
 	return c.retry(func() error {
-		ver, err := c.client.Version(cmd.Context())
+		ver, err := client.Version(cmd.Context())
 		if err != nil {
 			return err
 		}

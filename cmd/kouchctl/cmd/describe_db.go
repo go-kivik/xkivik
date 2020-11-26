@@ -36,13 +36,17 @@ func descrDBCmd(r *root) *cobra.Command {
 }
 
 func (c *descrDB) RunE(cmd *cobra.Command, _ []string) error {
+	client, err := c.client()
+	if err != nil {
+		return err
+	}
 	db, _, err := c.conf.DBDoc()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch database: %s/%s", c.client.DSN(), db)
+	c.log.Debugf("[get] Will fetch database: %s/%s", client.DSN(), db)
 	return c.retry(func() error {
-		stats, err := c.client.DB(db).Stats(cmd.Context())
+		stats, err := client.DB(db).Stats(cmd.Context())
 		if err != nil {
 			return err
 		}

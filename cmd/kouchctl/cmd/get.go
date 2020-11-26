@@ -50,5 +50,8 @@ func (g *get) RunE(cmd *cobra.Command, args []string) error {
 	if g.conf.HasDB() {
 		return g.db.RunE(cmd, args)
 	}
+	if _, err := g.client(); err != nil {
+		return err
+	}
 	return errors.Codef(errors.ErrUsage, "unable to determine resource from dsn: %s", args[0])
 }

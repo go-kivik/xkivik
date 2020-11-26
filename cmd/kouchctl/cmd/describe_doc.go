@@ -36,11 +36,15 @@ func descrDocCmd(r *root) *cobra.Command {
 }
 
 func (c *descrDoc) RunE(cmd *cobra.Command, _ []string) error {
+	client, err := c.client()
+	if err != nil {
+		return err
+	}
 	db, docID, err := c.conf.DBDoc()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch document: %s/%s/%s", c.client.DSN(), db, docID)
+	c.log.Debugf("[get] Will fetch document: %s/%s/%s", client.DSN(), db, docID)
 
 	type result struct {
 		ID   string `json:"_id"`
@@ -48,7 +52,7 @@ func (c *descrDoc) RunE(cmd *cobra.Command, _ []string) error {
 		Size int64  `json:"-"`
 	}
 	return c.retry(func() error {
-		size, rev, err := c.client.DB(db).GetMeta(cmd.Context(), docID, c.opts())
+		size, rev, err := client.DB(db).GetMeta(cmd.Context(), docID, c.opts())
 		if err != nil {
 			return err
 		}
