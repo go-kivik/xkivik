@@ -6,6 +6,7 @@ Usage:
 Available Commands:
   database    Get a database
   document    Get a document
+  version     Print server version information
 
 Flags:
   -h, --help   help for get

@@ -23,8 +23,6 @@ import (
 
 type version struct {
 	*root
-	clientOnly bool
-	serverOnly bool
 }
 
 func versionCmd(r *root) *cobra.Command {
