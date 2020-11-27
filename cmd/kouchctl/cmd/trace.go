@@ -36,6 +36,16 @@ func (r *root) setTrace() {
 	}
 }
 
+func (r *root) captureResponseHeader(h *http.Header) {
+	orig := r.trace.HTTPResponse
+	r.trace.HTTPResponse = func(resp *http.Response) {
+		*h = resp.Header
+		if orig != nil {
+			orig(resp)
+		}
+	}
+}
+
 func (r *root) traceHTTPResponse(resp *http.Response) {
 	dump, _ := httputil.DumpResponse(resp, false)
 	for _, line := range bytes.Split(dump, []byte("\n")) {

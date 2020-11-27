@@ -18,8 +18,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"gitlab.com/flimzy/testy"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
 func Test_get_RunE(t *testing.T) {
@@ -35,10 +36,6 @@ func Test_get_RunE(t *testing.T) {
 	})
 	tests.Add("invalid URL on command line, doc command", cmdTest{
 		args:   []string{"--debug", "get", "document", "http://localhost:1/foo/bar/%xxx"},
-		status: errors.ErrUsage,
-	})
-	tests.Add("url missing resource", cmdTest{
-		args:   []string{"--debug", "get", "http://localhost:1/"},
 		status: errors.ErrUsage,
 	})
 	tests.Add("full url on command line", cmdTest{
@@ -93,7 +90,7 @@ func Test_get_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"get", s.URL},
+			args: []string{"get", s.URL + "/db/doc"},
 		}
 	})
 	tests.Add("get database", func(t *testing.T) interface{} {
@@ -138,22 +135,19 @@ func Test_get_RunE(t *testing.T) {
 			args: []string{"describe", "database", s.URL + "/foo"},
 		}
 	})
-	tests.Add("auto describe doc", func(t *testing.T) interface{} {
+	tests.Add("auto version", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
 			StatusCode: http.StatusOK,
 			Header: http.Header{
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{
-				"_id":"foo",
-				"_rev":"1-xxx",
-				"foo":"bar"
-			}`)),
+			Body: ioutil.NopCloser(strings.NewReader(`{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"0ae5d1a72d60e4e1370a444f1cf7ce7c","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
+			`)),
 		})
 
 		return cmdTest{
-			args: []string{"describe", s.URL + "/foo/bar"},
+			args: []string{"get", s.URL},
 		}
 	})
 

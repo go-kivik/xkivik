@@ -13,43 +13,50 @@
 package cmd
 
 import (
-	"bytes"
+	"net/http"
 
 	"github.com/spf13/cobra"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-type descrDB struct {
+type descrVer struct {
 	*root
 }
 
-func descrDBCmd(r *root) *cobra.Command {
-	g := &descrDB{
+func descrVerCmd(r *root) *cobra.Command {
+	c := descrVer{
 		root: r,
 	}
 	return &cobra.Command{
-		Use:     "database [dsn]/[database]",
-		Aliases: []string{"db"},
-		Short:   "Describe a database",
-		Long:    `Fetch information about a database`,
-		RunE:    g.RunE,
+		Use:     "version [dsn]",
+		Aliases: []string{"ver"},
+		Short:   "Print minimal server version information",
+		Long:    "Print the content of the Server: header",
+		RunE:    c.RunE,
 	}
 }
 
-func (c *descrDB) RunE(cmd *cobra.Command, _ []string) error {
+func (c *descrVer) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
-	db, _, err := c.conf.DBDoc()
-	if err != nil {
-		return err
-	}
-	c.log.Debugf("[get] Will fetch database: %s/%s", client.DSN(), db)
+	var h http.Header
+	c.captureResponseHeader(&h)
+
 	return c.retry(func() error {
-		stats, err := client.DB(db).Stats(cmd.Context())
+		_, err := client.Version(cmd.Context())
 		if err != nil {
 			return err
 		}
-		return c.fmt.Output(bytes.NewReader(stats.RawResponse))
+
+		data := map[string]string{
+			"Server": h.Get("Server"),
+		}
+
+		format := `Server: {{ .Server }}`
+		result := output.TemplateReader(format, data, output.JSONReader(data))
+		return c.fmt.Output(result)
 	})
 }

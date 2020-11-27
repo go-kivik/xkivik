@@ -14,13 +14,12 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
 type get struct {
 	doc *cobra.Command
 	db  *cobra.Command
+	ver *cobra.Command
 	*root
 }
 
@@ -29,6 +28,7 @@ func getCmd(r *root) *cobra.Command {
 		root: r,
 		doc:  getDocCmd(r),
 		db:   getDBCmd(r),
+		ver:  getVersionCmd(r),
 	}
 	cmd := &cobra.Command{
 		Use:   "get [command]",
@@ -39,6 +39,7 @@ func getCmd(r *root) *cobra.Command {
 
 	cmd.AddCommand(g.doc)
 	cmd.AddCommand(g.db)
+	cmd.AddCommand(g.ver)
 
 	return cmd
 }
@@ -50,5 +51,5 @@ func (g *get) RunE(cmd *cobra.Command, args []string) error {
 	if g.conf.HasDB() {
 		return g.db.RunE(cmd, args)
 	}
-	return errors.Codef(errors.ErrUsage, "unable to determine resource from dsn: %s", args[0])
+	return g.ver.RunE(cmd, args)
 }

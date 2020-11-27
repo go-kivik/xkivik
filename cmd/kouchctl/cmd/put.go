@@ -40,6 +40,10 @@ func putCmd(r *root) *cobra.Command {
 }
 
 func (c *put) RunE(cmd *cobra.Command, _ []string) error {
+	client, err := c.client()
+	if err != nil {
+		return err
+	}
 	doc, err := c.doc.Data()
 	if err != nil {
 		return err
@@ -48,9 +52,9 @@ func (c *put) RunE(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[put] Will put document: %s/%s/%s", c.client.DSN(), db, docID)
+	c.log.Debugf("[put] Will put document: %s/%s/%s", client.DSN(), db, docID)
 	return c.retry(func() error {
-		rev, err := c.client.DB(db).Put(cmd.Context(), docID, doc, c.opts())
+		rev, err := client.DB(db).Put(cmd.Context(), docID, doc, c.opts())
 		if err != nil {
 			return err
 		}

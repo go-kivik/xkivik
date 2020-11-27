@@ -48,17 +48,19 @@ type root struct {
 	cmd      *cobra.Command
 	fmt      *output.Formatter
 
-	requestTimeout string
-	retryDelay     string
-	connectTimeout string
-	retryTimeout   string
-	options        map[string]string
+	requestTimeout       string
+	parsedRequestTimeout time.Duration
+	retryDelay           string
+	connectTimeout       string
+	parsedConnectTimeout time.Duration
+	retryTimeout         string
+	options              map[string]string
 
 	trace      *chttp.ClientTrace
 	dumpHeader bool
 	verbose    bool
 
-	client *kivik.Client
+	// cl *kivik.Client
 
 	// retry attempts
 	retryCount         int
@@ -149,6 +151,7 @@ func rootCmd(lg log.Logger) *root {
 	r.cmd.AddCommand(pingCmd(r))
 	r.cmd.AddCommand(putCmd(r))
 	r.cmd.AddCommand(descrCmd(r))
+	r.cmd.AddCommand(versionCmd(r))
 
 	return r
 }
@@ -180,11 +183,12 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 
 	r.log.Debug("Debug mode enabled")
 
-	requestTimeout, err := parseDuration(r.requestTimeout)
+	var err error
+	r.parsedRequestTimeout, err = parseDuration(r.requestTimeout)
 	if err != nil {
 		return err
 	}
-	connectTimeout, err := parseDuration(r.connectTimeout)
+	r.parsedConnectTimeout, err = parseDuration(r.connectTimeout)
 	if err != nil {
 		return err
 	}
@@ -207,31 +211,6 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	scheme, dsn, err := r.conf.ClientInfo()
-	if err != nil {
-		return err
-	}
-
-	switch scheme {
-	case "http", "https", "couch", "couchs", "couchdb", "couchdbs":
-		var err error
-		r.client, err = kivik.New("couch", dsn, kivik.Options{
-			couchdb.OptionHTTPClient: &http.Client{
-				Transport: &http.Transport{
-					DialContext: (&net.Dialer{
-						Timeout: connectTimeout,
-					}).DialContext,
-				},
-				Timeout: requestTimeout,
-			},
-		})
-		if err != nil {
-			return err
-		}
-	default:
-		return errors.Codef(errors.ErrUsage, "unsupported URL scheme: %s", scheme)
-	}
-
 	if len(r.options) > 0 {
 		r.log.Debug("CouchDB options: %v", r.options)
 	}
@@ -241,7 +220,32 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func (r *root) client() (*kivik.Client, error) {
+	scheme, dsn, err := r.conf.ClientInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	switch scheme {
+	case "http", "https", "couch", "couchs", "couchdb", "couchdbs":
+		return kivik.New("couch", dsn, kivik.Options{
+			couchdb.OptionHTTPClient: &http.Client{
+				Transport: &http.Transport{
+					DialContext: (&net.Dialer{
+						Timeout: r.parsedConnectTimeout,
+					}).DialContext,
+				},
+				Timeout: r.parsedRequestTimeout,
+			},
+		})
+	}
+	return nil, errors.Codef(errors.ErrUsage, "unsupported URL scheme: %s", scheme)
+}
+
 func (r *root) RunE(cmd *cobra.Command, args []string) error {
+	if _, err := r.client(); err != nil {
+		return err
+	}
 	cx, err := r.conf.DSN()
 	if err != nil {
 		return err

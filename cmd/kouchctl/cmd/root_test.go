@@ -132,8 +132,8 @@ func (tt *cmdTest) Test(t *testing.T, re ...testy.Replacement) {
 			Replacement: `Host: XXX`,
 		},
 		{
-			Regexp:      regexp.MustCompile(`Language=go\d\.\d+\.\d+;`),
-			Replacement: `Language=goX.XX.X;`,
+			Regexp:      regexp.MustCompile(`go\d\.\d+\.\d+`),
+			Replacement: `goX.XX.X`,
 		},
 	}, re...)
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout, repl...); d != nil {

@@ -80,8 +80,10 @@ func (c *Context) DBDoc() (db, doc string, err error) {
 	if addr.String() == "" {
 		return "", "", errors.Code(errors.ErrUsage, "document ID required")
 	}
-	db = strings.Trim(path.Dir(p), "/")
-	doc = strings.Trim(path.Base(p), "/")
+	if p != "" {
+		db = strings.Trim(path.Dir(p), "/")
+		doc = strings.Trim(path.Base(p), "/")
+	}
 	if db == "" {
 		db = doc
 		doc = ""

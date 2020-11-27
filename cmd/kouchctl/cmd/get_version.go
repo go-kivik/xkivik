@@ -16,40 +16,42 @@ import (
 	"bytes"
 
 	"github.com/spf13/cobra"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-type descrDB struct {
+type getVersion struct {
 	*root
 }
 
-func descrDBCmd(r *root) *cobra.Command {
-	g := &descrDB{
+func getVersionCmd(r *root) *cobra.Command {
+	c := &getVersion{
 		root: r,
 	}
 	return &cobra.Command{
-		Use:     "database [dsn]/[database]",
-		Aliases: []string{"db"},
-		Short:   "Describe a database",
-		Long:    `Fetch information about a database`,
-		RunE:    g.RunE,
+		Use:     "version [dsn]",
+		Aliases: []string{"ver"},
+		Short:   "Print server version information",
+		Long:    "Print server version for the provided context",
+		RunE:    c.RunE,
 	}
 }
 
-func (c *descrDB) RunE(cmd *cobra.Command, _ []string) error {
+func (c *getVersion) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
-	db, _, err := c.conf.DBDoc()
-	if err != nil {
-		return err
-	}
-	c.log.Debugf("[get] Will fetch database: %s/%s", client.DSN(), db)
+	c.conf.Finalize()
+
 	return c.retry(func() error {
-		stats, err := client.DB(db).Stats(cmd.Context())
+		ver, err := client.Version(cmd.Context())
 		if err != nil {
 			return err
 		}
-		return c.fmt.Output(bytes.NewReader(stats.RawResponse))
+
+		format := `Server Version {{ .Version }}, {{ .Vendor }}`
+		result := output.TemplateReader(format, ver, bytes.NewReader(ver.RawResponse))
+		return c.fmt.Output(result)
 	})
 }
