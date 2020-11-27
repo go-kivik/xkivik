@@ -23,14 +23,14 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
-func Test_delete_RunE(t *testing.T) {
+func Test_delete_doc_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
-	tests.Add("missing resource", cmdTest{
-		args:   []string{"delete"},
+	tests.Add("missing document", cmdTest{
+		args:   []string{"delete", "doc"},
 		status: errors.ErrUsage,
 	})
-	tests.Add("auto delete doc", func(t *testing.T) interface{} {
+	tests.Add("success", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
 			StatusCode: http.StatusOK,
 			Header: http.Header{
@@ -42,21 +42,23 @@ func Test_delete_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"delete", s.URL + "/db/doc", "-O", "rev=1-xxx"},
+			args: []string{"delete", "doc", s.URL + "/db/doc", "-O", "rev=1-xxx"},
 		}
 	})
-	tests.Add("auto delete db", func(t *testing.T) interface{} {
+	tests.Add("no rev", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
-			StatusCode: http.StatusOK,
+			StatusCode: http.StatusConflict,
 			Header: http.Header{
 				"Content-Type": []string{"application/json"},
 				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Body: ioutil.NopCloser(strings.NewReader(`{"error":"conflict","reason":"Document update conflict."}
+			`)),
 		})
 
 		return cmdTest{
-			args: []string{"delete", s.URL + "/db"},
+			args:   []string{"delete", "doc", s.URL + "/db/doc"},
+			status: errors.ErrBadRequest,
 		}
 	})
 

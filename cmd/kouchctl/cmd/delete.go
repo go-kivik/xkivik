@@ -23,33 +23,33 @@ type delete struct {
 }
 
 func deleteCmd(r *root) *cobra.Command {
-	g := &get{
+	c := &delete{
 		root: r,
-		doc:  getDocCmd(r),
-		db:   getDBCmd(r),
-		ver:  getVersionCmd(r),
+		doc:  deleteDocCmd(r),
+		db:   deleteDBCmd(r),
 	}
 	cmd := &cobra.Command{
 		Use:     "delete [command]",
 		Aliases: []string{"del"},
 		Short:   "Delete a resource",
 		Long:    `Delete a resource described by the URL`,
-		RunE:    g.RunE,
+		RunE:    c.RunE,
 	}
 
-	// cmd.AddCommand(g.doc)
-	// cmd.AddCommand(g.db)
+	cmd.AddCommand(c.doc)
+	cmd.AddCommand(c.db)
 
 	return cmd
 }
 
 func (c *delete) RunE(cmd *cobra.Command, args []string) error {
-	// if c.conf.HasDoc() {
-	// 	return g.doc.RunE(cmd, args)
-	// }
-	// if c.conf.HasDB() {
-	// 	return g.db.RunE(cmd, args)
-	// }
-	// return c.ver.RunE(cmd, args)
-	return nil
+	if c.conf.HasDoc() {
+		return c.doc.RunE(cmd, args)
+	}
+	if c.conf.HasDB() {
+		return c.db.RunE(cmd, args)
+	}
+
+	_, err := c.client()
+	return err
 }

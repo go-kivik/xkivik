@@ -23,29 +23,14 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
-func Test_delete_RunE(t *testing.T) {
+func Test_delete_db_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
-	tests.Add("missing resource", cmdTest{
-		args:   []string{"delete"},
+	tests.Add("missing db", cmdTest{
+		args:   []string{"delete", "database"},
 		status: errors.ErrUsage,
 	})
-	tests.Add("auto delete doc", func(t *testing.T) interface{} {
-		s := testy.ServeResponse(&http.Response{
-			StatusCode: http.StatusOK,
-			Header: http.Header{
-				"Content-Type": []string{"application/json"},
-				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
-				"ETag":         []string{`"2-eec205a9d413992850a6e32678485900`},
-			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"fe6a1fef482d660160b45165ed001740","rev":"2-eec205a9d413992850a6e32678485900"}`)),
-		})
-
-		return cmdTest{
-			args: []string{"delete", s.URL + "/db/doc", "-O", "rev=1-xxx"},
-		}
-	})
-	tests.Add("auto delete db", func(t *testing.T) interface{} {
+	tests.Add("success", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
 			StatusCode: http.StatusOK,
 			Header: http.Header{
@@ -56,7 +41,7 @@ func Test_delete_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"delete", s.URL + "/db"},
+			args: []string{"delete", "db", s.URL + "/db"},
 		}
 	})
 
