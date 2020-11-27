@@ -13,45 +13,50 @@
 package cmd
 
 import (
-	"bytes"
+	"net/http"
 
 	"github.com/spf13/cobra"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-type getVersion struct {
+type descrVer struct {
 	*root
 }
 
-func getVersionCmd(r *root) *cobra.Command {
-	c := &getVersion{
+func descrVerCmd(r *root) *cobra.Command {
+	c := descrVer{
 		root: r,
 	}
 	return &cobra.Command{
 		Use:     "version [dsn]",
 		Aliases: []string{"ver"},
-		Short:   "Print server version information",
-		Long:    "Print server version for the provided context",
+		Short:   "Print minimal server version information",
+		Long:    "Print the content of the Server: header",
 		RunE:    c.RunE,
 	}
 }
 
-func (c *getVersion) RunE(cmd *cobra.Command, _ []string) error {
+func (c *descrVer) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
-	c.conf.Finalize()
+	var h http.Header
+	c.captureResponseHeader(&h)
 
 	return c.retry(func() error {
-		ver, err := client.Version(cmd.Context())
+		_, err := client.Version(cmd.Context())
 		if err != nil {
 			return err
 		}
 
-		format := `Server Version {{ .Version }}, {{ .Vendor }}`
-		result := output.TemplateReader(format, ver, bytes.NewReader(ver.RawResponse))
+		data := map[string]string{
+			"Server": h.Get("Server"),
+		}
+
+		format := `Server: {{ .Server }}`
+		result := output.TemplateReader(format, data, output.JSONReader(data))
 		return c.fmt.Output(result)
 	})
 }

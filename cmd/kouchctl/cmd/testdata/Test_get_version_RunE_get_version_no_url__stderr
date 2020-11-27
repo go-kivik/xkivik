@@ -1,6 +1,6 @@
 Error: no context specified
 Usage:
-  kouchctl get version [flags]
+  kouchctl get version [dsn] [flags]
 
 Aliases:
   version, ver
