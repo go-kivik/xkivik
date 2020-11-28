@@ -13,6 +13,7 @@
 package config
 
 import (
+	"net/url"
 	"os"
 	"testing"
 
@@ -285,6 +286,61 @@ func TestConfig_SetURL(t *testing.T) {
 		tt.cf.log = nil
 		if d := testy.DiffInterface(testy.Snapshot(t), tt.cf); d != nil {
 			t.Error(d)
+		}
+	})
+}
+
+func Test_expandDSN(t *testing.T) {
+	type tt struct {
+		input                  string
+		dsn, db, doc, filename string
+	}
+
+	tests := testy.NewTable()
+	tests.Add("db", tt{
+		input: "db",
+		db:    "db",
+	})
+	tests.Add("db/doc", tt{
+		input: "db/doc",
+		db:    "db",
+		doc:   "doc",
+	})
+	tests.Add("db/doc/filename", tt{
+		input:    "db/doc/filename.txt",
+		db:       "db",
+		doc:      "doc",
+		filename: "filename.txt",
+	})
+	tests.Add("full url", tt{
+		input:    "http://foo.com/db/doc/filename.txt",
+		dsn:      "http://foo.com/",
+		db:       "db",
+		doc:      "doc",
+		filename: "filename.txt",
+	})
+	tests.Add("subdir-hosted couchdb, full url", tt{
+		input:    "http://foo.com/couchdb/db/doc/filename.txt",
+		dsn:      "http://foo.com/couchdb/",
+		db:       "db",
+		doc:      "doc",
+		filename: "filename.txt",
+	})
+	tests.Add("subdir-hosted couchdb, db only", tt{
+		input: "http://foo.com/couchdb//db",
+		dsn:   "http://foo.com/couchdb/",
+		db:    "db",
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		addr, err := url.Parse(tt.input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		dsn, db, doc, filename := expandDSN(addr)
+		if dsn != tt.dsn || db != tt.db || doc != tt.doc || filename != tt.filename {
+			t.Errorf("Unexpected output: dsn:%s, db:%s, doc:%s, filename:%s",
+				dsn, db, doc, filename)
 		}
 	})
 }

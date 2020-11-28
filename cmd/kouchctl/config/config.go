@@ -91,6 +91,14 @@ func (c *Context) DBDoc() (db, doc string, err error) {
 	return db, doc, nil
 }
 
+func (c *Context) DBDocFilename() (db, doc, filename string, err error) {
+	_, db, doc, filename = expandDSN(c.dsn())
+	if filename == "" {
+		return "", "", "", errors.Code(errors.ErrUsage, "attachment filename required")
+	}
+	return db, doc, filename, nil
+}
+
 // UnmarshalYAML handles parsing of a Context from YAML input.
 func (c *Context) UnmarshalYAML(v *yaml.Node) error {
 	dsn := struct {
@@ -238,6 +246,16 @@ func (c *Config) ServerDSN() (string, error) {
 	return dsn, nil
 }
 
+func (c *Config) HasAttachment() bool {
+	cx, err := c.currentCx()
+	if err != nil {
+		return false
+	}
+	c.finalize()
+	_, _, filename, err := cx.DBDocFilename()
+	return err == nil && filename != ""
+}
+
 func (c *Config) HasDoc() bool {
 	cx, err := c.currentCx()
 	if err != nil {
@@ -265,6 +283,15 @@ func (c *Config) DBDoc() (db, doc string, err error) {
 	}
 	c.finalize()
 	return cx.DBDoc()
+}
+
+func (c *Config) DBDocFilename() (db, doc, filename string, err error) {
+	cx, err := c.currentCx()
+	if err != nil {
+		return "", "", "", err
+	}
+	c.finalize()
+	return cx.DBDocFilename()
 }
 
 // Config sets config from the cobra command.
@@ -352,4 +379,38 @@ func (c *Config) SetURL(dsn string) error {
 	c.Contexts["*"] = cx
 	c.CurrentContext = "*"
 	return nil
+}
+
+func expandDSN(addr *url.URL) (dsn, db, doc, filename string) {
+	parts := splitPath(addr.Path)
+	dsn, db, doc, filename = parts[0], parts[1], parts[2], parts[3]
+	if addr.Host != "" {
+		addr.Path = strings.Trim(dsn, "/") + "/"
+		dsn = addr.String()
+	}
+	return dsn, db, doc, filename
+}
+
+// splitPath splits p into a maximum of 4 elements, representing the couchdb
+// root, database name, doc id, and attachment filename. A double slash (//) can
+// be used to specify the end of the root element, when disambiguation is
+// required.
+func splitPath(p string) []string {
+	if parts := strings.SplitN(p, "//", 2); len(parts) == 2 { // nolint:gomnd
+		result := splitPath(parts[1])
+		result[0] = parts[0] + "/" + result[0]
+		return result
+	}
+	result := make([]string, 0, 3)
+	for len(result) < 3 {
+		base := path.Base(p)
+		p = path.Dir(p)
+		result = append([]string{base}, result...)
+		if p == "." || p == "/" {
+			p = ""
+			break
+		}
+	}
+	result = append([]string{p}, result...)
+	return append(result, []string{"", "", ""}...)
 }
