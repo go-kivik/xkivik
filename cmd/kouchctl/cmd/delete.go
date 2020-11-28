@@ -19,6 +19,7 @@ import (
 type delete struct {
 	doc *cobra.Command
 	db  *cobra.Command
+	att *cobra.Command
 	*root
 }
 
@@ -27,6 +28,7 @@ func deleteCmd(r *root) *cobra.Command {
 		root: r,
 		doc:  deleteDocCmd(r),
 		db:   deleteDBCmd(r),
+		att:  deleteAttachmentCmd(r),
 	}
 	cmd := &cobra.Command{
 		Use:     "delete [command]",
@@ -36,6 +38,7 @@ func deleteCmd(r *root) *cobra.Command {
 		RunE:    c.RunE,
 	}
 
+	cmd.AddCommand(c.att)
 	cmd.AddCommand(c.doc)
 	cmd.AddCommand(c.db)
 
@@ -43,6 +46,9 @@ func deleteCmd(r *root) *cobra.Command {
 }
 
 func (c *delete) RunE(cmd *cobra.Command, args []string) error {
+	if c.conf.HasAttachment() {
+		return c.att.RunE(cmd, args)
+	}
 	if c.conf.HasDoc() {
 		return c.doc.RunE(cmd, args)
 	}

@@ -1,18 +1,12 @@
 Error: no context specified
 Usage:
-  kouchctl delete [command] [flags]
-  kouchctl delete [command]
+  kouchctl delete attachment [dsn]/[database]/[document]/[filename] [flags]
 
 Aliases:
-  delete, del
-
-Available Commands:
-  attachment  Delete an attachment
-  database    Delete a database
-  document    Delete a document
+  attachment, att, attach
 
 Flags:
-  -h, --help   help for delete
+  -h, --help   help for attachment
 
 Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.
@@ -28,6 +22,4 @@ Global Flags:
       --retry-delay string       Delay between retry attempts. Disables the default exponential backoff algorithm.
       --retry-timeout string     When used with --retry, no more retries will be attempted after this timeout.
   -v, --verbose                  Output bi-directional network traffic
-
-Use "kouchctl delete [command] --help" for more information about a command.
 
