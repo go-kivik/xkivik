@@ -61,6 +61,21 @@ func Test_delete_doc_RunE(t *testing.T) {
 			status: errors.ErrBadRequest,
 		}
 	})
+	tests.Add("rev in url", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
+				"ETag":         []string{`"2-eec205a9d413992850a6e32678485900`},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"fe6a1fef482d660160b45165ed001740","rev":"2-eec205a9d413992850a6e32678485900"}`)),
+		}, checkRequest)
+
+		return cmdTest{
+			args: []string{"delete", "doc", s.URL + "/db/doc?rev=1-xxx"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)

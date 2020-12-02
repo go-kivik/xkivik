@@ -308,7 +308,7 @@ func (c *Config) Args(_ *cobra.Command, args []string) error {
 // setDefaultDSN sets the default DSN. It's meant to be used when setting from
 // the environment, or CLI.
 func (c *Config) setDefaultDSN(dsn string) error {
-	cx, err := cxFromDSN(dsn)
+	cx, _, err := cxFromDSN(dsn)
 	if err != nil {
 		return err
 	}
@@ -317,10 +317,10 @@ func (c *Config) setDefaultDSN(dsn string) error {
 	return nil
 }
 
-func cxFromDSN(dsn string) (*Context, error) {
+func cxFromDSN(dsn string) (*Context, map[string]string, error) {
 	uri, err := url.Parse(dsn)
 	if err != nil {
-		return nil, errors.WithCode(err, errors.ErrUsage)
+		return nil, nil, errors.WithCode(err, errors.ErrUsage)
 	}
 	var user, password string
 	if u := uri.User; u != nil {
@@ -346,7 +346,7 @@ func cxFromDSN(dsn string) (*Context, error) {
 		Password: password,
 		Database: db,
 		DocID:    docid,
-	}, nil
+	}, query2options(uri.Query()), nil
 }
 
 // SetURL sets the current context based on a URL argument passed on the
@@ -357,13 +357,13 @@ func cxFromDSN(dsn string) (*Context, error) {
 // - Full DSN    -- http://localhost:5984/database/docid
 // - Path only   -- /database/docid
 // - Doc ID only -- docid
-func (c *Config) SetURL(dsn string) error {
+func (c *Config) SetURL(dsn string) (map[string]string, error) {
 	if dsn == "" {
-		return nil
+		return nil, nil
 	}
-	cx, err := cxFromDSN(dsn)
+	cx, opts, err := cxFromDSN(dsn)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	curCx, _ := c.currentCx()
 	if cx.Host == "" && curCx != nil {
@@ -378,7 +378,15 @@ func (c *Config) SetURL(dsn string) error {
 	}
 	c.Contexts["*"] = cx
 	c.CurrentContext = "*"
-	return nil
+	return opts, nil
+}
+
+func query2options(q url.Values) map[string]string {
+	opts := make(map[string]string, len(q))
+	for k := range q {
+		opts[k] = q.Get(k)
+	}
+	return opts
 }
 
 func expandDSN(addr *url.URL) (dsn, db, doc, filename string) {
