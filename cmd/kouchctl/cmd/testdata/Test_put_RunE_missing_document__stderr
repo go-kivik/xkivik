@@ -1,6 +1,11 @@
 Error: no context specified
 Usage:
-  kouchctl put [dsn]/[database]/[document] [flags]
+  kouchctl put [flags]
+  kouchctl put [command]
+
+Available Commands:
+  attachment  Put an attachment
+  document    Put a document
 
 Flags:
   -d, --data string        JSON document data.
@@ -22,4 +27,6 @@ Global Flags:
       --retry-delay string       Delay between retry attempts. Disables the default exponential backoff algorithm.
       --retry-timeout string     When used with --retry, no more retries will be attempted after this timeout.
   -v, --verbose                  Output bi-directional network traffic
+
+Use "kouchctl put [command] --help" for more information about a command.
 

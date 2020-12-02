@@ -4,9 +4,9 @@ go 1.13
 
 require (
 	github.com/cenkalti/backoff/v4 v4.1.0
-	github.com/go-kivik/couchdb/v4 v4.0.0-20201119173528-cb7ba00d283a
+	github.com/go-kivik/couchdb/v4 v4.0.0-20201202113125-9b13221c2212
 	github.com/go-kivik/fsdb/v4 v4.0.0-20201011102818-b9ac3fbc1e55
-	github.com/go-kivik/kivik/v4 v4.0.0-20201128164816-6ec148373d26
+	github.com/go-kivik/kivik/v4 v4.0.0-20201202093909-da42f0daa1b2
 	github.com/go-kivik/kivikmock/v4 v4.0.0-20201011105747-d4ebdf080861
 	github.com/go-kivik/kiviktest/v4 v4.0.0-20201109213935-7e5ee2552b7f
 	github.com/icza/dyno v0.0.0-20200205103839-49cb13720835

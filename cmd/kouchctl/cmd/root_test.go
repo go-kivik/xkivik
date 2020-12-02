@@ -108,6 +108,25 @@ type cmdTest struct {
 	status int
 }
 
+var standardReplacements = []testy.Replacement{
+	{
+		Regexp:      regexp.MustCompile(`http://127\.0\.0\.1:\d+/`),
+		Replacement: "http://127.0.0.1:XXX/",
+	},
+	{
+		Regexp:      regexp.MustCompile(`Date: .*`),
+		Replacement: `Date: XXX`,
+	},
+	{
+		Regexp:      regexp.MustCompile(`Host: \S*`),
+		Replacement: `Host: XXX`,
+	},
+	{
+		Regexp:      regexp.MustCompile(`go\d\.\d+\.\d+`),
+		Replacement: `goX.XX.X`,
+	},
+}
+
 func (tt *cmdTest) Test(t *testing.T, re ...testy.Replacement) {
 	t.Helper()
 	lg := log.New()
@@ -118,24 +137,7 @@ func (tt *cmdTest) Test(t *testing.T, re ...testy.Replacement) {
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
 		status = root.execute(context.Background())
 	})
-	repl := append([]testy.Replacement{
-		{
-			Regexp:      regexp.MustCompile(`http://127\.0\.0\.1:\d+/`),
-			Replacement: "http://127.0.0.1:XXX/",
-		},
-		{
-			Regexp:      regexp.MustCompile(`Date: .*`),
-			Replacement: `Date: XXX`,
-		},
-		{
-			Regexp:      regexp.MustCompile(`Host: .*`),
-			Replacement: `Host: XXX`,
-		},
-		{
-			Regexp:      regexp.MustCompile(`go\d\.\d+\.\d+`),
-			Replacement: `goX.XX.X`,
-		},
-	}, re...)
+	repl := append(standardReplacements, re...)
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout, repl...); d != nil {
 		t.Errorf("STDOUT: %s", d)
 	}
