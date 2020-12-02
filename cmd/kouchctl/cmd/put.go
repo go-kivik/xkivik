@@ -32,6 +32,8 @@ type put struct {
 	file string
 	yaml bool
 
+	doc *cobra.Command
+
 	*root
 }
 
@@ -39,14 +41,17 @@ func putCmd(r *root) *cobra.Command {
 	c := &put{
 		root: r,
 	}
+	c.doc = putDocCmd(r, c)
 	cmd := &cobra.Command{
-		Use:   "put [dsn]/[database]/[document]",
-		Short: "Put a document",
-		Long:  `Update or create a named document`,
+		Use:   "put",
+		Short: "Put a resource",
+		Long:  `Create or update the named resource`,
 		RunE:  c.RunE,
 	}
 
-	c.configFlags(cmd.Flags())
+	c.configFlags(cmd.PersistentFlags())
+
+	cmd.AddCommand(c.doc)
 
 	return cmd
 }
@@ -57,28 +62,16 @@ func (c *put) configFlags(pf *pflag.FlagSet) {
 	pf.BoolVar(&c.yaml, "yaml", false, "Treat input data as YAML")
 }
 
-func (c *put) RunE(cmd *cobra.Command, _ []string) error {
-	client, err := c.client()
+func (c *put) RunE(cmd *cobra.Command, args []string) error {
+	if c.conf.HasDoc() {
+		return c.doc.RunE(cmd, args)
+	}
+	_, err := c.client()
 	if err != nil {
 		return err
 	}
-	doc, err := c.jsonData()
-	if err != nil {
-		return err
-	}
-	db, docID, err := c.conf.DBDoc()
-	if err != nil {
-		return err
-	}
-	c.log.Debugf("[put] Will put document: %s/%s/%s", client.DSN(), db, docID)
-	return c.retry(func() error {
-		rev, err := client.DB(db).Put(cmd.Context(), docID, doc, c.opts())
-		if err != nil {
-			return err
-		}
-		c.log.Info(rev)
-		return nil
-	})
+
+	return errors.New("xxx")
 }
 
 // jsonReader converts an io.Reader into a json.Marshaler.
