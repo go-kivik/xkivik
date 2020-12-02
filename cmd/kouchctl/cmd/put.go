@@ -32,7 +32,7 @@ type put struct {
 	file string
 	yaml bool
 
-	doc *cobra.Command
+	doc, att *cobra.Command
 
 	*root
 }
@@ -42,6 +42,7 @@ func putCmd(r *root) *cobra.Command {
 		root: r,
 	}
 	c.doc = putDocCmd(r, c)
+	c.att = putAttCmd(r, c)
 	cmd := &cobra.Command{
 		Use:   "put",
 		Short: "Put a resource",
@@ -52,6 +53,7 @@ func putCmd(r *root) *cobra.Command {
 	c.configFlags(cmd.PersistentFlags())
 
 	cmd.AddCommand(c.doc)
+	cmd.AddCommand(c.att)
 
 	return cmd
 }
@@ -65,6 +67,9 @@ func (c *put) configFlags(pf *pflag.FlagSet) {
 func (c *put) RunE(cmd *cobra.Command, args []string) error {
 	if c.conf.HasDoc() {
 		return c.doc.RunE(cmd, args)
+	}
+	if c.conf.HasAttachment() {
+		return c.att.RunE(cmd, args)
 	}
 	_, err := c.client()
 	if err != nil {
