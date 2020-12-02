@@ -45,6 +45,9 @@ func getCmd(r *root) *cobra.Command {
 }
 
 func (g *get) RunE(cmd *cobra.Command, args []string) error {
+	if g.conf.HasAttachment() {
+		return g.att.RunE(cmd, args)
+	}
 	if g.conf.HasDoc() {
 		return g.doc.RunE(cmd, args)
 	}

@@ -13,32 +13,29 @@
 package cmd
 
 import (
-	"io"
-
 	"github.com/spf13/cobra"
 
-	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-type getAttachment struct {
+type descrAttachment struct {
 	*root
 }
 
-func getAttachmentCmd(r *root) *cobra.Command {
-	c := &getAttachment{
+func descrAttachmentCmd(r *root) *cobra.Command {
+	c := &descrAttachment{
 		root: r,
 	}
 	return &cobra.Command{
 		Use:     "attachment [dsn]/[database]/[document]/[filename]",
 		Aliases: []string{"att", "attach"},
-		Short:   "Get an attachment",
-		Long:    `Fetch an attachment with the HTTP GET verb`,
+		Short:   "Describe an attachment",
+		Long:    `Fetch attachment with the HTTP HEAD verb`,
 		RunE:    c.RunE,
 	}
 }
 
-func (c *getAttachment) RunE(cmd *cobra.Command, _ []string) error {
+func (c *descrAttachment) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
@@ -49,39 +46,22 @@ func (c *getAttachment) RunE(cmd *cobra.Command, _ []string) error {
 	}
 	c.log.Debugf("[get] Will fetch document: %s/%s/%s", client.DSN(), db, docID)
 	return c.retry(func() error {
-		att, err := client.DB(db).GetAttachment(cmd.Context(), docID, filename, c.opts())
+		att, err := client.DB(db).GetAttachmentMeta(cmd.Context(), docID, filename, c.opts())
 		if err != nil {
 			return err
 		}
+		att.Filename = filename
 
-		result := &attachment{
-			Reader:     output.JSONReader(att),
-			Attachment: att,
-		}
+		format := `Filename: {{ .Filename }}
+Content-Type: {{ .ContentType }}
+Content-Length: {{ .Size }}
+Digest: {{ .Digest }}
+{{- with .RevPos }}
+RevPos: {{ . }}
+{{ end -}}
+`
 
+		result := output.TemplateReader(format, att, output.JSONReader(att))
 		return c.fmt.Output(result)
 	})
-}
-
-type attachment struct {
-	io.Reader
-	*kivik.Attachment
-}
-
-var _ output.FriendlyOutput = &attachment{}
-
-func (a *attachment) Execute(w io.Writer) error {
-	_, err := io.Copy(w, a.Content)
-	return err
-}
-
-func (a *attachment) Read(p []byte) (int, error) {
-	if a.Reader == nil {
-		a.Reader = output.JSONReader(a)
-	}
-	n, err := a.Reader.Read(p)
-	if err == io.EOF {
-		_ = a.Content.Close()
-	}
-	return n, err
 }

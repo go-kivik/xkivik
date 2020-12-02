@@ -19,45 +19,33 @@ import (
 	"testing"
 
 	"gitlab.com/flimzy/testy"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
-func Test_describe_RunE(t *testing.T) {
+func Test_describe_attachment_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
-	tests.Add("auto describe doc", func(t *testing.T) interface{} {
-		s := testy.ServeResponse(&http.Response{
-			StatusCode: http.StatusOK,
-			Header: http.Header{
-				"Content-Type": []string{"application/json"},
-				"ETag":         []string{"1-xxx"},
-			},
-			Body: ioutil.NopCloser(strings.NewReader(`{
-				"_id":"foo",
-				"_rev":"1-xxx",
-				"foo":"bar"
-			}`)),
-		})
-
-		return cmdTest{
-			args: []string{"describe", s.URL + "/foo/bar"},
-		}
+	tests.Add("missing resource", cmdTest{
+		args:   []string{"descr", "attachment"},
+		status: errors.ErrUsage,
 	})
-	tests.Add("auto describe version", func(t *testing.T) interface{} {
+	tests.Add("not found", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
-			StatusCode: http.StatusOK,
+			StatusCode: http.StatusNotFound,
 			Header: http.Header{
 				"Content-Type": []string{"application/json"},
-				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"0ae5d1a72d60e4e1370a444f1cf7ce7c","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
+			Body: ioutil.NopCloser(strings.NewReader(`{"error":"not_found","reason":"Document is missing attachment"}
 			`)),
 		})
 
 		return cmdTest{
-			args: []string{"describe", s.URL},
+			args:   []string{"descr", "attachment", s.URL + "/db/doc/foo.txt"},
+			status: errors.ErrNotFound,
 		}
 	})
-	tests.Add("auto attachment", func(t *testing.T) interface{} {
+	tests.Add("success", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
 			StatusCode: http.StatusOK,
 			Header: http.Header{
@@ -69,7 +57,22 @@ func Test_describe_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"descr", s.URL + "/db/doc/foo.txt"},
+			args: []string{"descr", "attachment", s.URL + "/db/doc/foo.txt"},
+		}
+	})
+	tests.Add("success json", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"text/plain"},
+				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
+				"ETag":         []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`Testing`)),
+		})
+
+		return cmdTest{
+			args: []string{"descr", "attachment", s.URL + "/db/doc/foo.txt", "-f", "json"},
 		}
 	})
 

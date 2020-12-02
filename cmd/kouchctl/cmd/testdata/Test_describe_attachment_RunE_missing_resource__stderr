@@ -1,6 +1,6 @@
 Error: no context specified
 Usage:
-  kouchctl get attachment [dsn]/[database]/[document]/[filename] [flags]
+  kouchctl describe attachment [dsn]/[database]/[document]/[filename] [flags]
 
 Aliases:
   attachment, att, attach

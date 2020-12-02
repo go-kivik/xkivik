@@ -51,5 +51,8 @@ func TemplateReader(tmpl string, data interface{}, r io.Reader) FriendlyOutput {
 }
 
 func (t *tmplReader) Execute(w io.Writer) error {
+	if rc, ok := t.Reader.(io.ReadCloser); ok {
+		defer rc.Close() // nolint:errcheck
+	}
 	return t.tmpl.Execute(w, t.data)
 }
