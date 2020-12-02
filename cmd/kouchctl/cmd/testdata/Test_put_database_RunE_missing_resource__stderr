@@ -1,21 +1,17 @@
 Error: no context specified
 Usage:
-  kouchctl put [flags]
-  kouchctl put [command]
+  kouchctl put database [dsn]/[database] [flags]
 
-Available Commands:
-  attachment  Put an attachment
-  database    Create a database
-  document    Put a document
+Aliases:
+  database, db
 
 Flags:
-  -d, --data string        JSON document data.
-  -D, --data-file string   Read document data from the named file. Use - for stdin. Assumed to be JSON, unless the file extension is .yaml or .yml, or the --yaml flag is used.
-  -h, --help               help for put
-      --yaml               Treat input data as YAML
+  -h, --help   help for database
 
 Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.
+  -d, --data string              JSON document data.
+  -D, --data-file string         Read document data from the named file. Use - for stdin. Assumed to be JSON, unless the file extension is .yaml or .yml, or the --yaml flag is used.
       --debug                    Enable debug output
   -f, --format string            Output format. One of: json[=...]|raw|yaml|go-template=...
   -H, --header                   Output response header
@@ -28,6 +24,5 @@ Global Flags:
       --retry-delay string       Delay between retry attempts. Disables the default exponential backoff algorithm.
       --retry-timeout string     When used with --retry, no more retries will be attempted after this timeout.
   -v, --verbose                  Output bi-directional network traffic
-
-Use "kouchctl put [command] --help" for more information about a command.
+      --yaml                     Treat input data as YAML
 

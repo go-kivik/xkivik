@@ -32,7 +32,7 @@ type put struct {
 	file string
 	yaml bool
 
-	doc, att *cobra.Command
+	db, doc, att *cobra.Command
 
 	*root
 }
@@ -40,6 +40,7 @@ type put struct {
 func putCmd(r *root) *cobra.Command {
 	c := &put{
 		root: r,
+		db:   putDBCmd(r),
 	}
 	c.doc = putDocCmd(r, c)
 	c.att = putAttCmd(r, c)
@@ -52,6 +53,7 @@ func putCmd(r *root) *cobra.Command {
 
 	c.configFlags(cmd.PersistentFlags())
 
+	cmd.AddCommand(c.db)
 	cmd.AddCommand(c.doc)
 	cmd.AddCommand(c.att)
 
@@ -65,11 +67,14 @@ func (c *put) configFlags(pf *pflag.FlagSet) {
 }
 
 func (c *put) RunE(cmd *cobra.Command, args []string) error {
+	if c.conf.HasAttachment() {
+		return c.att.RunE(cmd, args)
+	}
 	if c.conf.HasDoc() {
 		return c.doc.RunE(cmd, args)
 	}
-	if c.conf.HasAttachment() {
-		return c.att.RunE(cmd, args)
+	if c.conf.HasDB() {
+		return c.db.RunE(cmd, args)
 	}
 	_, err := c.client()
 	if err != nil {
