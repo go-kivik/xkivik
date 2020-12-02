@@ -57,6 +57,21 @@ func Test_describe_RunE(t *testing.T) {
 			args: []string{"describe", s.URL},
 		}
 	})
+	tests.Add("auto attachment", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"text/plain"},
+				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
+				"ETag":         []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`Testing`)),
+		})
+
+		return cmdTest{
+			args: []string{"descr", s.URL + "/db/doc/foo.txt"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)

@@ -17,15 +17,14 @@ import (
 )
 
 type get struct {
-	doc *cobra.Command
-	db  *cobra.Command
-	ver *cobra.Command
+	att, doc, db, ver *cobra.Command
 	*root
 }
 
 func getCmd(r *root) *cobra.Command {
 	g := &get{
 		root: r,
+		att:  getAttachmentCmd(r),
 		doc:  getDocCmd(r),
 		db:   getDBCmd(r),
 		ver:  getVersionCmd(r),
@@ -37,6 +36,7 @@ func getCmd(r *root) *cobra.Command {
 		RunE:  g.RunE,
 	}
 
+	cmd.AddCommand(g.att)
 	cmd.AddCommand(g.doc)
 	cmd.AddCommand(g.db)
 	cmd.AddCommand(g.ver)
@@ -45,6 +45,9 @@ func getCmd(r *root) *cobra.Command {
 }
 
 func (g *get) RunE(cmd *cobra.Command, args []string) error {
+	if g.conf.HasAttachment() {
+		return g.att.RunE(cmd, args)
+	}
 	if g.conf.HasDoc() {
 		return g.doc.RunE(cmd, args)
 	}

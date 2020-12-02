@@ -23,42 +23,56 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
-func Test_delete_attachment_RunE(t *testing.T) {
+func Test_describe_attachment_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
 	tests.Add("missing resource", cmdTest{
-		args:   []string{"delete", "attachment"},
+		args:   []string{"descr", "attachment"},
 		status: errors.ErrUsage,
+	})
+	tests.Add("not found", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusNotFound,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"error":"not_found","reason":"Document is missing attachment"}
+			`)),
+		})
+
+		return cmdTest{
+			args:   []string{"descr", "attachment", s.URL + "/db/doc/foo.txt"},
+			status: errors.ErrNotFound,
+		}
 	})
 	tests.Add("success", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
 			StatusCode: http.StatusOK,
 			Header: http.Header{
-				"Content-Type": []string{"application/json"},
+				"Content-Type": []string{"text/plain"},
 				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
-				"ETag":         []string{`"2-eec205a9d413992850a6e32678485900`},
+				"ETag":         []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"fe6a1fef482d660160b45165ed001740","rev":"2-eec205a9d413992850a6e32678485900"}`)),
+			Body: ioutil.NopCloser(strings.NewReader(`Testing`)),
 		})
 
 		return cmdTest{
-			args: []string{"delete", "attachment", s.URL + "/db/doc/foo.txt", "-O", "rev=1-xxx"},
+			args: []string{"descr", "attachment", s.URL + "/db/doc/foo.txt"},
 		}
 	})
-	tests.Add("no rev", func(t *testing.T) interface{} {
+	tests.Add("success json", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
-			StatusCode: http.StatusConflict,
+			StatusCode: http.StatusOK,
 			Header: http.Header{
-				"Content-Type": []string{"application/json"},
+				"Content-Type": []string{"text/plain"},
 				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
+				"ETag":         []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"error":"conflict","reason":"Document update conflict."}
-			`)),
+			Body: ioutil.NopCloser(strings.NewReader(`Testing`)),
 		})
 
 		return cmdTest{
-			args:   []string{"delete", "attachment", s.URL + "/db/doc/foo.txt"},
-			status: errors.ErrBadRequest,
+			args: []string{"descr", "attachment", s.URL + "/db/doc/foo.txt", "-f", "json"},
 		}
 	})
 
