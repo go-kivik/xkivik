@@ -207,8 +207,17 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(args) > 0 {
-		if err := r.conf.SetURL(args[0]); err != nil {
+		opts, err := r.conf.SetURL(args[0])
+		if err != nil {
 			return err
+		}
+		if len(opts) > 0 && r.options == nil {
+			r.options = map[string]string{}
+		}
+		for k, v := range opts {
+			if _, ok := r.options[k]; !ok {
+				r.options[k] = v
+			}
 		}
 	}
 
