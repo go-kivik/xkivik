@@ -153,6 +153,7 @@ func rootCmd(lg log.Logger) *root {
 	r.cmd.AddCommand(descrCmd(r))
 	r.cmd.AddCommand(versionCmd(r))
 	r.cmd.AddCommand(deleteCmd(r))
+	r.cmd.AddCommand(createCmd(r))
 
 	return r
 }
