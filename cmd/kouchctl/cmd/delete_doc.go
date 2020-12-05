@@ -14,8 +14,6 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
 type deleteDoc struct {
@@ -49,11 +47,6 @@ func (c *deleteDoc) RunE(cmd *cobra.Command, _ []string) error {
 		if err != nil {
 			return err
 		}
-
-		return c.fmt.Output(output.JSONReader(map[string]interface{}{
-			"ok":  true,
-			"id":  docID,
-			"rev": newRev,
-		}))
+		return c.fmt.UpdateResult(docID, newRev)
 	})
 }

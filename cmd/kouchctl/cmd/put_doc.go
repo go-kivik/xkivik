@@ -14,17 +14,19 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/input"
 )
 
 type putDoc struct {
 	*root
-	*put
+	*input.Input
 }
 
-func putDocCmd(r *root, p *put) *cobra.Command {
+func putDocCmd(p *put) *cobra.Command {
 	c := &putDoc{
-		root: r,
-		put:  p,
+		root:  p.root,
+		Input: p.Input,
 	}
 	cmd := &cobra.Command{
 		Use:     "document [dsn]/[database]/[document]",
@@ -42,7 +44,7 @@ func (c *putDoc) RunE(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	doc, err := c.jsonData()
+	doc, err := c.JSONData()
 	if err != nil {
 		return err
 	}
@@ -56,7 +58,6 @@ func (c *putDoc) RunE(cmd *cobra.Command, _ []string) error {
 		if err != nil {
 			return err
 		}
-		c.log.Info(rev)
-		return nil
+		return c.fmt.UpdateResult(docID, rev)
 	})
 }

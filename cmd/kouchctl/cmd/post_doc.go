@@ -15,61 +15,49 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/go-kivik/kivik/v4"
-
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/input"
 )
 
-type putAttachment struct {
-	contentType string
+type postDoc struct {
 	*root
 	*input.Input
 }
 
-func putAttCmd(p *put) *cobra.Command {
-	c := &putAttachment{
+func postDocCmd(p *post) *cobra.Command {
+	c := &postDoc{
 		root:  p.root,
 		Input: p.Input,
 	}
 	cmd := &cobra.Command{
-		Use:     "attachment [dsn]/[database]/[document]/[filename]",
-		Aliases: []string{"att", "attach"},
-		Short:   "Put an attachment",
-		Long:    `Create or update the named attachment`,
+		Use:     "document [dsn]/[database]/[document]",
+		Aliases: []string{"doc"},
+		Short:   "Create a document",
+		Long:    `Create a document with sever-assigned ID`,
 		RunE:    c.RunE,
 	}
-
-	f := cmd.Flags()
-	f.StringVarP(&c.contentType, "content-type", "T", "", "Content-Type type of the attachment")
 
 	return cmd
 }
 
-func (c *putAttachment) RunE(cmd *cobra.Command, _ []string) error {
+func (c *postDoc) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
-	content, err := c.RawData()
+	db, err := c.conf.DB()
 	if err != nil {
 		return err
 	}
-	db, docID, filename, err := c.conf.DBDocFilename()
+	doc, err := c.JSONData()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[put] Will put attachment: %s/%s/%s/%s", client.DSN(), db, docID, filename)
+	c.log.Debugf("[post] Will post document to: %s/%s", client.DSN(), db)
 	return c.retry(func() error {
-		att := &kivik.Attachment{
-			Filename:    filename,
-			ContentType: c.contentType,
-			Content:     content,
-		}
-		rev, err := client.DB(db).PutAttachment(cmd.Context(), docID, att, c.opts())
+		docID, rev, err := client.DB(db).CreateDoc(cmd.Context(), doc, c.opts())
 		if err != nil {
 			return err
 		}
-		c.log.Info(rev)
-		return nil
+		return c.fmt.UpdateResult(docID, rev)
 	})
 }

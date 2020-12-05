@@ -13,6 +13,9 @@
 package cmd
 
 import (
+	"io/ioutil"
+	"net/http"
+	"strings"
 	"testing"
 
 	"gitlab.com/flimzy/testy"
@@ -26,6 +29,20 @@ func Test_post_RunE(t *testing.T) {
 	tests.Add("missing resource", cmdTest{
 		args:   []string{"post"},
 		status: errors.ErrUsage,
+	})
+	tests.Add("auto create doc", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
+		}, func(t *testing.T, req *http.Request) {
+			defer req.Body.Close() // nolint:errcheck
+			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"--debug", "post", s.URL + "/foo", "--data", `{"foo":"bar"}`},
+		}
 	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
