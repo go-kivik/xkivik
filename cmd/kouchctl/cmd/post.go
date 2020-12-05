@@ -18,25 +18,25 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
-type create struct {
+type post struct {
 	*root
 }
 
-func createCmd(r *root) *cobra.Command {
-	c := &create{
+func postCmd(r *root) *cobra.Command {
+	c := &post{
 		root: r,
 	}
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Create a resource",
-		Long:  `Create the named resource`,
+		Use:   "post",
+		Short: "Post a resource",
+		Long:  `Post to the named resource`,
 		RunE:  c.RunE,
 	}
 
 	return cmd
 }
 
-func (c *create) RunE(cmd *cobra.Command, args []string) error {
+func (c *post) RunE(cmd *cobra.Command, args []string) error {
 	_, err := c.client()
 	if err != nil {
 		return err

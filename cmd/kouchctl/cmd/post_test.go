@@ -20,11 +20,11 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
-func Test_create_RunE(t *testing.T) {
+func Test_post_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
 	tests.Add("missing resource", cmdTest{
-		args:   []string{"create"},
+		args:   []string{"post"},
 		status: errors.ErrUsage,
 	})
 

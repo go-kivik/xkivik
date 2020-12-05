@@ -6,12 +6,12 @@ Usage:
   kouchctl [command]
 
 Available Commands:
-  create      Create a resource
   delete      Delete a resource
   describe    Describe a resource
   get         Get a resource
   help        Help about any command
   ping        Ping a server
+  post        Post a resource
   put         Put a resource
   version     Print client and server version information
 

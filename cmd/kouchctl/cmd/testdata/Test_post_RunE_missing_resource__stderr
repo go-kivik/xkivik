@@ -1,9 +1,9 @@
 Error: no context specified
 Usage:
-  kouchctl create [flags]
+  kouchctl post [flags]
 
 Flags:
-  -h, --help   help for create
+  -h, --help   help for post
 
 Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.
