@@ -73,7 +73,6 @@ type root struct {
 func Execute(ctx context.Context) {
 	// Init the pRNG here, so it doesn't affect tests.
 	rand.Seed(time.Now().Unix())
-	fmt.Println(os.Args)
 	lg := log.New()
 	root := rootCmd(lg)
 	os.Exit(root.execute(ctx))
@@ -153,6 +152,7 @@ func rootCmd(lg log.Logger) *root {
 	r.cmd.AddCommand(descrCmd(r))
 	r.cmd.AddCommand(versionCmd(r))
 	r.cmd.AddCommand(deleteCmd(r))
+	r.cmd.AddCommand(postCmd(r))
 
 	return r
 }
@@ -304,7 +304,6 @@ func (r *root) retry(fn func() error) error {
 			r.log.Info(msg)
 		}
 		count++
-		fmt.Println(count)
 		err = fn()
 		return err
 	}, bo)

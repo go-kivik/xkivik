@@ -19,46 +19,36 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/input"
 )
 
-type put struct {
-	*input.Input
+type post struct {
 	*root
-
-	db, doc, att *cobra.Command
+	*input.Input
+	doc *cobra.Command
 }
 
-func putCmd(r *root) *cobra.Command {
-	c := &put{
+func postCmd(r *root) *cobra.Command {
+	c := &post{
 		root:  r,
 		Input: input.New(),
-		db:    putDBCmd(r),
 	}
-	c.doc = putDocCmd(c)
-	c.att = putAttCmd(c)
+	c.doc = postDocCmd(c)
+
 	cmd := &cobra.Command{
-		Use:   "put",
-		Short: "Put a resource",
-		Long:  `Create or update the named resource`,
+		Use:   "post",
+		Short: "Post a resource",
+		Long:  `Post to the named resource`,
 		RunE:  c.RunE,
 	}
 
 	c.Input.ConfigFlags(cmd.PersistentFlags())
 
-	cmd.AddCommand(c.db)
 	cmd.AddCommand(c.doc)
-	cmd.AddCommand(c.att)
 
 	return cmd
 }
 
-func (c *put) RunE(cmd *cobra.Command, args []string) error {
-	if c.conf.HasAttachment() {
-		return c.att.RunE(cmd, args)
-	}
-	if c.conf.HasDoc() {
-		return c.doc.RunE(cmd, args)
-	}
+func (c *post) RunE(cmd *cobra.Command, args []string) error {
 	if c.conf.HasDB() {
-		return c.db.RunE(cmd, args)
+		return c.doc.RunE(cmd, args)
 	}
 	_, err := c.client()
 	if err != nil {

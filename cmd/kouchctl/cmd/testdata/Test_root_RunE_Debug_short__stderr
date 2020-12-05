@@ -11,6 +11,7 @@ Available Commands:
   get         Get a resource
   help        Help about any command
   ping        Ping a server
+  post        Post a resource
   put         Put a resource
   version     Print client and server version information
 

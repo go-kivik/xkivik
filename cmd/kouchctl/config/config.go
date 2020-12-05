@@ -73,6 +73,14 @@ func (c *Context) ServerDSN() string {
 	return dsn.String()
 }
 
+func (c *Context) DB() (db string, err error) {
+	_, db, doc, _ := expandDSN(c.dsn())
+	if doc != "" {
+		return "", errors.Code(errors.ErrUsage, "DSN expected to contain only the database")
+	}
+	return db, nil
+}
+
 func (c *Context) DBDoc() (db, doc string, err error) {
 	addr := c.dsn()
 	p := addr.Path
@@ -274,6 +282,19 @@ func (c *Config) HasDB() bool {
 	c.finalize()
 	db, _, err := cx.DBDoc()
 	return err == nil && db != ""
+}
+
+func (c *Config) DB() (db string, err error) {
+	cx, err := c.currentCx()
+	if err != nil {
+		return "", err
+	}
+	db, err = cx.DB()
+	if err != nil {
+		return "", err
+	}
+	c.finalize()
+	return db, nil
 }
 
 func (c *Config) DBDoc() (db, doc string, err error) {

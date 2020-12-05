@@ -23,20 +23,24 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
-func Test_put_RunE(t *testing.T) {
+func Test_post_doc_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
-	tests.Add("missing document", cmdTest{
-		args:   []string{"put"},
+	tests.Add("missing dsn", cmdTest{
+		args:   []string{"post", "doc"},
+		status: errors.ErrUsage,
+	})
+	tests.Add("include docid", cmdTest{
+		args:   []string{"post", "doc", "http://example.com/db/docid"},
 		status: errors.ErrUsage,
 	})
 	tests.Add("full url on command line", cmdTest{
-		args:   []string{"--debug", "put", "http://localhost:1/foo/bar", "-d", "{}"},
+		args:   []string{"--debug", "post", "doc", "http://localhost:1/foo", "-d", "{}"},
 		status: errors.ErrUnavailable,
 	})
 	tests.Add("json data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -45,12 +49,12 @@ func Test_put_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"--debug", "put", s.URL + "/foo/bar", "--data", `{"foo":"bar"}`},
+			args: []string{"--debug", "post", "doc", s.URL + "/foo", "--data", `{"foo":"bar"}`},
 		}
 	})
 	tests.Add("json data stdin", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -59,13 +63,13 @@ func Test_put_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args:  []string{"--debug", "put", s.URL + "/foo/bar", "--data-file", "-"},
+			args:  []string{"--debug", "post", "doc", s.URL + "/foo", "--data-file", "-"},
 			stdin: `{"foo":"bar"}`,
 		}
 	})
 	tests.Add("json data file", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -74,13 +78,12 @@ func Test_put_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args:  []string{"--debug", "put", s.URL + "/foo/bar", "--data-file", "./testdata/doc.json"},
-			stdin: `{"foo":"bar"}`,
+			args: []string{"--debug", "post", "doc", s.URL + "/foo", "--data-file", "./testdata/doc.json"},
 		}
 	})
 	tests.Add("yaml data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -89,7 +92,7 @@ func Test_put_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"--debug", "put", s.URL + "/foo/bar", "--yaml", "--data", `foo: bar`},
+			args: []string{"--debug", "post", "doc", s.URL + "/foo", "--yaml", "--data", `foo: bar`},
 		}
 	})
 

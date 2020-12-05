@@ -14,39 +14,43 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-type deleteDoc struct {
+type putDB struct {
 	*root
 }
 
-func deleteDocCmd(r *root) *cobra.Command {
-	c := &deleteDoc{
+func putDBCmd(r *root) *cobra.Command {
+	g := &putDB{
 		root: r,
 	}
 	return &cobra.Command{
-		Use:     "document [dsn]/[database]/[document]",
-		Aliases: []string{"doc"},
-		Short:   "Delete a document",
-		RunE:    c.RunE,
+		Use:     "database [dsn]/[database]",
+		Aliases: []string{"db"},
+		Short:   "Create a database",
+		Long:    `Create the named database`,
+		RunE:    g.RunE,
 	}
 }
 
-func (c *deleteDoc) RunE(cmd *cobra.Command, _ []string) error {
+func (c *putDB) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
-	db, docID, err := c.conf.DBDoc()
+	db, _, err := c.conf.DBDoc()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[delete] Will delete document: %s/%s/%s", client.DSN(), db, docID)
+	c.log.Debugf("[create] Will create database: %s/%s", client.DSN(), db)
 	return c.retry(func() error {
-		newRev, err := client.DB(db).Delete(cmd.Context(), docID, "", c.opts())
+		err := client.CreateDB(cmd.Context(), db)
 		if err != nil {
 			return err
 		}
-		return c.fmt.UpdateResult(docID, newRev)
+
+		return c.fmt.Output(output.TemplateReader("OK", nil, output.JSONReader(map[string]interface{}{"ok": true})))
 	})
 }
