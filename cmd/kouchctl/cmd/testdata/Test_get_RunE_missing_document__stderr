@@ -4,6 +4,7 @@ Usage:
   kouchctl get [command]
 
 Available Commands:
+  all-dbs     List all databases
   attachment  Get an attachment
   database    Get a database
   document    Get a document

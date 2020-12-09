@@ -17,17 +17,18 @@ import (
 )
 
 type get struct {
-	att, doc, db, ver *cobra.Command
+	alldbs, att, doc, db, ver *cobra.Command
 	*root
 }
 
 func getCmd(r *root) *cobra.Command {
 	g := &get{
-		root: r,
-		att:  getAttachmentCmd(r),
-		doc:  getDocCmd(r),
-		db:   getDBCmd(r),
-		ver:  getVersionCmd(r),
+		root:   r,
+		alldbs: getAllDBsCmd(r),
+		att:    getAttachmentCmd(r),
+		doc:    getDocCmd(r),
+		db:     getDBCmd(r),
+		ver:    getVersionCmd(r),
 	}
 	cmd := &cobra.Command{
 		Use:   "get [command]",
@@ -36,6 +37,7 @@ func getCmd(r *root) *cobra.Command {
 		RunE:  g.RunE,
 	}
 
+	cmd.AddCommand(g.alldbs)
 	cmd.AddCommand(g.att)
 	cmd.AddCommand(g.doc)
 	cmd.AddCommand(g.db)
@@ -52,6 +54,13 @@ func (g *get) RunE(cmd *cobra.Command, args []string) error {
 		return g.doc.RunE(cmd, args)
 	}
 	if g.conf.HasDB() {
+		db, err := g.conf.DB()
+		if err != nil {
+			return err
+		}
+		if db == "_all_dbs" {
+			return g.alldbs.RunE(cmd, args)
+		}
 		return g.db.RunE(cmd, args)
 	}
 	return g.ver.RunE(cmd, args)

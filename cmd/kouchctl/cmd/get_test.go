@@ -165,6 +165,21 @@ func Test_get_RunE(t *testing.T) {
 			args: []string{"get", s.URL + "/db/doc/foo.txt"},
 		}
 	})
+	tests.Add("auto all-dbs", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"text/plain"},
+				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
+				"ETag":         []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`["foo","bar"]`)),
+		})
+
+		return cmdTest{
+			args: []string{"get", s.URL + "/_all_dbs"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
