@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -339,6 +340,18 @@ func (c *Config) setDefaultDSN(dsn string) error {
 }
 
 func cxFromDSN(dsn string) (*Context, map[string]string, error) {
+	if len(dsn) > 0 {
+		switch dsn[0] {
+		case '/':
+			dsn = "file://" + dsn
+		case '.':
+			cwd, err := os.Getwd()
+			if err != nil {
+				return nil, nil, err
+			}
+			dsn = "file://" + filepath.Join(cwd, dsn[1:])
+		}
+	}
 	uri, err := url.Parse(dsn)
 	if err != nil {
 		return nil, nil, errors.WithCode(err, errors.ErrUsage)
@@ -375,9 +388,11 @@ func cxFromDSN(dsn string) (*Context, map[string]string, error) {
 //
 // Supported formats and examples:
 //
-// - Full DSN    -- http://localhost:5984/database/docid
-// - Path only   -- /database/docid
-// - Doc ID only -- docid
+// - Full DSN           -- http://localhost:5984/database/docid
+// - Path only          -- database/docid
+// - Doc ID only        -- docid
+// - Absolute file path -- /absolute/path
+// - Relative file path -- ./relative/path
 func (c *Config) SetURL(dsn string) (map[string]string, error) {
 	if dsn == "" {
 		return nil, nil

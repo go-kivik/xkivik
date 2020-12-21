@@ -224,6 +224,7 @@ func TestConfigArgs(t *testing.T) {
 
 func TestConfig_SetURL(t *testing.T) {
 	type tt struct {
+		wd  string
 		cf  *Config
 		url string
 		err string
@@ -276,11 +277,34 @@ func TestConfig_SetURL(t *testing.T) {
 		},
 		url: "bar",
 	})
+	tests.Add("absolute path, empty config", tt{
+		cf:  New(nil),
+		url: "/some/path",
+	})
+	tests.Add("relative path, empty config", tt{
+		wd:  "/tmp",
+		cf:  New(nil),
+		url: "./some/path",
+	})
 
 	tests.Run(t, func(t *testing.T, tt tt) {
+		var cwd string
+		if tt.wd != "" {
+			var err error
+			cwd, err = os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.Chdir(tt.wd); err != nil {
+				t.Fatal(err)
+			}
+		}
 		tl := log.NewTest()
 		tt.cf.log = tl
 		opts, err := tt.cf.SetURL(tt.url)
+		if cwd != "" {
+			_ = os.Chdir(cwd)
+		}
 		testy.Error(t, tt.err, err)
 		tl.Check(t)
 		tt.cf.log = nil
