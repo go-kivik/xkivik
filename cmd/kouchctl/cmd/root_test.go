@@ -96,6 +96,9 @@ func Test_root_RunE(t *testing.T) {
 		args:   []string{"--debug", "-O", "foo=bar", "--option", "bar=baz", "ping", "http://localhost:5984/?baz=qux"},
 		status: errors.ErrUnavailable,
 	})
+	tests.Add("ping file url", cmdTest{
+		args: []string{"--debug", "ping", "./testdata"},
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		re := testy.Replacement{

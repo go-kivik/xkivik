@@ -27,6 +27,7 @@ import (
 
 	"github.com/go-kivik/couchdb/v4"
 	"github.com/go-kivik/couchdb/v4/chttp"
+	_ "github.com/go-kivik/fsdb/v4" // Filesystem driver
 	"github.com/go-kivik/kivik/v4"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
@@ -237,6 +238,8 @@ func (r *root) client() (*kivik.Client, error) {
 	}
 
 	switch scheme {
+	case "file":
+		return kivik.New("fs", dsn)
 	case "http", "https", "couch", "couchs", "couchdb", "couchdbs":
 		return kivik.New("couch", dsn, kivik.Options{
 			couchdb.OptionHTTPClient: &http.Client{
