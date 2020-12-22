@@ -17,7 +17,7 @@ import (
 )
 
 type get struct {
-	alldbs, att, doc, db, ver *cobra.Command
+	alldbs, att, doc, db, ver, cf *cobra.Command
 	*root
 }
 
@@ -29,6 +29,7 @@ func getCmd(r *root) *cobra.Command {
 		doc:    getDocCmd(r),
 		db:     getDBCmd(r),
 		ver:    getVersionCmd(r),
+		cf:     getConfigCmd(r),
 	}
 	cmd := &cobra.Command{
 		Use:   "get [command]",
@@ -42,6 +43,7 @@ func getCmd(r *root) *cobra.Command {
 	cmd.AddCommand(g.doc)
 	cmd.AddCommand(g.db)
 	cmd.AddCommand(g.ver)
+	cmd.AddCommand(g.cf)
 
 	return cmd
 }

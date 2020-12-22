@@ -6,6 +6,7 @@ Usage:
 Available Commands:
   all-dbs     List all databases
   attachment  Get an attachment
+  config      Get server config
   database    Get a database
   document    Get a document
   version     Print server version information
