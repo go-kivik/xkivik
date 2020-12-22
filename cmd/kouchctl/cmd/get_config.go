@@ -13,6 +13,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/spf13/cobra"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
@@ -20,7 +22,7 @@ import (
 
 type getConfig struct {
 	*root
-	node string
+	node, key string
 }
 
 func getConfigCmd(r *root) *cobra.Command {
@@ -28,14 +30,14 @@ func getConfigCmd(r *root) *cobra.Command {
 		root: r,
 	}
 	cmd := &cobra.Command{
-		Use:     "config [dsn]",
-		Aliases: []string{"alldbs"},
-		Short:   "Get server config",
-		RunE:    c.RunE,
+		Use:   "config [dsn]",
+		Short: "Get server config",
+		RunE:  c.RunE,
 	}
 
 	pf := cmd.PersistentFlags()
 	pf.StringVarP(&c.node, "node", "n", "_local", "Specify the node name to query")
+	pf.StringVarP(&c.key, "key", "k", "", "Fetch only the specified config section, and optionally key, separated by a period")
 
 	return cmd
 }
@@ -48,7 +50,17 @@ func (c *getConfig) RunE(cmd *cobra.Command, _ []string) error {
 	c.conf.Finalize()
 
 	return c.retry(func() error {
-		conf, err := client.Config(cmd.Context(), c.node)
+		var conf interface{}
+		var err error
+		if c.key != "" {
+			if parts := strings.SplitN(c.key, ".", 2); len(parts) > 1 {
+				conf, err = client.ConfigValue(cmd.Context(), c.node, parts[0], parts[1])
+			} else {
+				conf, err = client.ConfigSection(cmd.Context(), c.node, c.key)
+			}
+		} else {
+			conf, err = client.Config(cmd.Context(), c.node)
+		}
 		if err != nil {
 			return err
 		}

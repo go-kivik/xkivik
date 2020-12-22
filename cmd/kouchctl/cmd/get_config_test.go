@@ -60,6 +60,42 @@ func Test_get_config_RunE(t *testing.T) {
 			args: []string{"get", "config", s.URL, "--node", "foo"},
 		}
 	})
+	tests.Add("section", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"max_db_number_for_dbs_info_req":"100","port":"5984","prefer_minimal":"Cache-Control, Content-Length, Content-Range, Content-Type, ETag, Server, Transfer-Encoding, Vary","backlog":"512","docroot":"./share/www","socket_options":"[{sndbuf, 262144}, {nodelay, true}]","require_valid_user":"false","server_options":"[{recbuf, undefined}]","bind_address":"0.0.0.0"}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.URL.Path != "/_node/_local/_config/chttpd" {
+				t.Errorf("unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"get", "config", s.URL, "--key", "chttpd"},
+		}
+	})
+	tests.Add("key", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`"512"`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.URL.Path != "/_node/_local/_config/chttpd/backlog" {
+				t.Errorf("unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"get", "config", s.URL, "--key", "chttpd.backlog"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
