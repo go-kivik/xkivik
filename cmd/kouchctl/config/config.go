@@ -223,6 +223,14 @@ func (c *Config) ClientInfo() (string, string, error) {
 	return scheme, dsn, nil
 }
 
+func (c *Config) URL() (*url.URL, error) {
+	cx, err := c.currentCx()
+	if err != nil {
+		return nil, err
+	}
+	return cx.dsn(), nil
+}
+
 func (c *Config) DSN() (string, error) {
 	cx, err := c.currentCx()
 	if err != nil {
