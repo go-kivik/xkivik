@@ -92,6 +92,30 @@ func Test_put_RunE(t *testing.T) {
 			args: []string{"--debug", "put", s.URL + "/foo/bar", "--yaml", "--data", `foo: bar`},
 		}
 	})
+	tests.Add("auto put config", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`"old"`)),
+		}, func(t *testing.T, req *http.Request) {
+			content, _ := ioutil.ReadAll(req.Body)
+			if string(content) != `"baz"` {
+				t.Errorf("Unexpected request body: %s", string(content))
+			}
+			if req.Method != http.MethodPut {
+				t.Errorf("Unexpected method: %s", req.Method)
+			}
+			if req.URL.Path != "/_node/_local/_config/foo/bar" {
+				t.Errorf("unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"put", s.URL + "/_node/_local/_config/foo/bar", "-d", "baz"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)

@@ -23,7 +23,7 @@ type put struct {
 	*input.Input
 	*root
 
-	db, doc, att *cobra.Command
+	db, doc, att, cf *cobra.Command
 }
 
 func putCmd(r *root) *cobra.Command {
@@ -34,6 +34,7 @@ func putCmd(r *root) *cobra.Command {
 	}
 	c.doc = putDocCmd(c)
 	c.att = putAttCmd(c)
+	c.cf = putConfigCmd(c)
 	cmd := &cobra.Command{
 		Use:   "put",
 		Short: "Put a resource",
@@ -46,11 +47,19 @@ func putCmd(r *root) *cobra.Command {
 	cmd.AddCommand(c.db)
 	cmd.AddCommand(c.doc)
 	cmd.AddCommand(c.att)
+	cmd.AddCommand(c.cf)
 
 	return cmd
 }
 
 func (c *put) RunE(cmd *cobra.Command, args []string) error {
+	dsn, err := c.conf.URL()
+	if err != nil {
+		return err
+	}
+	if _, _, ok := configFromDSN(dsn); ok {
+		return c.cf.RunE(cmd, args)
+	}
 	if c.conf.HasAttachment() {
 		return c.att.RunE(cmd, args)
 	}
@@ -60,7 +69,7 @@ func (c *put) RunE(cmd *cobra.Command, args []string) error {
 	if c.conf.HasDB() {
 		return c.db.RunE(cmd, args)
 	}
-	_, err := c.client()
+	_, err = c.client()
 	if err != nil {
 		return err
 	}
