@@ -17,7 +17,7 @@ import (
 )
 
 type get struct {
-	alldbs, att, doc, db, ver, cf *cobra.Command
+	alldbs, att, doc, db, ver, cf, sec *cobra.Command
 	*root
 }
 
@@ -30,6 +30,7 @@ func getCmd(r *root) *cobra.Command {
 		db:     getDBCmd(r),
 		ver:    getVersionCmd(r),
 		cf:     getConfigCmd(r),
+		sec:    getSecurityCmd(r),
 	}
 	cmd := &cobra.Command{
 		Use:   "get [command]",
@@ -44,6 +45,7 @@ func getCmd(r *root) *cobra.Command {
 	cmd.AddCommand(g.db)
 	cmd.AddCommand(g.ver)
 	cmd.AddCommand(g.cf)
+	cmd.AddCommand(g.sec)
 
 	return cmd
 }
@@ -55,6 +57,9 @@ func (g *get) RunE(cmd *cobra.Command, args []string) error {
 	}
 	if _, _, ok := configFromDSN(dsn); ok {
 		return g.cf.RunE(cmd, args)
+	}
+	if _, ok := securityFromDSN(dsn); ok {
+		return g.sec.RunE(cmd, args)
 	}
 	if g.conf.HasAttachment() {
 		return g.att.RunE(cmd, args)

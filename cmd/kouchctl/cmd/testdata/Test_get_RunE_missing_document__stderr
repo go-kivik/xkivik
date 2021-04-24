@@ -9,6 +9,7 @@ Available Commands:
   config      Get server config
   database    Get a database
   document    Get a document
+  security    Get a database's security object
   version     Print server version information
 
 Flags:

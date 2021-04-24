@@ -198,6 +198,24 @@ func Test_get_RunE(t *testing.T) {
 			args: []string{"get", s.URL + "/_node/_local/_config/chttpd/backlog"},
 		}
 	})
+	tests.Add("auto security", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"admins":{"names":["bob"]}}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.URL.Path != "/foo/_security" {
+				t.Errorf("unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"get", s.URL + "/foo/_security"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)

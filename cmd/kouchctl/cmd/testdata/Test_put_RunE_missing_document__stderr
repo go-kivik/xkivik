@@ -8,6 +8,7 @@ Available Commands:
   config      Set server config
   database    Create a database
   document    Put a document
+  security    Set database security object
 
 Flags:
   -d, --data string        JSON document data.

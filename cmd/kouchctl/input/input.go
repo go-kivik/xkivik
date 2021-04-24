@@ -68,6 +68,19 @@ func (o *jsonObject) MarshalJSON() ([]byte, error) {
 	return json.Marshal(o.i)
 }
 
+// As unmarshals the data input to target.
+func (i *Input) As(target interface{}) error {
+	j, err := i.JSONData()
+	if err != nil {
+		return err
+	}
+	buf, err := json.Marshal(j)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(buf, target)
+}
+
 func (i *Input) JSONData() (json.Marshaler, error) {
 	if !i.yaml {
 		if i.data != "" {
