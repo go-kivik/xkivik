@@ -13,54 +13,62 @@
 package cmd
 
 import (
-	"net/url"
-	"strings"
-
 	"github.com/spf13/cobra"
 
+	"github.com/go-kivik/kivik/v4"
+	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/input"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/output"
 )
 
-type getSec struct {
+type putSec struct {
 	*root
+	*input.Input
 }
 
-func getSecurityCmd(r *root) *cobra.Command {
-	g := &getSec{
-		root: r,
+func putSecurityCmd(p *put) *cobra.Command {
+	c := &putSec{
+		root:  p.root,
+		Input: p.Input,
 	}
-	return &cobra.Command{
-		Use:     "security [dsn]/[database]",
-		Aliases: []string{"sec"},
-		Short:   "Get a database's security object",
-		RunE:    g.RunE,
+	cmd := &cobra.Command{
+		Use:   "security [dsn]/[database]",
+		Short: "Set database security object",
+		RunE:  c.RunE,
 	}
+
+	return cmd
 }
 
-func securityFromDSN(dsn *url.URL) (db string, ok bool) {
-	parts := strings.Split(dsn.Path, "/")
-	if len(parts) != 3 || parts[2] != "_security" {
-		return "", false
-	}
-	return parts[1], true
-
-}
-
-func (c *getSec) RunE(cmd *cobra.Command, _ []string) error {
+func (c *putSec) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
-	db, err := c.conf.DB()
+	dsn, err := c.conf.URL()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch security object: %s/%s", client.DSN(), db)
-	return c.retry(func() error {
-		sec, err := client.DB(db).Security(cmd.Context())
+	db, ok := securityFromDSN(dsn)
+	if !ok {
+		db, err = c.conf.DB()
 		if err != nil {
 			return err
 		}
-		return c.fmt.Output(output.JSONReader(sec))
+	}
+
+	secObj := new(kivik.Security)
+	if err := c.As(&secObj); err != nil {
+		return err
+	}
+	c.log.Debugf("[get] Will fetch security object: %s/%s", client.DSN(), db)
+
+	return c.retry(func() error {
+		err = client.DB(db).SetSecurity(cmd.Context(), secObj)
+		if err != nil {
+			return err
+		}
+
+		result := output.JSONReader(map[string]bool{"ok": true})
+		return c.fmt.Output(result)
 	})
 }

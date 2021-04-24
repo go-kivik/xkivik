@@ -13,6 +13,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -114,6 +115,30 @@ func Test_put_RunE(t *testing.T) {
 
 		return cmdTest{
 			args: []string{"put", s.URL + "/_node/_local/_config/foo/bar", "-d", "baz"},
+		}
+	})
+	tests.Add("auto put security", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`"old"`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPut {
+				t.Errorf("Unexpected method: %s", req.Method)
+			}
+			want := json.RawMessage(`{"admins":{},"members":{}}`)
+			if d := testy.DiffAsJSON(want, req.Body); d != nil {
+				t.Errorf("Unexpected request body: %s", d)
+			}
+			if req.URL.Path != "/foo/_security" {
+				t.Errorf("unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"put", s.URL + "/foo/_security", "-d", "{}"},
 		}
 	})
 
