@@ -60,7 +60,7 @@ func (c *putSec) RunE(cmd *cobra.Command, _ []string) error {
 	if err := c.As(&secObj); err != nil {
 		return err
 	}
-	c.log.Debugf("[get] Will fetch security object: %s/%s", client.DSN(), db)
+	c.log.Debugf("[get] Will put security object: %s/%s", client.DSN(), db)
 
 	return c.retry(func() error {
 		err = client.DB(db).SetSecurity(cmd.Context(), secObj)
