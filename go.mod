@@ -11,8 +11,8 @@ require (
 	github.com/go-kivik/kiviktest/v4 v4.0.0-20210416171742-9178bdf947e3
 	github.com/icza/dyno v0.0.0-20200205103839-49cb13720835
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/spf13/cobra v1.0.0
-	github.com/spf13/pflag v1.0.3
+	github.com/spf13/cobra v1.1.3
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	gitlab.com/flimzy/testy v0.7.1
 	golang.org/x/sync v0.0.0-20200930132711-30421366ff76
