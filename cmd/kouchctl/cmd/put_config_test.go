@@ -22,7 +22,7 @@ import (
 	"gitlab.com/flimzy/testy"
 )
 
-func Test_delete_config_RunE(t *testing.T) {
+func Test_put_config_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
 	tests.Add("missing key", func(t *testing.T) interface{} {
@@ -37,18 +37,22 @@ func Test_delete_config_RunE(t *testing.T) {
 			Header: http.Header{
 				"Content-Type": []string{"application/json"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`"foo"`)),
+			Body: ioutil.NopCloser(strings.NewReader(`"old"`)),
 		}, func(t *testing.T, req *http.Request) {
-			if req.Method != http.MethodDelete {
+			content, _ := ioutil.ReadAll(req.Body)
+			if string(content) != `"baz"` {
+				t.Errorf("Unexpected request body: %s", string(content))
+			}
+			if req.Method != http.MethodPut {
 				t.Errorf("Unexpected method: %s", req.Method)
 			}
-			if req.URL.Path != "/_node/quack/_config/foo/bar" {
+			if req.URL.Path != "/_node/foo/_config/foo/bar" {
 				t.Errorf("unexpected path: %s", req.URL.Path)
 			}
 		})
 
 		return cmdTest{
-			args: []string{"delete", "config", s.URL, "--node", "quack", "--key", "foo/bar"},
+			args: []string{"put", "config", s.URL, "--node", "foo", "--key", "foo/bar", "--data", "baz"},
 		}
 	})
 

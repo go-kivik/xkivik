@@ -5,6 +5,7 @@ Usage:
 
 Available Commands:
   attachment  Put an attachment
+  config      Set server config
   database    Create a database
   document    Put a document
 
