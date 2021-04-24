@@ -94,7 +94,7 @@ func Test_get_config_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"get", "config", s.URL, "--key", "chttpd.backlog"},
+			args: []string{"get", "config", s.URL, "--key", "chttpd/backlog"},
 		}
 	})
 
@@ -125,7 +125,7 @@ func Test_configFromDSN(t *testing.T) {
 	tests.Add("config key", tt{
 		dsn:  "http://foo.com/_node/foo/_config/foo/bar",
 		node: "foo",
-		key:  "foo.bar",
+		key:  "foo/bar",
 		ok:   true,
 	})
 

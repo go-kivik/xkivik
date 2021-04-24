@@ -38,7 +38,7 @@ func getConfigCmd(r *root) *cobra.Command {
 
 	pf := cmd.PersistentFlags()
 	pf.StringVarP(&c.node, "node", "n", "_local", "Specify the node name to query")
-	pf.StringVarP(&c.key, "key", "k", "", "Fetch only the specified config section, and optionally key, separated by a period")
+	pf.StringVarP(&c.key, "key", "k", "", "Fetch only the specified config section, and optionally key, separated by a slash")
 
 	return cmd
 }
@@ -48,7 +48,7 @@ func configFromDSN(dsn *url.URL) (node, key string, ok bool) {
 	if len(parts) < 4 || parts[1] != "_node" || parts[3] != "_config" {
 		return "", "", false
 	}
-	return parts[2], strings.Join(parts[4:], "."), true
+	return parts[2], strings.Join(parts[4:], "/"), true
 }
 
 func (c *getConfig) RunE(cmd *cobra.Command, _ []string) error {
@@ -70,7 +70,7 @@ func (c *getConfig) RunE(cmd *cobra.Command, _ []string) error {
 		var conf interface{}
 		var err error
 		if c.key != "" {
-			if parts := strings.SplitN(c.key, ".", 2); len(parts) > 1 {
+			if parts := strings.SplitN(c.key, "/", 2); len(parts) > 1 {
 				conf, err = client.ConfigValue(cmd.Context(), c.node, parts[0], parts[1])
 			} else {
 				conf, err = client.ConfigSection(cmd.Context(), c.node, c.key)
