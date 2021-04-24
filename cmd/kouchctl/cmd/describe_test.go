@@ -28,8 +28,9 @@ func Test_describe_RunE(t *testing.T) {
 		s := testy.ServeResponse(&http.Response{
 			StatusCode: http.StatusOK,
 			Header: http.Header{
-				"Content-Type": []string{"application/json"},
-				"ETag":         []string{"1-xxx"},
+				"Content-Type":   []string{"application/json"},
+				"ETag":           []string{"1-xxx"},
+				"Content-Length": []string{"59"},
 			},
 			Body: ioutil.NopCloser(strings.NewReader(`{
 				"_id":"foo",
@@ -61,9 +62,10 @@ func Test_describe_RunE(t *testing.T) {
 		s := testy.ServeResponse(&http.Response{
 			StatusCode: http.StatusOK,
 			Header: http.Header{
-				"Content-Type": []string{"text/plain"},
-				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
-				"ETag":         []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
+				"Content-Type":   []string{"text/plain"},
+				"Server":         []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
+				"ETag":           []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
+				"Content-Length": []string{"7"},
 			},
 			Body: ioutil.NopCloser(strings.NewReader(`Testing`)),
 		})

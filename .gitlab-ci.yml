@@ -21,7 +21,7 @@ stages:
 
 lint:
   stage: test
-  image: golangci/golangci-lint:v1.33
+  image: golangci/golangci-lint:v1.39
   script:
   - go mod download
   - golangci-lint run ./...
@@ -29,7 +29,7 @@ lint:
 
 coverage:
   stage: test
-  image: golang:1.15
+  image: golang:1.16
   script:
   - ./script/coverage.sh
 
@@ -40,6 +40,10 @@ go-1.14:
 go-1.15:
   <<: *test_template
   image: golang:1.15
+
+go-1.16:
+  <<: *test_template
+  image: golang:1.16
 
 go-rc:
   <<: *test_template

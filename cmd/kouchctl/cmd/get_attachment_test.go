@@ -64,9 +64,10 @@ func Test_get_attachment_RunE(t *testing.T) {
 		s := testy.ServeResponse(&http.Response{
 			StatusCode: http.StatusOK,
 			Header: http.Header{
-				"Content-Type": []string{"text/plain"},
-				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
-				"ETag":         []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
+				"Content-Type":   []string{"text/plain"},
+				"Server":         []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
+				"ETag":           []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
+				"Content-Length": []string{"7"},
 			},
 			Body: ioutil.NopCloser(strings.NewReader(`Testing`)),
 		})
