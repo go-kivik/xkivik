@@ -15,6 +15,7 @@ package cmd
 import (
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -99,5 +100,43 @@ func Test_get_config_RunE(t *testing.T) {
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
+	})
+}
+
+func Test_configFromDSN(t *testing.T) {
+	type tt struct {
+		dsn       string
+		node, key string
+		ok        bool
+	}
+
+	tests := testy.NewTable()
+	tests.Add("no path", tt{
+		dsn: "http://foo.com/",
+	})
+	tests.Add("short path", tt{
+		dsn: "http://foo.com/_node/foo",
+	})
+	tests.Add("config", tt{
+		dsn:  "http://foo.com/_node/foo/_config",
+		node: "foo",
+		ok:   true,
+	})
+	tests.Add("config key", tt{
+		dsn:  "http://foo.com/_node/foo/_config/foo/bar",
+		node: "foo",
+		key:  "foo.bar",
+		ok:   true,
+	})
+
+	tests.Run(t, func(t *testing.T, tt tt) {
+		url, err := url.Parse(tt.dsn)
+		if err != nil {
+			t.Fatal(err)
+		}
+		node, key, ok := configFromDSN(url)
+		if node != tt.node || key != tt.key || ok != tt.ok {
+			t.Errorf("Unexpected result: node:%s, key:%s, ok:%T", node, key, ok)
+		}
 	})
 }

@@ -49,6 +49,13 @@ func getCmd(r *root) *cobra.Command {
 }
 
 func (g *get) RunE(cmd *cobra.Command, args []string) error {
+	dsn, err := g.conf.URL()
+	if err != nil {
+		return err
+	}
+	if _, _, ok := configFromDSN(dsn); ok {
+		return g.cf.RunE(cmd, args)
+	}
 	if g.conf.HasAttachment() {
 		return g.att.RunE(cmd, args)
 	}

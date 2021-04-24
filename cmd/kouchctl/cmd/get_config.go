@@ -13,6 +13,7 @@
 package cmd
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -42,12 +43,28 @@ func getConfigCmd(r *root) *cobra.Command {
 	return cmd
 }
 
+func configFromDSN(dsn *url.URL) (node, key string, ok bool) {
+	parts := strings.Split(dsn.Path, "/")
+	if len(parts) < 4 || parts[1] != "_node" || parts[3] != "_config" {
+		return "", "", false
+	}
+	return parts[2], strings.Join(parts[4:], "."), true
+}
+
 func (c *getConfig) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
+	dsn, err := c.conf.URL()
+	if err != nil {
+		return err
+	}
 	c.conf.Finalize()
+	if node, key, ok := configFromDSN(dsn); ok {
+		c.node = node
+		c.key = key
+	}
 
 	return c.retry(func() error {
 		var conf interface{}
