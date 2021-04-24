@@ -43,7 +43,6 @@ func securityFromDSN(dsn *url.URL) (db string, ok bool) {
 		return "", false
 	}
 	return parts[1], true
-
 }
 
 func (c *getSec) RunE(cmd *cobra.Command, _ []string) error {
@@ -51,10 +50,18 @@ func (c *getSec) RunE(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	db, err := c.conf.DB()
+	dsn, err := c.conf.URL()
 	if err != nil {
 		return err
 	}
+	db, ok := securityFromDSN(dsn)
+	if !ok {
+		db, err = c.conf.DB()
+		if err != nil {
+			return err
+		}
+	}
+
 	c.log.Debugf("[get] Will fetch security object: %s/%s", client.DSN(), db)
 	return c.retry(func() error {
 		sec, err := client.DB(db).Security(cmd.Context())

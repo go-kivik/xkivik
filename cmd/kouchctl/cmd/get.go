@@ -58,6 +58,9 @@ func (g *get) RunE(cmd *cobra.Command, args []string) error {
 	if _, _, ok := configFromDSN(dsn); ok {
 		return g.cf.RunE(cmd, args)
 	}
+	if _, ok := securityFromDSN(dsn); ok {
+		return g.sec.RunE(cmd, args)
+	}
 	if g.conf.HasAttachment() {
 		return g.att.RunE(cmd, args)
 	}
