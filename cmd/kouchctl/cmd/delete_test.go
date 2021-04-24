@@ -74,6 +74,20 @@ func Test_delete_RunE(t *testing.T) {
 			args: []string{"delete", s.URL + "/db/doc/filename.txt", "-O", "rev=1-xxx"},
 		}
 	})
+	tests.Add("auto delete config", func(t *testing.T) interface{} {
+		s := testy.ServeResponse(&http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`"foo"`)),
+		})
+
+		return cmdTest{
+			args: []string{"delete", s.URL + "/_node/_local/_config/foo/bar"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
