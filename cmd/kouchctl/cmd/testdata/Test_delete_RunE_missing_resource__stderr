@@ -8,6 +8,7 @@ Aliases:
 
 Available Commands:
   attachment  Delete an attachment
+  config      Delete server config
   database    Delete a database
   document    Delete a document
 
