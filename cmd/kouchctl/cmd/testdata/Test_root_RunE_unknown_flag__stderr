@@ -13,6 +13,7 @@ Available Commands:
   help          Help about any command
   ping          Ping a server
   post          Post a resource
+  purge         Purge document revision(s)
   put           Put a resource
   version       Print client and server version information
   view-cleanup  Removes unused view index files

@@ -158,6 +158,44 @@ func Test_root_RunE(t *testing.T) {
 			args: []string{"compact-views", s.URL + "/asdf/quack"},
 		}
 	})
+	tests.Add("purge", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/asdf/_purge" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"purge", s.URL + "/asdf/quack", "--revs", "1-xyz"},
+		}
+	})
+	tests.Add("purge --data", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/asdf/_purge" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"purge", s.URL + "/asdf", "--data", `{"foo":["1-xx","2-yy"]}`},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		re := testy.Replacement{

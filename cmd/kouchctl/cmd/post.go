@@ -25,7 +25,7 @@ import (
 type post struct {
 	*root
 	*input.Input
-	doc, vc, flush, compact, cv *cobra.Command
+	doc, vc, flush, compact, cv, purge *cobra.Command
 }
 
 func postCmd(r *root) *cobra.Command {
@@ -38,6 +38,7 @@ func postCmd(r *root) *cobra.Command {
 		cv:      postCompactViewsCmd(r),
 	}
 	c.doc = postDocCmd(c)
+	c.purge = postPurgeCmd(c)
 
 	cmd := &cobra.Command{
 		Use:   "post",
@@ -53,6 +54,7 @@ func postCmd(r *root) *cobra.Command {
 	cmd.AddCommand(c.flush)
 	cmd.AddCommand(c.compact)
 	cmd.AddCommand(c.cv)
+	cmd.AddCommand(c.purge)
 
 	return cmd
 }
@@ -80,6 +82,8 @@ func (c *post) RunE(cmd *cobra.Command, args []string) error {
 		return c.flush.RunE(cmd, args)
 	case "_compact":
 		return c.compact.RunE(cmd, args)
+	case "_purge":
+		return c.purge.RunE(cmd, args)
 	}
 	if c.conf.HasDB() {
 		return c.doc.RunE(cmd, args)
