@@ -55,6 +55,48 @@ func Test_post_replicate_RunE(t *testing.T) {
 			args: []string{"--debug", "post", "replicate", s.URL, "--source", "http://example.com/foo", "--target", "http://example.com/bar"},
 		}
 	})
+	tests.Add("objects", func(t *testing.T) interface{} {
+		s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodHead {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			if r.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %s", r.Method)
+			}
+			defer r.Body.Close() // nolint:errcheck
+			if d := testy.DiffAsJSON(testy.Snapshot(t), r.Body); d != nil {
+				t.Error(d)
+			}
+			_, _ = w.Write([]byte(`{"ok":true}`))
+		}))
+
+		return cmdTest{
+			args: []string{"--debug", "post", "replicate", s.URL, "--source", `{"url":"http://example.com/foo"}`, "--target", `{"url":"http://example.com/bar"}`},
+		}
+	})
+	tests.Add("options", func(t *testing.T) interface{} {
+		s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodHead {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			if r.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %s", r.Method)
+			}
+			defer r.Body.Close() // nolint:errcheck
+			if d := testy.DiffAsJSON(testy.Snapshot(t), r.Body); d != nil {
+				t.Error(d)
+			}
+			_, _ = w.Write([]byte(`{"ok":true}`))
+		}))
+
+		return cmdTest{
+			args: []string{"--debug", "post", "replicate", s.URL, "--source", "http://example.com/foo", "--target", "http://example.com/bar", "--cancel", "--continuous", "--create-target", "--doc-id", "foo", "--doc-id", "bar", "--filter", "oink", "--source-proxy", "http://localhost:9999/", "--target-proxy", "http://localhost:1111/"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)

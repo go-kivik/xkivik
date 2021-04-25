@@ -6,9 +6,16 @@ Aliases:
   replicate, rep
 
 Flags:
-  -h, --help            help for replicate
-  -s, --source string   The source DSN
-  -t, --target string   The target DSN
+      --cancel                Cancel the replecation
+      --continuous            Configure the replication to be continuous
+      --create-target         Creates the target database.
+      --doc-id strings        Document IDs to be synchronized
+      --filter string         The name of a filter function
+  -h, --help                  help for replicate
+  -s, --source string         The source DSN. String or JSON object
+      --source-proxy string   Address of http or socks5 proxy through which replication from the source should occur
+  -t, --target string         The target DSN. String or JSON object
+      --target-proxy string   Address of http or socks5 proxy through which replication to the target should occur
 
 Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.
