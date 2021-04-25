@@ -142,6 +142,22 @@ func Test_root_RunE(t *testing.T) {
 			args: []string{"compact", s.URL + "/asdf"},
 		}
 	})
+	tests.Add("compact views", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/asdf/_compact/quack" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"compact-views", s.URL + "/asdf/quack"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		re := testy.Replacement{

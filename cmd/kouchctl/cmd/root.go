@@ -157,6 +157,7 @@ func rootCmd(lg log.Logger) *root {
 	r.cmd.AddCommand(postViewCleanupCmd(r))
 	r.cmd.AddCommand(postFlushCmd(r))
 	r.cmd.AddCommand(postCompactCmd(r))
+	r.cmd.AddCommand(postCompactViewsCmd(r))
 
 	return r
 }

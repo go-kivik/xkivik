@@ -25,7 +25,7 @@ import (
 type post struct {
 	*root
 	*input.Input
-	doc, vc, flush, compact *cobra.Command
+	doc, vc, flush, compact, cv *cobra.Command
 }
 
 func postCmd(r *root) *cobra.Command {
@@ -35,6 +35,7 @@ func postCmd(r *root) *cobra.Command {
 		vc:      postViewCleanupCmd(r),
 		flush:   postFlushCmd(r),
 		compact: postCompactCmd(r),
+		cv:      postCompactViewsCmd(r),
 	}
 	c.doc = postDocCmd(c)
 
@@ -51,6 +52,7 @@ func postCmd(r *root) *cobra.Command {
 	cmd.AddCommand(c.vc)
 	cmd.AddCommand(c.flush)
 	cmd.AddCommand(c.compact)
+	cmd.AddCommand(c.cv)
 
 	return cmd
 }
@@ -67,6 +69,9 @@ func (c *post) RunE(cmd *cobra.Command, args []string) error {
 	dsn, err := c.conf.URL()
 	if err != nil {
 		return err
+	}
+	if db, _ := compactViewFromDSN(dsn); db != "" {
+		return c.cv.RunE(cmd, args)
 	}
 	switch command, _ := dbCommandFromDSN(dsn); command {
 	case "_view_cleanup":

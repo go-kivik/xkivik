@@ -89,6 +89,22 @@ func Test_post_RunE(t *testing.T) {
 			args: []string{"post", s.URL + "/asdf/_compact"},
 		}
 	})
+	tests.Add("auto compact views", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/asdf/_compact/foo" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"post", s.URL + "/asdf/_compact/foo"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
