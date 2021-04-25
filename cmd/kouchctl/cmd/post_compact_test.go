@@ -23,11 +23,11 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
-func Test_post_flush_RunE(t *testing.T) {
+func Test_post_compact_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
 	tests.Add("missing dsn", cmdTest{
-		args:   []string{"post", "flush"},
+		args:   []string{"post", "compact"},
 		status: errors.ErrUsage,
 	})
 	tests.Add("success", func(t *testing.T) interface{} {
@@ -37,13 +37,13 @@ func Test_post_flush_RunE(t *testing.T) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
-			if req.URL.Path != "/asdf/_ensure_full_commit" {
+			if req.URL.Path != "/foo/_compact" {
 				t.Errorf("Unexpected path: %s", req.URL.Path)
 			}
 		})
 
 		return cmdTest{
-			args: []string{"post", "ensure-full-commit", s.URL + "/asdf"},
+			args: []string{"post", "compact", s.URL + "/foo"},
 		}
 	})
 

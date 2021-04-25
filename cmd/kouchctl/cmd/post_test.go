@@ -73,6 +73,22 @@ func Test_post_RunE(t *testing.T) {
 			args: []string{"post", s.URL + "/foo/_ensure_full_commit"},
 		}
 	})
+	tests.Add("auto compact", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/asdf/_compact" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"post", s.URL + "/asdf/_compact"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)

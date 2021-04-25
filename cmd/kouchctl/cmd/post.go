@@ -25,15 +25,16 @@ import (
 type post struct {
 	*root
 	*input.Input
-	doc, vc, flush *cobra.Command
+	doc, vc, flush, compact *cobra.Command
 }
 
 func postCmd(r *root) *cobra.Command {
 	c := &post{
-		root:  r,
-		Input: input.New(),
-		vc:    postViewCleanupCmd(r),
-		flush: postFlushCmd(r),
+		root:    r,
+		Input:   input.New(),
+		vc:      postViewCleanupCmd(r),
+		flush:   postFlushCmd(r),
+		compact: postCompactCmd(r),
 	}
 	c.doc = postDocCmd(c)
 
@@ -49,6 +50,7 @@ func postCmd(r *root) *cobra.Command {
 	cmd.AddCommand(c.doc)
 	cmd.AddCommand(c.vc)
 	cmd.AddCommand(c.flush)
+	cmd.AddCommand(c.compact)
 
 	return cmd
 }
@@ -71,6 +73,8 @@ func (c *post) RunE(cmd *cobra.Command, args []string) error {
 		return c.vc.RunE(cmd, args)
 	case "_ensure_full_commit":
 		return c.flush.RunE(cmd, args)
+	case "_compact":
+		return c.compact.RunE(cmd, args)
 	}
 	if c.conf.HasDB() {
 		return c.doc.RunE(cmd, args)
