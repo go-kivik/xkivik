@@ -25,7 +25,7 @@ import (
 type post struct {
 	*root
 	*input.Input
-	doc, vc, flush, compact, cv, purge *cobra.Command
+	doc, vc, flush, compact, cv, purge, repl *cobra.Command
 }
 
 func postCmd(r *root) *cobra.Command {
@@ -36,6 +36,7 @@ func postCmd(r *root) *cobra.Command {
 		flush:   postFlushCmd(r),
 		compact: postCompactCmd(r),
 		cv:      postCompactViewsCmd(r),
+		repl:    postReplicateCmd(r),
 	}
 	c.doc = postDocCmd(c)
 	c.purge = postPurgeCmd(c)
@@ -55,6 +56,7 @@ func postCmd(r *root) *cobra.Command {
 	cmd.AddCommand(c.compact)
 	cmd.AddCommand(c.cv)
 	cmd.AddCommand(c.purge)
+	cmd.AddCommand(c.repl)
 
 	return cmd
 }
