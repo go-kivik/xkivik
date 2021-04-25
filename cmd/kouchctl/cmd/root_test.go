@@ -99,6 +99,17 @@ func Test_root_RunE(t *testing.T) {
 	tests.Add("ping file url", cmdTest{
 		args: []string{"--debug", "ping", "./testdata"},
 	})
+	tests.Add("view cleanup", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+		}, func(*testing.T, *http.Request) {
+			time.Sleep(time.Second)
+		})
+
+		return cmdTest{
+			args: []string{"view-cleanup", s.URL + "/foo/_view_cleanup"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		re := testy.Replacement{
