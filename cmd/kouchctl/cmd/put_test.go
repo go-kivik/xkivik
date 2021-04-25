@@ -128,7 +128,7 @@ func Test_put_RunE(t *testing.T) {
 			if req.Method != http.MethodPut {
 				t.Errorf("Unexpected method: %s", req.Method)
 			}
-			want := json.RawMessage(`{"admins":{},"members":{}}`)
+			want := json.RawMessage(`{}`)
 			if d := testy.DiffAsJSON(want, req.Body); d != nil {
 				t.Errorf("Unexpected request body: %s", d)
 			}
