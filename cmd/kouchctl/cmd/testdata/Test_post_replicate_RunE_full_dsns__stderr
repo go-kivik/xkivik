@@ -1,0 +1,3 @@
+Debug mode enabled
+failed to read kouchconfig: open ~/.kouchctl/config: no such file or directory
+[post] Will replicate http://example.com/foo to http://example.com/bar
