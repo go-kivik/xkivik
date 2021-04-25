@@ -18,46 +18,18 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.com/flimzy/testy"
-
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
+	"gitlab.com/flimzy/testy"
 )
 
-func Test_post_RunE(t *testing.T) {
+func Test_post_flush_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
-	tests.Add("missing resource", cmdTest{
-		args:   []string{"post"},
+	tests.Add("missing dsn", cmdTest{
+		args:   []string{"post", "flush"},
 		status: errors.ErrUsage,
 	})
-	tests.Add("auto create doc", func(t *testing.T) interface{} {
-		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
-			defer req.Body.Close() // nolint:errcheck
-			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
-				t.Error(d)
-			}
-		})
-
-		return cmdTest{
-			args: []string{"--debug", "post", s.URL + "/foo", "--data", `{"foo":"bar"}`},
-		}
-	})
-	tests.Add("auto view cleanup", func(t *testing.T) interface{} {
-		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
-			if req.Method != http.MethodPost {
-				t.Errorf("Unexpected method: %s", req.Method)
-			}
-		})
-
-		return cmdTest{
-			args: []string{"post", s.URL + "/foo/_view_cleanup"},
-		}
-	})
-	tests.Add("auto flush", func(t *testing.T) interface{} {
+	tests.Add("success", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
@@ -70,7 +42,7 @@ func Test_post_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"post", s.URL + "/foo/_ensure_full_commit"},
+			args: []string{"post", "ensure-full-commit", s.URL + "/foo"},
 		}
 	})
 

@@ -110,6 +110,22 @@ func Test_root_RunE(t *testing.T) {
 			args: []string{"view-cleanup", s.URL + "/foo/_view_cleanup"},
 		}
 	})
+	tests.Add("flush", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/foo/_ensure_full_commit" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"flush", s.URL + "/foo"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		re := testy.Replacement{

@@ -155,6 +155,7 @@ func rootCmd(lg log.Logger) *root {
 	r.cmd.AddCommand(deleteCmd(r))
 	r.cmd.AddCommand(postCmd(r))
 	r.cmd.AddCommand(postViewCleanupCmd(r))
+	r.cmd.AddCommand(postFlushCmd(r))
 
 	return r
 }

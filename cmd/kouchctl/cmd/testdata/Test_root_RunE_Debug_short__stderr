@@ -8,6 +8,7 @@ Usage:
 Available Commands:
   delete       Delete a resource
   describe     Describe a resource
+  flush        Commit recent changes
   get          Get a resource
   help         Help about any command
   ping         Ping a server
