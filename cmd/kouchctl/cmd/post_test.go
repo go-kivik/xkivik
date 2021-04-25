@@ -105,6 +105,25 @@ func Test_post_RunE(t *testing.T) {
 			args: []string{"post", s.URL + "/asdf/_compact/foo"},
 		}
 	})
+	tests.Add("auto purge", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/db/_purge" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"post", s.URL + "/db/_purge", "--data", `{"foo":["1-xxx"]}`},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)

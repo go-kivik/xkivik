@@ -1,32 +1,21 @@
-Debug mode enabled
-failed to read kouchconfig: open ~/.kouchctl/config: no such file or directory
-Error: no context specified
+Error: DSN expected to contain only the database
 Usage:
-  kouchctl [flags]
-  kouchctl [command]
+  kouchctl post purge [dsn]/[database]/[document] [flags]
 
-Available Commands:
-  compact       Compact the database
-  compact-views Compact the database
-  copy          Copy a document
-  delete        Delete a resource
-  describe      Describe a resource
-  flush         Commit recent changes
-  get           Get a resource
-  help          Help about any command
-  ping          Ping a server
-  post          Post a resource
-  purge         Purge document revision(s)
-  put           Put a resource
-  version       Print client and server version information
-  view-cleanup  Removes unused view index files
+Aliases:
+  purge, ensure-full-commit
 
 Flags:
+  -h, --help           help for purge
+  -R, --revs strings   List of revisions to purge
+
+Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.
+  -d, --data string              JSON document data.
+  -D, --data-file string         Read document data from the named file. Use - for stdin. Assumed to be JSON, unless the file extension is .yaml or .yml, or the --yaml flag is used.
       --debug                    Enable debug output
   -f, --format string            Output format. One of: json[=...]|raw|yaml|go-template=...
   -H, --header                   Output response header
-  -h, --help                     help for kouchctl
       --kouchconfig string       Path to kouchconfig file to use for CLI requests (default "~/.kouchctl/config")
   -O, --option stringToString    CouchDB options, specified as key=value. May be repeated. (default [])
   -o, --output string            Output file/directory.
@@ -36,6 +25,5 @@ Flags:
       --retry-delay string       Delay between retry attempts. Disables the default exponential backoff algorithm.
       --retry-timeout string     When used with --retry, no more retries will be attempted after this timeout.
   -v, --verbose                  Output bi-directional network traffic
-
-Use "kouchctl [command] --help" for more information about a command.
+      --yaml                     Treat input data as YAML
 

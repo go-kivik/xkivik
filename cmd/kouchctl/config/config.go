@@ -13,15 +13,21 @@
 package config
 
 import (
+	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"github.com/go-kivik/couchdb/v4"
+	_ "github.com/go-kivik/fsdb/v4" // Filesystem driver
+	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/log"
 )
@@ -193,7 +199,8 @@ func (c *Config) readYAML(filename string) error {
 	return nil
 }
 
-func (c *Config) currentCx() (*Context, error) {
+// CurrentCx returns the current context.
+func (c *Config) CurrentCx() (*Context, error) {
 	if c.CurrentContext == "" {
 		if len(c.Contexts) == 1 {
 			for _, cx := range c.Contexts {
@@ -209,26 +216,56 @@ func (c *Config) currentCx() (*Context, error) {
 	return cx, nil
 }
 
-// ClientInfo returns the URL scheme, and DSN, for use by the root command to
-// establish the kivik client connection.
-func (c *Config) ClientInfo() (string, string, error) {
-	cx, err := c.currentCx()
+// KivikClient returns a connection to Kivik.
+func (c *Context) KivikClient(connTimeout, reqTimeout time.Duration) (*kivik.Client, error) {
+	scheme, dsn, err := c.ClientInfo()
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
-	dsn := cx.ServerDSN()
+
+	switch scheme {
+	case "file":
+		return kivik.New("fs", dsn)
+	case "http", "https", "couch", "couchs", "couchdb", "couchdbs":
+		return kivik.New("couch", dsn, kivik.Options{
+			couchdb.OptionHTTPClient: &http.Client{
+				Transport: &http.Transport{
+					DialContext: (&net.Dialer{
+						Timeout: connTimeout,
+					}).DialContext,
+				},
+				Timeout: reqTimeout,
+			},
+		})
+	}
+	return nil, errors.Codef(errors.ErrUsage, "unsupported URL scheme: %s", scheme)
+}
+
+// ClientInfo returns the URL scheme, and DSN of the context.
+func (c *Context) ClientInfo() (string, string, error) {
+	dsn := c.ServerDSN()
 	if dsn == "" {
 		return "", "", errors.Code(errors.ErrUsage, "server hostname required")
 	}
-	scheme := cx.Scheme
+	scheme := c.Scheme
 	if scheme == "" {
 		scheme = "http"
 	}
 	return scheme, dsn, nil
 }
 
+// ClientInfo returns the URL scheme, and DSN, for use by the root command to
+// establish the kivik client connection.
+func (c *Config) ClientInfo() (string, string, error) {
+	cx, err := c.CurrentCx()
+	if err != nil {
+		return "", "", err
+	}
+	return cx.ClientInfo()
+}
+
 func (c *Config) URL() (*url.URL, error) {
-	cx, err := c.currentCx()
+	cx, err := c.CurrentCx()
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +273,7 @@ func (c *Config) URL() (*url.URL, error) {
 }
 
 func (c *Config) DSN() (string, error) {
-	cx, err := c.currentCx()
+	cx, err := c.CurrentCx()
 	if err != nil {
 		return "", err
 	}
@@ -255,7 +292,7 @@ func (c *Config) Finalize() {
 }
 
 func (c *Config) ServerDSN() (string, error) {
-	cx, err := c.currentCx()
+	cx, err := c.CurrentCx()
 	if err != nil {
 		return "", err
 	}
@@ -268,7 +305,7 @@ func (c *Config) ServerDSN() (string, error) {
 }
 
 func (c *Config) HasAttachment() bool {
-	cx, err := c.currentCx()
+	cx, err := c.CurrentCx()
 	if err != nil {
 		return false
 	}
@@ -278,7 +315,7 @@ func (c *Config) HasAttachment() bool {
 }
 
 func (c *Config) HasDoc() bool {
-	cx, err := c.currentCx()
+	cx, err := c.CurrentCx()
 	if err != nil {
 		return false
 	}
@@ -288,7 +325,7 @@ func (c *Config) HasDoc() bool {
 }
 
 func (c *Config) HasDB() bool {
-	cx, err := c.currentCx()
+	cx, err := c.CurrentCx()
 	if err != nil {
 		return false
 	}
@@ -298,7 +335,7 @@ func (c *Config) HasDB() bool {
 }
 
 func (c *Config) DB() (db string, err error) {
-	cx, err := c.currentCx()
+	cx, err := c.CurrentCx()
 	if err != nil {
 		return "", err
 	}
@@ -311,7 +348,7 @@ func (c *Config) DB() (db string, err error) {
 }
 
 func (c *Config) DBDoc() (db, doc string, err error) {
-	cx, err := c.currentCx()
+	cx, err := c.CurrentCx()
 	if err != nil {
 		return "", "", err
 	}
@@ -320,7 +357,7 @@ func (c *Config) DBDoc() (db, doc string, err error) {
 }
 
 func (c *Config) DBDocFilename() (db, doc, filename string, err error) {
-	cx, err := c.currentCx()
+	cx, err := c.CurrentCx()
 	if err != nil {
 		return "", "", "", err
 	}
@@ -342,7 +379,7 @@ func (c *Config) Args(_ *cobra.Command, args []string) error {
 // setDefaultDSN sets the default DSN. It's meant to be used when setting from
 // the environment, or CLI.
 func (c *Config) setDefaultDSN(dsn string) error {
-	cx, _, err := cxFromDSN(dsn)
+	cx, _, err := ContextFromDSN(dsn)
 	if err != nil {
 		return err
 	}
@@ -351,7 +388,9 @@ func (c *Config) setDefaultDSN(dsn string) error {
 	return nil
 }
 
-func cxFromDSN(dsn string) (*Context, map[string]string, error) {
+// ContextFromDSN parses a DSN into a context object, and a map of kivik
+// parameters read from the url query parameters.
+func ContextFromDSN(dsn string) (*Context, map[string]string, error) {
 	if len(dsn) > 0 {
 		switch dsn[0] {
 		case '/':
@@ -409,11 +448,11 @@ func (c *Config) SetURL(dsn string) (map[string]string, error) {
 	if dsn == "" {
 		return nil, nil
 	}
-	cx, opts, err := cxFromDSN(dsn)
+	cx, opts, err := ContextFromDSN(dsn)
 	if err != nil {
 		return nil, err
 	}
-	curCx, _ := c.currentCx()
+	curCx, _ := c.CurrentCx()
 	if cx.Host == "" && curCx != nil {
 		c.log.Debugf("Incomplete DSN provided: %q, merging with current context: %q", dsn, curCx)
 		cx.Scheme = curCx.Scheme

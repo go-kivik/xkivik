@@ -6,6 +6,7 @@ Usage:
 Available Commands:
   compact       Compact the database
   compact-views Compact the database
+  copy          Copy a document
   delete        Delete a resource
   describe      Describe a resource
   flush         Commit recent changes
@@ -13,6 +14,7 @@ Available Commands:
   help          Help about any command
   ping          Ping a server
   post          Post a resource
+  purge         Purge document revision(s)
   put           Put a resource
   version       Print client and server version information
   view-cleanup  Removes unused view index files

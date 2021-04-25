@@ -68,6 +68,11 @@ func (o *jsonObject) MarshalJSON() ([]byte, error) {
 	return json.Marshal(o.i)
 }
 
+// HasInput returns true if some input has been provided.
+func (i *Input) HasInput() bool {
+	return i.data != "" || i.file != ""
+}
+
 // As unmarshals the data input to target.
 func (i *Input) As(target interface{}) error {
 	j, err := i.JSONData()

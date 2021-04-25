@@ -8,6 +8,7 @@ Available Commands:
   compact-views Compact the database
   document      Create a document
   flush         Commit recent changes
+  purge         Purge document revision(s)
   view-cleanup  Removes unused view index files
 
 Flags:
