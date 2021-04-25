@@ -4,7 +4,8 @@ Usage:
 
 Flags:
   -h, --help                help for copy
-  -t, --target-rev string   The current revision of the target document. May also be provided by appending ?rev=<rev> to the target doc ID
+  -t, --target string       The target DSN. Useful when reading the source from a config file.
+  -R, --target-rev string   The current revision of the target document. May also be provided by appending ?rev=<rev> to the target doc ID
 
 Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.

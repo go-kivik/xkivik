@@ -23,6 +23,7 @@ import (
 
 type copy struct {
 	*root
+	target    string
 	targetRev string
 }
 
@@ -38,7 +39,8 @@ func copyCmd(r *root) *cobra.Command {
 	}
 
 	pf := cmd.PersistentFlags()
-	pf.StringVarP(&c.targetRev, "target-rev", "t", "", "The current revision of the target document. May also be provided by appending ?rev=<rev> to the target doc ID")
+	pf.StringVarP(&c.target, "target", "t", "", "The target DSN. Useful when reading the source from a config file.")
+	pf.StringVarP(&c.targetRev, "target-rev", "R", "", "The current revision of the target document. May also be provided by appending ?rev=<rev> to the target doc ID")
 
 	return cmd
 }
@@ -52,10 +54,13 @@ func (c *copy) RunE(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if len(args) < 2 { // nolint:gomnd
+	if len(args) >= 2 && c.target == "" { // nolint:gomnd
+		c.target = args[1]
+	}
+	if c.target == "" {
 		return errors.Code(errors.ErrUsage, "missing target")
 	}
-	target, targetOpts, err := config.ContextFromDSN(args[1])
+	target, targetOpts, err := config.ContextFromDSN(c.target)
 	if err != nil {
 		return fmt.Errorf("invalid target: %w", err)
 	}
