@@ -16,8 +16,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"net"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -25,9 +23,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/spf13/cobra"
 
-	"github.com/go-kivik/couchdb/v4"
 	"github.com/go-kivik/couchdb/v4/chttp"
-	_ "github.com/go-kivik/fsdb/v4" // Filesystem driver
 	"github.com/go-kivik/kivik/v4"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/config"
@@ -159,6 +155,7 @@ func rootCmd(lg log.Logger) *root {
 	r.cmd.AddCommand(postCompactCmd(r))
 	r.cmd.AddCommand(postCompactViewsCmd(r))
 	r.cmd.AddCommand(postPurgeRootCmd(r))
+	r.cmd.AddCommand(copyCmd(r))
 
 	return r
 }
@@ -237,27 +234,11 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 }
 
 func (r *root) client() (*kivik.Client, error) {
-	scheme, dsn, err := r.conf.ClientInfo()
+	cx, err := r.conf.CurrentCx()
 	if err != nil {
 		return nil, err
 	}
-
-	switch scheme {
-	case "file":
-		return kivik.New("fs", dsn)
-	case "http", "https", "couch", "couchs", "couchdb", "couchdbs":
-		return kivik.New("couch", dsn, kivik.Options{
-			couchdb.OptionHTTPClient: &http.Client{
-				Transport: &http.Transport{
-					DialContext: (&net.Dialer{
-						Timeout: r.parsedConnectTimeout,
-					}).DialContext,
-				},
-				Timeout: r.parsedRequestTimeout,
-			},
-		})
-	}
-	return nil, errors.Codef(errors.ErrUsage, "unsupported URL scheme: %s", scheme)
+	return cx.KivikClient(r.parsedConnectTimeout, r.parsedRequestTimeout)
 }
 
 func (r *root) RunE(cmd *cobra.Command, args []string) error {

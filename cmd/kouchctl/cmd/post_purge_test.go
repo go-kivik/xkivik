@@ -37,7 +37,7 @@ func Test_post_purge_RunE(t *testing.T) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
-			if req.URL.Path != "/asdf/_purge" {
+			if req.URL.Path != "/qwerty/_purge" {
 				t.Errorf("Unexpected path: %s", req.URL.Path)
 			}
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -46,7 +46,7 @@ func Test_post_purge_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"post", "purge", s.URL + "/asdf/doc", "--revs", "1-xxx"},
+			args: []string{"post", "purge", s.URL + "/qwerty/doc", "--revs", "1-xxx"},
 		}
 	})
 	tests.Add("two revs", func(t *testing.T) interface{} {
@@ -56,7 +56,7 @@ func Test_post_purge_RunE(t *testing.T) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
-			if req.URL.Path != "/db/_purge" {
+			if req.URL.Path != "/xxx/_purge" {
 				t.Errorf("Unexpected path: %s", req.URL.Path)
 			}
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -65,7 +65,7 @@ func Test_post_purge_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"post", "purge", s.URL + "/db/doc", "--revs", "1-xxx,2-xxx"},
+			args: []string{"post", "purge", s.URL + "/xxx/doc", "--revs", "1-xxx,2-xxx"},
 		}
 	})
 	tests.Add("from --data", func(t *testing.T) interface{} {
