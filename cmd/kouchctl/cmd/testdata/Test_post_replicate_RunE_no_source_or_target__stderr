@@ -1,6 +1,6 @@
 Error: explicit source or target required
 Usage:
-  kouchctl post replicate [dsn]/[database] [flags]
+  kouchctl post replicate [dsn] [flags]
 
 Aliases:
   replicate, rep

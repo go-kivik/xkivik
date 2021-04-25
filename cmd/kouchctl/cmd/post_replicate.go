@@ -34,9 +34,10 @@ func postReplicateCmd(r *root) *cobra.Command {
 		root: r,
 	}
 	cmd := &cobra.Command{
-		Use:     "replicate [dsn]/[database]",
+		Use:     "replicate [dsn]",
 		Aliases: []string{"rep"},
 		Short:   "Replicate a database",
+		Long:    "Creates a remotely-managed replication between source and target",
 		RunE:    c.RunE,
 	}
 
