@@ -23,6 +23,8 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
+const methodCopy = "COPY"
+
 func Test_copy_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
@@ -45,10 +47,10 @@ func Test_copy_RunE(t *testing.T) {
 			},
 			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
 		}, func(t *testing.T, req *http.Request) {
-			if req.Method != "COPY" {
+			if req.Method != methodCopy {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
-			if req.URL.Path != "/jkl/src" {
+			if req.URL.Path != "/jjj/src" {
 				t.Errorf("Unexpected path: %s", req.URL.Path)
 			}
 			if d := testy.DiffHTTPRequest(testy.Snapshot(t), req, standardReplacements...); d != nil {
@@ -57,7 +59,7 @@ func Test_copy_RunE(t *testing.T) {
 		})
 
 		return cmdTest{
-			args: []string{"--debug", "copy", s.URL + "/jkl/src", "target"},
+			args: []string{"--debug", "copy", s.URL + "/jjj/src", "target"},
 		}
 	})
 	tests.Add("emulated COPY", func(t *testing.T) interface{} {
@@ -94,6 +96,86 @@ func Test_copy_RunE(t *testing.T) {
 
 		return cmdTest{
 			args: []string{"--debug", "copy", ss.URL + "/asdf/src", ts.URL + "/qwerty/target"},
+		}
+	})
+	tests.Add("remote COPY with rev", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Header: http.Header{
+				"ETag": {`"2-62e778c9ec09214dd685a981dcc24074"`},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != methodCopy {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/jkl/src" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+			if d := testy.DiffHTTPRequest(testy.Snapshot(t), req, standardReplacements...); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"--debug", "copy", s.URL + "/jkl/src", "target?rev=3-xxx"},
+		}
+	})
+	tests.Add("remote COPY with --target-rev", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Header: http.Header{
+				"ETag": {`"2-62e778c9ec09214dd685a981dcc24074"`},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != methodCopy {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/jkl/src" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+			if d := testy.DiffHTTPRequest(testy.Snapshot(t), req, standardReplacements...); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"--debug", "copy", s.URL + "/jkl/src", "target", "--target-rev", "3-lkjds"},
+		}
+	})
+	tests.Add("emulated COPY with rev", func(t *testing.T) interface{} {
+		ss := testy.ServeResponseValidator(t, &http.Response{
+			Header: http.Header{
+				"Content-Type": {"application/json"},
+				"ETag":         {`"2-62e778c9ec09214dd685a981dcc24074"`},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodGet {
+				t.Errorf("Unexpected source method: %v", req.Method)
+			}
+			if req.URL.Path != "/asdf/src" {
+				t.Errorf("Unexpected source path: %s", req.URL.Path)
+			}
+		})
+		ts := testy.ServeResponseValidator(t, &http.Response{
+			Header: http.Header{
+				"ETag": {`"2-62e778c9ec09214dd685a981dcc24074"`},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPut {
+				t.Errorf("Unexpected target method: %v", req.Method)
+			}
+			if req.URL.Path != "/qwerty/target" {
+				t.Errorf("Unexpected target path: %s", req.URL.Path)
+			}
+			if d := testy.DiffHTTPRequest(testy.Snapshot(t), req, standardReplacements...); d != nil {
+				t.Error(d)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"--debug", "copy", ss.URL + "/asdf/src", ts.URL + "/qwerty/target?rev=7-qhk"},
 		}
 	})
 

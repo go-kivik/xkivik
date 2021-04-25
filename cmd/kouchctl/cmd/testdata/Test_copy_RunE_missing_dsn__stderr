@@ -3,7 +3,8 @@ Usage:
   kouchctl copy [source] [target] [flags]
 
 Flags:
-  -h, --help   help for copy
+  -h, --help                help for copy
+  -t, --target-rev string   The current revision of the target document. May also be provided by appending ?rev=<rev> to the target doc ID
 
 Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.

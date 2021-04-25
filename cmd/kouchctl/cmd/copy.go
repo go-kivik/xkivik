@@ -23,6 +23,7 @@ import (
 
 type copy struct {
 	*root
+	targetRev string
 }
 
 func copyCmd(r *root) *cobra.Command {
@@ -35,6 +36,9 @@ func copyCmd(r *root) *cobra.Command {
 		Long:  `Copy an existing document.`,
 		RunE:  c.RunE,
 	}
+
+	pf := cmd.PersistentFlags()
+	pf.StringVarP(&c.targetRev, "target-rev", "t", "", "The current revision of the target document. May also be provided by appending ?rev=<rev> to the target doc ID")
 
 	return cmd
 }
@@ -51,17 +55,25 @@ func (c *copy) RunE(cmd *cobra.Command, args []string) error {
 	if len(args) < 2 { // nolint:gomnd
 		return errors.Code(errors.ErrUsage, "missing target")
 	}
-	target, _, err := config.ContextFromDSN(args[1])
+	target, targetOpts, err := config.ContextFromDSN(args[1])
 	if err != nil {
 		return fmt.Errorf("invalid target: %w", err)
+	}
+	if c.targetRev == "" {
+		c.targetRev = targetOpts["rev"]
 	}
 
 	c.log.Debugf("[copy] Will copy: %s/%s/%s to %s", client.DSN(), sourceDB, sourceDoc, target.DSN())
 
 	source, _ := c.conf.CurrentCx()
 	if !shouldEmulateCopy(source, target) {
+		targetDocID := target.DocID
+		if c.targetRev != "" {
+			targetDocID += "?rev=" + c.targetRev
+		}
+
 		return c.retry(func() error {
-			rev, err := client.DB(sourceDB).Copy(cmd.Context(), target.DocID, sourceDoc)
+			rev, err := client.DB(sourceDB).Copy(cmd.Context(), targetDocID, sourceDoc)
 			if err != nil {
 				return err
 			}
@@ -75,6 +87,11 @@ func (c *copy) RunE(cmd *cobra.Command, args []string) error {
 	}
 
 	var doc map[string]interface{}
+	opts := map[string]interface{}{}
+	if c.targetRev != "" {
+		opts["rev"] = c.targetRev
+	}
+
 	return c.retry(func() error {
 		if doc == nil {
 			row := client.DB(sourceDB).Get(cmd.Context(), sourceDoc, c.opts())
@@ -85,7 +102,7 @@ func (c *copy) RunE(cmd *cobra.Command, args []string) error {
 				return err
 			}
 		}
-		rev, err := tClient.DB(target.Database).Put(cmd.Context(), target.DocID, doc)
+		rev, err := tClient.DB(target.Database).Put(cmd.Context(), target.DocID, doc, opts)
 		if err != nil {
 			return err
 		}
