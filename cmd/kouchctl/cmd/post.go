@@ -13,6 +13,9 @@
 package cmd
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/spf13/cobra"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
@@ -22,13 +25,14 @@ import (
 type post struct {
 	*root
 	*input.Input
-	doc *cobra.Command
+	doc, vc *cobra.Command
 }
 
 func postCmd(r *root) *cobra.Command {
 	c := &post{
 		root:  r,
 		Input: input.New(),
+		vc:    postViewCleanupCmd(r),
 	}
 	c.doc = postDocCmd(c)
 
@@ -42,15 +46,32 @@ func postCmd(r *root) *cobra.Command {
 	c.Input.ConfigFlags(cmd.PersistentFlags())
 
 	cmd.AddCommand(c.doc)
+	cmd.AddCommand(c.vc)
 
 	return cmd
 }
 
+func dbCommandFromDSN(dsn *url.URL) (command, db string) {
+	parts := strings.Split(dsn.Path, "/")
+	if len(parts) != 3 { // nolint:gomnd
+		return "", ""
+	}
+	return parts[2], parts[1]
+}
+
 func (c *post) RunE(cmd *cobra.Command, args []string) error {
+	dsn, err := c.conf.URL()
+	if err != nil {
+		return err
+	}
+	switch command, _ := dbCommandFromDSN(dsn); command {
+	case "_view_cleanup":
+		return c.vc.RunE(cmd, args)
+	}
 	if c.conf.HasDB() {
 		return c.doc.RunE(cmd, args)
 	}
-	_, err := c.client()
+	_, err = c.client()
 	if err != nil {
 		return err
 	}

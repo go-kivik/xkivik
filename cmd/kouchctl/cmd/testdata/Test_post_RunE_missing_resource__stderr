@@ -4,7 +4,8 @@ Usage:
   kouchctl post [command]
 
 Available Commands:
-  document    Create a document
+  document     Create a document
+  view-cleanup Removes unused view index files
 
 Flags:
   -d, --data string        JSON document data.

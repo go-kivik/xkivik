@@ -23,38 +23,24 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
-func Test_post_RunE(t *testing.T) {
+func Test_post_view_cleanup_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
-	tests.Add("missing resource", cmdTest{
-		args:   []string{"post"},
+	tests.Add("missing dsn", cmdTest{
+		args:   []string{"post", "vc"},
 		status: errors.ErrUsage,
 	})
-	tests.Add("auto create doc", func(t *testing.T) interface{} {
+	tests.Add("success", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
-			defer req.Body.Close() // nolint:errcheck
-			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
-				t.Error(d)
-			}
-		})
-
-		return cmdTest{
-			args: []string{"--debug", "post", s.URL + "/foo", "--data", `{"foo":"bar"}`},
-		}
-	})
-	tests.Add("auto view cleanup", func(t *testing.T) interface{} {
-		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
-				t.Errorf("Unexpected method: %s", req.Method)
+				t.Errorf("Unexpected method: %v", req.Method)
 			}
 		})
 
 		return cmdTest{
-			args: []string{"post", s.URL + "/foo/_view_cleanup"},
+			args: []string{"post", "vc", s.URL + "/foo"},
 		}
 	})
 

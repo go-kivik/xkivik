@@ -1,12 +1,12 @@
 Error: no context specified
 Usage:
-  kouchctl post document [dsn]/[database] [flags]
+  kouchctl post view-cleanup [dsn]/[database] [flags]
 
 Aliases:
-  document, doc
+  view-cleanup, vc
 
 Flags:
-  -h, --help   help for document
+  -h, --help   help for view-cleanup
 
 Global Flags:
       --connect-timeout string   Limits the time spent establishing a TCP connection.
