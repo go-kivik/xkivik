@@ -140,6 +140,12 @@ func (f *Formatter) createFile(path string) (*os.File, error) {
 	return os.OpenFile(path, os.O_EXCL|os.O_CREATE|os.O_WRONLY, 0o666)
 }
 
+func (f *Formatter) OK() error {
+	return f.Output(JSONReader(map[string]bool{
+		"ok": true,
+	}))
+}
+
 func (f *Formatter) UpdateResult(id, rev string) error {
 	type result struct {
 		OK  bool   `json:"ok"`

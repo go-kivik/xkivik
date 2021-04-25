@@ -1,6 +1,6 @@
 Error: no context specified
 Usage:
-  kouchctl post document [dsn]/[database]/[document] [flags]
+  kouchctl post document [dsn]/[database] [flags]
 
 Aliases:
   document, doc

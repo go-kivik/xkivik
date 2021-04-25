@@ -14,50 +14,48 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/input"
 )
 
-type postDoc struct {
+type postCompact struct {
 	*root
-	*input.Input
 }
 
-func postDocCmd(p *post) *cobra.Command {
-	c := &postDoc{
-		root:  p.root,
-		Input: p.Input,
+func postCompactCmd(r *root) *cobra.Command {
+	c := &postCompact{
+		root: r,
 	}
 	cmd := &cobra.Command{
-		Use:     "document [dsn]/[database]",
-		Aliases: []string{"doc"},
-		Short:   "Create a document",
-		Long:    `Create a document with sever-assigned ID`,
-		RunE:    c.RunE,
+		Use:   "compact [dsn]/[database]",
+		Short: "Compact the database",
+		Long:  `Compact the disk database file by pruning unused data`,
+		RunE:  c.RunE,
 	}
 
 	return cmd
 }
 
-func (c *postDoc) RunE(cmd *cobra.Command, _ []string) error {
+func (c *postCompact) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
-	db, err := c.conf.DB()
+	dsn, err := c.conf.URL()
 	if err != nil {
 		return err
 	}
-	doc, err := c.JSONData()
-	if err != nil {
-		return err
-	}
-	c.log.Debugf("[post] Will post document to: %s/%s", client.DSN(), db)
-	return c.retry(func() error {
-		docID, rev, err := client.DB(db).CreateDoc(cmd.Context(), doc, c.opts())
+	_, db := dbCommandFromDSN(dsn)
+	if db == "" {
+		db, err = c.conf.DB()
 		if err != nil {
 			return err
 		}
-		return c.fmt.UpdateResult(docID, rev)
+	}
+	c.log.Debugf("[post] Will compact: %s/%s", client.DSN(), db)
+	return c.retry(func() error {
+		err := client.DB(db).Compact(cmd.Context())
+		if err != nil {
+			return err
+		}
+		return c.fmt.OK()
 	})
 }

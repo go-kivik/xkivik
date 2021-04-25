@@ -99,6 +99,65 @@ func Test_root_RunE(t *testing.T) {
 	tests.Add("ping file url", cmdTest{
 		args: []string{"--debug", "ping", "./testdata"},
 	})
+	tests.Add("view cleanup", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+		}, func(*testing.T, *http.Request) {
+			time.Sleep(time.Second)
+		})
+
+		return cmdTest{
+			args: []string{"view-cleanup", s.URL + "/foo/_view_cleanup"},
+		}
+	})
+	tests.Add("flush", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/foo/_ensure_full_commit" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"flush", s.URL + "/foo"},
+		}
+	})
+	tests.Add("compact", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/asdf/_compact" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"compact", s.URL + "/asdf"},
+		}
+	})
+	tests.Add("compact views", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			if req.URL.Path != "/asdf/_compact/quack" {
+				t.Errorf("Unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"compact-views", s.URL + "/asdf/quack"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		re := testy.Replacement{

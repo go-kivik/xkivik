@@ -14,50 +14,49 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/input"
 )
 
-type postDoc struct {
+type postViewCleanup struct {
 	*root
-	*input.Input
 }
 
-func postDocCmd(p *post) *cobra.Command {
-	c := &postDoc{
-		root:  p.root,
-		Input: p.Input,
+func postViewCleanupCmd(r *root) *cobra.Command {
+	c := &postViewCleanup{
+		root: r,
 	}
 	cmd := &cobra.Command{
-		Use:     "document [dsn]/[database]",
-		Aliases: []string{"doc"},
-		Short:   "Create a document",
-		Long:    `Create a document with sever-assigned ID`,
+		Use:     "view-cleanup [dsn]/[database]",
+		Aliases: []string{"vc"},
+		Short:   "Removes unused view index files",
+		Long:    `Removes view index files that are no longer required by CouchDB as a result of changed views within design documents.`,
 		RunE:    c.RunE,
 	}
 
 	return cmd
 }
 
-func (c *postDoc) RunE(cmd *cobra.Command, _ []string) error {
+func (c *postViewCleanup) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
-	db, err := c.conf.DB()
+	dsn, err := c.conf.URL()
 	if err != nil {
 		return err
 	}
-	doc, err := c.JSONData()
-	if err != nil {
-		return err
-	}
-	c.log.Debugf("[post] Will post document to: %s/%s", client.DSN(), db)
-	return c.retry(func() error {
-		docID, rev, err := client.DB(db).CreateDoc(cmd.Context(), doc, c.opts())
+	_, db := dbCommandFromDSN(dsn)
+	if db == "" {
+		db, err = c.conf.DB()
 		if err != nil {
 			return err
 		}
-		return c.fmt.UpdateResult(docID, rev)
+	}
+	c.log.Debugf("[post] Will perform view cleanup for: %s/%s", client.DSN(), db)
+	return c.retry(func() error {
+		err := client.DB(db).ViewCleanup(cmd.Context())
+		if err != nil {
+			return err
+		}
+		return c.fmt.OK()
 	})
 }

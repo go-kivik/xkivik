@@ -14,50 +14,49 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/input"
 )
 
-type postDoc struct {
+type postFlush struct {
 	*root
-	*input.Input
 }
 
-func postDocCmd(p *post) *cobra.Command {
-	c := &postDoc{
-		root:  p.root,
-		Input: p.Input,
+func postFlushCmd(r *root) *cobra.Command {
+	c := &postFlush{
+		root: r,
 	}
 	cmd := &cobra.Command{
-		Use:     "document [dsn]/[database]",
-		Aliases: []string{"doc"},
-		Short:   "Create a document",
-		Long:    `Create a document with sever-assigned ID`,
+		Use:     "flush [dsn]/[database]",
+		Aliases: []string{"ensure-full-commit"},
+		Short:   "Commit recent changes",
+		Long:    `Commit changes to the database in case the delayed_commits=true option was set. For CouchDB 3.0+ delayed_commits is always false, and this operation is a no-op.`,
 		RunE:    c.RunE,
 	}
 
 	return cmd
 }
 
-func (c *postDoc) RunE(cmd *cobra.Command, _ []string) error {
+func (c *postFlush) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
-	db, err := c.conf.DB()
+	dsn, err := c.conf.URL()
 	if err != nil {
 		return err
 	}
-	doc, err := c.JSONData()
-	if err != nil {
-		return err
-	}
-	c.log.Debugf("[post] Will post document to: %s/%s", client.DSN(), db)
-	return c.retry(func() error {
-		docID, rev, err := client.DB(db).CreateDoc(cmd.Context(), doc, c.opts())
+	_, db := dbCommandFromDSN(dsn)
+	if db == "" {
+		db, err = c.conf.DB()
 		if err != nil {
 			return err
 		}
-		return c.fmt.UpdateResult(docID, rev)
+	}
+	c.log.Debugf("[post] Will flush for: %s/%s", client.DSN(), db)
+	return c.retry(func() error {
+		err := client.DB(db).Flush(cmd.Context())
+		if err != nil {
+			return err
+		}
+		return c.fmt.OK()
 	})
 }
