@@ -16,6 +16,7 @@ Available Commands:
   post          Post a resource
   purge         Purge document revision(s)
   put           Put a resource
+  replicate     Replicate a database
   version       Print client and server version information
   view-cleanup  Removes unused view index files
 

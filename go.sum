@@ -52,8 +52,8 @@ github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2
 github.com/go-kivik/couchdb/v4 v4.0.0-20201011105359-723a6da29d45/go.mod h1:pCV5a/g+JMKyPkBTf9Co7sKLFOu0WVlZtjSh7vW3Y9w=
 github.com/go-kivik/couchdb/v4 v4.0.0-20210410162325-79a27ec81722 h1:3pLk4xzKq5FgqygujDP718/vWBfk5EmikY1IC1c8ZHE=
 github.com/go-kivik/couchdb/v4 v4.0.0-20210410162325-79a27ec81722/go.mod h1:Y3kueXDHHFLD4zBCbxc83Mq96JCCucEs8wtoVm8L9Zw=
-github.com/go-kivik/fsdb/v4 v4.0.0-20210416172033-cf017093a700 h1:/BrUV+ZD0NS+sRU4i2acoePVe0zkPOz4027oQ1hF3Es=
-github.com/go-kivik/fsdb/v4 v4.0.0-20210416172033-cf017093a700/go.mod h1:OCCrrRlRUM1dDxMF0ix7n8iUPcRaySwlgToNyJFb30o=
+github.com/go-kivik/fsdb/v4 v4.0.0-20210426205809-fd527676ff30 h1:jiWKkN4aanStxsLAXxz3ixmvYOAQuU5sSD8iPCfSeWY=
+github.com/go-kivik/fsdb/v4 v4.0.0-20210426205809-fd527676ff30/go.mod h1:OCCrrRlRUM1dDxMF0ix7n8iUPcRaySwlgToNyJFb30o=
 github.com/go-kivik/kivik/v4 v4.0.0-20200818182325-bd69ec6a93ff/go.mod h1:O2fxy5xMXO7vaVr2gQG38sYTj/mHwg5Md/8kP7qUZQk=
 github.com/go-kivik/kivik/v4 v4.0.0-20201011094523-ab1764d67e62/go.mod h1:O2fxy5xMXO7vaVr2gQG38sYTj/mHwg5Md/8kP7qUZQk=
 github.com/go-kivik/kivik/v4 v4.0.0-20201015190251-5d5c2f1c89fa/go.mod h1:O2fxy5xMXO7vaVr2gQG38sYTj/mHwg5Md/8kP7qUZQk=
