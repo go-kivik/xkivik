@@ -18,6 +18,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -51,7 +52,9 @@ type root struct {
 	connectTimeout       string
 	parsedConnectTimeout time.Duration
 	retryTimeout         string
-	options              map[string]string
+	options              kivik.Options
+	stringOptions        map[string]string
+	boolOptions          map[string]string
 
 	trace      *chttp.ClientTrace
 	dumpHeader bool
@@ -128,7 +131,8 @@ func rootCmd(lg log.Logger) *root {
 	pf.StringVar(&r.confFile, "kouchconfig", "~/.kouchctl/config", "Path to kouchconfig file to use for CLI requests")
 	pf.BoolVar(&r.debug, "debug", false, "Enable debug output")
 	pf.IntVar(&r.retryCount, "retry", 0, "In case of transient error, retry up to this many times. A negative value retries forever.")
-	pf.StringToStringVarP(&r.options, "option", "O", nil, "CouchDB options, specified as key=value. May be repeated.")
+	pf.StringToStringVarP(&r.stringOptions, "option", "O", nil, "CouchDB string option, specified as key=value. May be repeated.")
+	pf.StringToStringVarP(&r.boolOptions, "option-bool", "B", nil, "CouchDb bool option, specified as key=value. May be repeated.")
 	pf.BoolVarP(&r.dumpHeader, "header", "H", false, "Output response header")
 	pf.BoolVarP(&r.verbose, "verbose", "v", false, "Output bi-directional network traffic")
 
@@ -214,12 +218,29 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		if len(opts) > 0 && r.options == nil {
-			r.options = map[string]string{}
+		if r.options == nil {
+			r.options = kivik.Options{}
 		}
 		for k, v := range opts {
 			if _, ok := r.options[k]; !ok {
 				r.options[k] = v
+			}
+		}
+		for k, v := range r.stringOptions {
+			if _, ok := r.options[k]; !ok {
+				r.options[k] = v
+			}
+		}
+		for k, v := range r.boolOptions {
+			if _, ok := r.options[k]; !ok {
+				switch strings.ToLower(v) {
+				case "true", "t":
+					r.options[k] = true
+				case "false", "f":
+					r.options[k] = false
+				default:
+					return errors.Codef(errors.ErrUsage, "invalid boolean value: %s", v)
+				}
 			}
 		}
 	}
@@ -321,9 +342,5 @@ func fmtDuration(dur time.Duration) string {
 
 // opts returns the kivik options gathered from the command line.
 func (r *root) opts() kivik.Options {
-	opts := make(kivik.Options, len(r.options))
-	for k, v := range r.options {
-		opts[k] = v
-	}
-	return opts
+	return r.options
 }

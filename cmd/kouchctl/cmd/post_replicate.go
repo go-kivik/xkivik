@@ -14,6 +14,8 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -22,37 +24,19 @@ import (
 
 type postReplicate struct {
 	*root
-	source, target                   string
-	cancel, continuous, createTarget bool
-	docIDs                           []string
-	filter                           string
-	sourceProxy, targetProxy         string
 }
 
 func postReplicateCmd(r *root) *cobra.Command {
 	c := &postReplicate{
 		root: r,
 	}
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:     "replicate [dsn]",
 		Aliases: []string{"rep"},
 		Short:   "Replicate a database",
-		Long:    "Creates a remotely-managed replication between source and target",
+		Long:    "Creates a remotely-managed replication between source and target. `source` and `target` values must be provided via -O flags, and should be URLs or JSON objects.",
 		RunE:    c.RunE,
 	}
-
-	pf := cmd.PersistentFlags()
-	pf.StringVarP(&c.source, "source", "s", "", "The source DSN. String or JSON object")
-	pf.StringVarP(&c.target, "target", "t", "", "The target DSN. String or JSON object")
-	pf.BoolVar(&c.cancel, "cancel", false, "Cancel the replecation")
-	pf.BoolVar(&c.continuous, "continuous", false, "Configure the replication to be continuous")
-	pf.BoolVar(&c.createTarget, "create-target", false, "Creates the target database.")
-	pf.StringSliceVar(&c.docIDs, "doc-id", nil, "Document IDs to be synchronized")
-	pf.StringVar(&c.filter, "filter", "", "The name of a filter function")
-	pf.StringVar(&c.sourceProxy, "source-proxy", "", "Address of http or socks5 proxy through which replication from the source should occur")
-	pf.StringVar(&c.targetProxy, "target-proxy", "", "Address of http or socks5 proxy through which replication to the target should occur")
-
-	return cmd
 }
 
 func (c *postReplicate) RunE(cmd *cobra.Command, _ []string) error {
@@ -61,44 +45,35 @@ func (c *postReplicate) RunE(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	if c.source == "" && c.target == "" {
+	opts := c.opts()
+	source, _ := opts["source"].(string)
+	target, _ := opts["target"].(string)
+	if source == "" && target == "" {
 		return errors.Code(errors.ErrUsage, "explicit source or target required")
 	}
-	opts := c.opts()
-	if c.cancel {
-		opts["cancel"] = c.cancel
+	if len(source) > 0 && source[0] == '{' {
+		var tmp map[string]interface{}
+		if err = json.Unmarshal([]byte(source), &tmp); err != nil {
+			return errors.Code(errors.ErrUsage, fmt.Errorf("invalid source: %w", err))
+		}
+		opts["source"] = tmp
+		source = ""
 	}
-	if c.continuous {
-		opts["continuous"] = c.continuous
+	if len(target) > 0 && target[0] == '{' {
+		var tmp map[string]interface{}
+		if err = json.Unmarshal([]byte(target), &tmp); err != nil {
+			return errors.Code(errors.ErrUsage, fmt.Errorf("invalid target: %w", err))
+		}
+		opts["target"] = tmp
+		target = ""
 	}
-	if c.createTarget {
-		opts["create_target"] = c.createTarget
-	}
-	if len(c.docIDs) > 0 {
-		opts["doc_ids"] = c.docIDs
-	}
-	if c.filter != "" {
-		opts["filter"] = c.filter
-	}
-	if c.sourceProxy != "" {
-		opts["source_proxy"] = c.sourceProxy
-	}
-	if c.targetProxy != "" {
-		opts["target_proxy"] = c.targetProxy
-	}
-	var source, target map[string]interface{}
-	if err := json.Unmarshal([]byte(c.source), &source); err == nil {
-		c.source = ""
-		opts["source"] = source
-	}
-	if err := json.Unmarshal([]byte(c.target), &target); err == nil {
-		c.target = ""
-		opts["target"] = target
+	if docIDs, _ := opts["doc_ids"].(string); docIDs != "" {
+		opts["doc_ids"] = strings.Split(docIDs, ",")
 	}
 
-	c.log.Debugf("[post] Will replicate %s to %s", c.source, c.target)
+	c.log.Debugf("[post] Will replicate %s to %s", source, target)
 	return c.retry(func() error {
-		_, err := client.Replicate(cmd.Context(), c.target, c.source, opts)
+		_, err := client.Replicate(cmd.Context(), target, source, opts)
 		if err != nil {
 			return err
 		}
