@@ -25,8 +25,6 @@ type postReplicate struct {
 	source, target                   string
 	cancel, continuous, createTarget bool
 	docIDs                           []string
-	filter                           string
-	sourceProxy, targetProxy         string
 }
 
 func postReplicateCmd(r *root) *cobra.Command {
@@ -48,9 +46,6 @@ func postReplicateCmd(r *root) *cobra.Command {
 	pf.BoolVar(&c.continuous, "continuous", false, "Configure the replication to be continuous")
 	pf.BoolVar(&c.createTarget, "create-target", false, "Creates the target database.")
 	pf.StringSliceVar(&c.docIDs, "doc-id", nil, "Document IDs to be synchronized")
-	pf.StringVar(&c.filter, "filter", "", "The name of a filter function")
-	pf.StringVar(&c.sourceProxy, "source-proxy", "", "Address of http or socks5 proxy through which replication from the source should occur")
-	pf.StringVar(&c.targetProxy, "target-proxy", "", "Address of http or socks5 proxy through which replication to the target should occur")
 
 	return cmd
 }
@@ -76,15 +71,6 @@ func (c *postReplicate) RunE(cmd *cobra.Command, _ []string) error {
 	}
 	if len(c.docIDs) > 0 {
 		opts["doc_ids"] = c.docIDs
-	}
-	if c.filter != "" {
-		opts["filter"] = c.filter
-	}
-	if c.sourceProxy != "" {
-		opts["source_proxy"] = c.sourceProxy
-	}
-	if c.targetProxy != "" {
-		opts["target_proxy"] = c.targetProxy
 	}
 	var source, target map[string]interface{}
 	if err := json.Unmarshal([]byte(c.source), &source); err == nil {
