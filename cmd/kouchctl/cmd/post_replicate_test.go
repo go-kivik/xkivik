@@ -94,7 +94,7 @@ func Test_post_replicate_RunE(t *testing.T) {
 		}))
 
 		return cmdTest{
-			args: []string{"--debug", "post", "replicate", s.URL, "--source", "http://example.com/foo", "--target", "http://example.com/bar", "--cancel", "--continuous", "--create-target", "--doc-id", "foo", "--doc-id", "bar", "-O", "filter=oink", "-O", "source_proxy=http://localhost:9999/", "-O", "target_proxy=http://localhost:1111/"},
+			args: []string{"--debug", "post", "replicate", s.URL, "--source", "http://example.com/foo", "--target", "http://example.com/bar", "-B", "cancel=true", "-B", "continuous=true", "-B", "create_target=true", "--doc-id", "foo", "--doc-id", "bar", "-O", "filter=oink", "-O", "source_proxy=http://localhost:9999/", "-O", "target_proxy=http://localhost:1111/"},
 		}
 	})
 

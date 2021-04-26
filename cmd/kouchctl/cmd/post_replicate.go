@@ -22,9 +22,8 @@ import (
 
 type postReplicate struct {
 	*root
-	source, target                   string
-	cancel, continuous, createTarget bool
-	docIDs                           []string
+	source, target string
+	docIDs         []string
 }
 
 func postReplicateCmd(r *root) *cobra.Command {
@@ -42,9 +41,6 @@ func postReplicateCmd(r *root) *cobra.Command {
 	pf := cmd.PersistentFlags()
 	pf.StringVarP(&c.source, "source", "s", "", "The source DSN. String or JSON object")
 	pf.StringVarP(&c.target, "target", "t", "", "The target DSN. String or JSON object")
-	pf.BoolVar(&c.cancel, "cancel", false, "Cancel the replecation")
-	pf.BoolVar(&c.continuous, "continuous", false, "Configure the replication to be continuous")
-	pf.BoolVar(&c.createTarget, "create-target", false, "Creates the target database.")
 	pf.StringSliceVar(&c.docIDs, "doc-id", nil, "Document IDs to be synchronized")
 
 	return cmd
@@ -60,15 +56,6 @@ func (c *postReplicate) RunE(cmd *cobra.Command, _ []string) error {
 		return errors.Code(errors.ErrUsage, "explicit source or target required")
 	}
 	opts := c.opts()
-	if c.cancel {
-		opts["cancel"] = c.cancel
-	}
-	if c.continuous {
-		opts["continuous"] = c.continuous
-	}
-	if c.createTarget {
-		opts["create_target"] = c.createTarget
-	}
 	if len(c.docIDs) > 0 {
 		opts["doc_ids"] = c.docIDs
 	}
