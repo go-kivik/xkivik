@@ -6,8 +6,7 @@ Aliases:
   replicate, rep
 
 Flags:
-      --doc-id strings   Document IDs to be synchronized
-  -h, --help             help for replicate
+  -h, --help   help for replicate
 
 Global Flags:
       --connect-timeout string       Limits the time spent establishing a TCP connection.
