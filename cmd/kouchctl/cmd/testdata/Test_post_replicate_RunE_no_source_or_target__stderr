@@ -8,8 +8,6 @@ Aliases:
 Flags:
       --doc-id strings   Document IDs to be synchronized
   -h, --help             help for replicate
-  -s, --source string    The source DSN. String or JSON object
-  -t, --target string    The target DSN. String or JSON object
 
 Global Flags:
       --connect-timeout string       Limits the time spent establishing a TCP connection.

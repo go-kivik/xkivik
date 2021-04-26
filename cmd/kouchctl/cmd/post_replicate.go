@@ -22,8 +22,7 @@ import (
 
 type postReplicate struct {
 	*root
-	source, target string
-	docIDs         []string
+	docIDs []string
 }
 
 func postReplicateCmd(r *root) *cobra.Command {
@@ -34,13 +33,11 @@ func postReplicateCmd(r *root) *cobra.Command {
 		Use:     "replicate [dsn]",
 		Aliases: []string{"rep"},
 		Short:   "Replicate a database",
-		Long:    "Creates a remotely-managed replication between source and target",
+		Long:    "Creates a remotely-managed replication between source and target. `source` and `target` values must be provided via -O flags, and should be URLs or JSON objects.",
 		RunE:    c.RunE,
 	}
 
 	pf := cmd.PersistentFlags()
-	pf.StringVarP(&c.source, "source", "s", "", "The source DSN. String or JSON object")
-	pf.StringVarP(&c.target, "target", "t", "", "The target DSN. String or JSON object")
 	pf.StringSliceVar(&c.docIDs, "doc-id", nil, "Document IDs to be synchronized")
 
 	return cmd
@@ -52,26 +49,28 @@ func (c *postReplicate) RunE(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	if c.source == "" && c.target == "" {
+	opts := c.opts()
+	source, _ := opts["source"].(string)
+	target, _ := opts["target"].(string)
+	if source == "" && target == "" {
 		return errors.Code(errors.ErrUsage, "explicit source or target required")
 	}
-	opts := c.opts()
 	if len(c.docIDs) > 0 {
 		opts["doc_ids"] = c.docIDs
 	}
-	var source, target map[string]interface{}
-	if err := json.Unmarshal([]byte(c.source), &source); err == nil {
-		c.source = ""
-		opts["source"] = source
+	var sObj, tObj map[string]interface{}
+	if err := json.Unmarshal([]byte(source), &sObj); err == nil {
+		source = ""
+		opts["source"] = sObj
 	}
-	if err := json.Unmarshal([]byte(c.target), &target); err == nil {
-		c.target = ""
-		opts["target"] = target
+	if err := json.Unmarshal([]byte(target), &tObj); err == nil {
+		target = ""
+		opts["target"] = tObj
 	}
 
-	c.log.Debugf("[post] Will replicate %s to %s", c.source, c.target)
+	c.log.Debugf("[post] Will replicate %s to %s", source, target)
 	return c.retry(func() error {
-		_, err := client.Replicate(cmd.Context(), c.target, c.source, opts)
+		_, err := client.Replicate(cmd.Context(), target, source, opts)
 		if err != nil {
 			return err
 		}
