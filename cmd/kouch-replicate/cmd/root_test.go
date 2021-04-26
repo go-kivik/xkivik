@@ -14,7 +14,6 @@ package cmd
 
 import (
 	"net/http"
-	"regexp"
 	"testing"
 
 	"gitlab.com/flimzy/testy"
@@ -45,11 +44,6 @@ func TestConnect(t *testing.T) {
 		dsn:    "ftp://webmaster@www.google.com/",
 		status: http.StatusBadRequest,
 		err:    "unsupported URL scheme 'ftp'",
-	})
-	tests.Add("file:// url with invalid dbname", tt{
-		dsn:    "file:///foo/bar.baz",
-		status: http.StatusBadRequest,
-		err:    regexp.QuoteMeta("Name: 'bar.baz'. Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed. Must begin with a letter."),
 	})
 	tests.Add("local absolute path", tt{
 		dsn: "/foo/bar",
