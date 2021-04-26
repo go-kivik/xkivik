@@ -87,6 +87,9 @@ func (c *post) RunE(cmd *cobra.Command, args []string) error {
 	case "_purge":
 		return c.purge.RunE(cmd, args)
 	}
+	if dsn.Path == "/_replicate" {
+		return c.repl.RunE(cmd, args)
+	}
 	if c.conf.HasDB() {
 		return c.doc.RunE(cmd, args)
 	}
