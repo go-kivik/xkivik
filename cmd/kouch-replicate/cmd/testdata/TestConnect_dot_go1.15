@@ -39,6 +39,7 @@
       fs: (*filesystem.defaultFS)({
       })
     }),
+    dbPath: (string) (len=1) ".",
     dbName: (string) (len=1) ".",
     fs: (*filesystem.defaultFS)({
     }),

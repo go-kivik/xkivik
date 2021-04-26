@@ -84,9 +84,7 @@ func (r *root) execute(ctx context.Context) int {
 	if err == nil {
 		return 0
 	}
-	code := extractExitCode(err)
-
-	return code
+	return extractExitCode(err)
 }
 
 func extractExitCode(err error) int {
@@ -160,6 +158,7 @@ func rootCmd(lg log.Logger) *root {
 	r.cmd.AddCommand(postCompactViewsCmd(r))
 	r.cmd.AddCommand(postPurgeRootCmd(r))
 	r.cmd.AddCommand(copyCmd(r))
+	r.cmd.AddCommand(replicateCmd(r))
 
 	return r
 }
@@ -213,34 +212,34 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if r.options == nil {
+		r.options = kivik.Options{}
+	}
 	if len(args) > 0 {
 		opts, err := r.conf.SetURL(args[0])
 		if err != nil {
 			return err
-		}
-		if r.options == nil {
-			r.options = kivik.Options{}
 		}
 		for k, v := range opts {
 			if _, ok := r.options[k]; !ok {
 				r.options[k] = v
 			}
 		}
-		for k, v := range r.stringOptions {
-			if _, ok := r.options[k]; !ok {
-				r.options[k] = v
-			}
+	}
+	for k, v := range r.stringOptions {
+		if _, ok := r.options[k]; !ok {
+			r.options[k] = v
 		}
-		for k, v := range r.boolOptions {
-			if _, ok := r.options[k]; !ok {
-				switch strings.ToLower(v) {
-				case "true", "t":
-					r.options[k] = true
-				case "false", "f":
-					r.options[k] = false
-				default:
-					return errors.Codef(errors.ErrUsage, "invalid boolean value: %s", v)
-				}
+	}
+	for k, v := range r.boolOptions {
+		if _, ok := r.options[k]; !ok {
+			switch strings.ToLower(v) {
+			case "true", "t":
+				r.options[k] = true
+			case "false", "f":
+				r.options[k] = false
+			default:
+				return errors.Codef(errors.ErrUsage, "invalid boolean value: %s", v)
 			}
 		}
 	}

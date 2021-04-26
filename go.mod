@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/cenkalti/backoff/v4 v4.1.0
 	github.com/go-kivik/couchdb/v4 v4.0.0-20210410162325-79a27ec81722
-	github.com/go-kivik/fsdb/v4 v4.0.0-20210416172033-cf017093a700
+	github.com/go-kivik/fsdb/v4 v4.0.0-20210426205809-fd527676ff30
 	github.com/go-kivik/kivik/v4 v4.0.0-20210424210959-2885c4d889d9
 	github.com/go-kivik/kivikmock/v4 v4.0.0-20201011105747-d4ebdf080861
 	github.com/go-kivik/kiviktest/v4 v4.0.0-20210416171742-9178bdf947e3

@@ -18,7 +18,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/go-kivik/couchdb/v4/chttp"
-
 	"github.com/go-kivik/xkivik/v4/cmd/kouchctl/errors"
 )
 
