@@ -1,3 +1,0 @@
-Debug mode enabled
-failed to read kouchconfig: open ~/.kouchctl/config: no such file or directory
-Error: unable to determine resource from dsn: http://localhost:1/

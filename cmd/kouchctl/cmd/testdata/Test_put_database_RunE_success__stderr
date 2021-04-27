@@ -1,3 +1,0 @@
-Debug mode enabled
-failed to read kouchconfig: open ~/.kouchctl/config: no such file or directory
-[create] Will create database: http://127.0.0.1:XXX/foo
