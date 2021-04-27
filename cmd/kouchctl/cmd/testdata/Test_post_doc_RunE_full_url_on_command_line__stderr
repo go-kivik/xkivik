@@ -1,4 +1,0 @@
-Debug mode enabled
-failed to read kouchconfig: open ~/.kouchctl/config: no such file or directory
-[post] Will post document to: http://localhost:1/foo
-Error: Post "http://localhost:1/foo": dial tcp [::1]:1: connect: connection refused

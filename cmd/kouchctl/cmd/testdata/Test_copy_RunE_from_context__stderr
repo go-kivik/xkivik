@@ -1,4 +1,0 @@
-Debug mode enabled
-successfully read kouchconfig file "./testdata/copy.yaml"
-[copy] Will copy: http://localhost:5984/db/doc to target
-Error: Copy "http://localhost:5984/db/doc": dial tcp [::1]:5984: connect: connection refused
