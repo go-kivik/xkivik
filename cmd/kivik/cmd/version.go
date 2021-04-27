@@ -53,7 +53,7 @@ func (c *version) RunE(cmd *cobra.Command, _ []string) error {
 		GOARCH:    runtime.GOARCH,
 	}
 
-	format := `kubectl version {{ .Version }} {{ .GoVersion }} {{ .GOOS }}/{{ .GOARCH }}`
+	format := `kivik version {{ .Version }} {{ .GoVersion }} {{ .GOOS }}/{{ .GOARCH }}`
 	result := output.TemplateReader(format, data, output.JSONReader(data))
 	return c.fmt.Output(result)
 }

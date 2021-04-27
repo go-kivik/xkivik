@@ -6,6 +6,8 @@ Package xKivik provides experimental features that may be considered for
 inclusion in the proper [kivik](http://github.com/go-kivik/kivik) package over
 time.
 
+Maybe you're looking for the [kivik CLI tool](cmd/kivik/README.md)?
+
 # Compatibility
 
 There is no backward compatibility guarantee for anything in this package.
