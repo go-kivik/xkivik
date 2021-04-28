@@ -17,6 +17,8 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -66,6 +68,9 @@ type root struct {
 	retryCount         int
 	retryDelayParsed   time.Duration
 	retryTimeoutParsed time.Duration
+
+	// resolveHome is used to resolve ~ in the default config file path
+	resolveHome func(string) string
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -107,10 +112,19 @@ func formatter() *output.Formatter {
 	return f
 }
 
+func resolveHome(path string) string {
+	if !strings.HasPrefix(path, "~/") {
+		return path
+	}
+	usr, _ := user.Current()
+	return filepath.Join(usr.HomeDir, path[2:])
+}
+
 func rootCmd(lg log.Logger) *root {
 	r := &root{
-		log: lg,
-		fmt: formatter(),
+		log:         lg,
+		fmt:         formatter(),
+		resolveHome: resolveHome,
 	}
 	r.cmd = &cobra.Command{
 		Use:               "kivik",
@@ -208,7 +222,7 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := r.conf.Read(r.confFile, r.log); err != nil {
+	if err := r.conf.Read(r.resolveHome(r.confFile), r.log); err != nil {
 		return err
 	}
 

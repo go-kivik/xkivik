@@ -16,6 +16,8 @@ import (
 	"context"
 	"io/ioutil"
 	"net/http"
+	"os/user"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -235,6 +237,7 @@ func (tt *cmdTest) Test(t *testing.T, re ...testy.Replacement) {
 	t.Helper()
 	lg := log.New()
 	root := rootCmd(lg)
+	root.resolveHome = func(i string) string { return i }
 
 	root.cmd.SetArgs(tt.args)
 	var status int
@@ -326,6 +329,24 @@ func Test_fmtDuration(t *testing.T) {
 		got := fmtDuration(tt.d)
 		if got != tt.want {
 			t.Errorf("Want: %s\n Got: %s", tt.want, got)
+		}
+	})
+}
+
+func Test_resolveHome(t *testing.T) {
+	t.Run("~ path", func(t *testing.T) {
+		usr, _ := user.Current()
+		want := filepath.Join(usr.HomeDir, "foo")
+		got := resolveHome("~/foo")
+		if got != want {
+			t.Errorf("Unexpected result: %s", got)
+		}
+	})
+	t.Run("no ~ in path", func(t *testing.T) {
+		want := "asdf/foo"
+		got := resolveHome(want)
+		if got != want {
+			t.Errorf("Unexpected result: %s", got)
 		}
 	})
 }
