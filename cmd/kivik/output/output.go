@@ -99,6 +99,9 @@ func (f *Formatter) Output(r io.Reader) error {
 	if err != nil {
 		return err
 	}
+	if c, ok := out.(io.Closer); ok {
+		defer c.Close() // nolint:errcheck
+	}
 	return fmt.Output(out, r)
 }
 
@@ -128,7 +131,7 @@ func (f *Formatter) formatter() (Format, error) {
 func (f *Formatter) writer() (io.Writer, error) {
 	switch f.output {
 	case "", "-":
-		return os.Stdout, nil
+		return ensureNewlineEnding(os.Stdout), nil
 	}
 	return f.createFile(f.output)
 }
@@ -163,4 +166,33 @@ func (f *Formatter) UpdateResult(id, rev string) error {
 ID: {{ .ID }}
 Rev: {{ .Rev }}`
 	return f.Output(TemplateReader(format, update, JSONReader(update)))
+}
+
+func ensureNewlineEnding(w io.Writer) io.WriteCloser {
+	return &addNewlineEnding{Writer: w}
+}
+
+type addNewlineEnding struct {
+	io.Writer
+	last byte
+}
+
+func (w *addNewlineEnding) Write(p []byte) (int, error) {
+	if len(p) > 0 {
+		w.last = p[len(p)-1]
+	}
+	return w.Writer.Write(p)
+}
+
+func (w *addNewlineEnding) Close() error {
+	if w.last != '\n' {
+		_, err := w.Writer.Write([]byte{'\n'})
+		if err != nil {
+			return err
+		}
+	}
+	if c, ok := w.Writer.(io.Closer); ok {
+		return c.Close()
+	}
+	return nil
 }
