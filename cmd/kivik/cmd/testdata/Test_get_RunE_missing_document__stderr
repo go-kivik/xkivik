@@ -4,13 +4,14 @@ Usage:
   kivik get [command]
 
 Available Commands:
-  all-dbs     List all databases
-  attachment  Get an attachment
-  config      Get server config
-  database    Get a database
-  document    Get a document
-  security    Get a database's security object
-  version     Print server version information
+  all-dbs       List all databases
+  attachment    Get an attachment
+  cluster-setup Get the status of the node or cluster
+  config        Get server config
+  database      Get a database
+  document      Get a document
+  security      Get a database's security object
+  version       Print server version information
 
 Flags:
   -h, --help   help for get

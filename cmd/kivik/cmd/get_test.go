@@ -216,6 +216,25 @@ func Test_get_RunE(t *testing.T) {
 			args: []string{"get", s.URL + "/foo/_security"},
 		}
 	})
+	tests.Add("auto cluster-setup", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+				"ETag":         []string{"1-xxx"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`{"state":"cluster_enabled"}
+}`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.URL.Path != "/_cluster_setup" {
+				t.Errorf("unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"get", s.URL + "/_cluster_setup"},
+		}
+	})
 
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
