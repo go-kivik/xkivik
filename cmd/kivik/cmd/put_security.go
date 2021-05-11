@@ -18,7 +18,6 @@ import (
 	"github.com/go-kivik/kivik/v4"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/input"
-	"github.com/go-kivik/xkivik/v4/cmd/kivik/output"
 )
 
 type putSec struct {
@@ -69,7 +68,6 @@ func (c *putSec) RunE(cmd *cobra.Command, _ []string) error {
 			return err
 		}
 
-		result := output.JSONReader(map[string]bool{"ok": true})
-		return c.fmt.Output(result)
+		return c.fmt.OK()
 	})
 }

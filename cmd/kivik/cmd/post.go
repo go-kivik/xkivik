@@ -25,7 +25,7 @@ import (
 type post struct {
 	*root
 	*input.Input
-	doc, vc, flush, compact, cv, purge, repl *cobra.Command
+	doc, vc, flush, compact, cv, purge, repl, cluster *cobra.Command
 }
 
 func postCmd(r *root) *cobra.Command {
@@ -40,6 +40,7 @@ func postCmd(r *root) *cobra.Command {
 	}
 	c.doc = postDocCmd(c)
 	c.purge = postPurgeCmd(c)
+	c.cluster = postClusterSetupCmd(c)
 
 	cmd := &cobra.Command{
 		Use:   "post",
@@ -57,6 +58,7 @@ func postCmd(r *root) *cobra.Command {
 	cmd.AddCommand(c.cv)
 	cmd.AddCommand(c.purge)
 	cmd.AddCommand(c.repl)
+	cmd.AddCommand(c.cluster)
 
 	return cmd
 }
@@ -87,8 +89,11 @@ func (c *post) RunE(cmd *cobra.Command, args []string) error {
 	case "_purge":
 		return c.purge.RunE(cmd, args)
 	}
-	if dsn.Path == "/_replicate" {
+	switch dsn.Path {
+	case "/_replicate":
 		return c.repl.RunE(cmd, args)
+	case "/_cluster_setup":
+		return c.cluster.RunE(cmd, args)
 	}
 	if c.conf.HasDB() {
 		return c.doc.RunE(cmd, args)

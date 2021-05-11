@@ -226,13 +226,13 @@ func Test_get_RunE(t *testing.T) {
 			Body: ioutil.NopCloser(strings.NewReader(`{"state":"cluster_enabled"}
 }`)),
 		}, func(t *testing.T, req *http.Request) {
-			if req.URL.Path != "/_cluster_setup" {
+			if req.URL.Path != clusterPath {
 				t.Errorf("unexpected path: %s", req.URL.Path)
 			}
 		})
 
 		return cmdTest{
-			args: []string{"get", s.URL + "/_cluster_setup"},
+			args: []string{"get", s.URL + clusterPath},
 		}
 	})
 

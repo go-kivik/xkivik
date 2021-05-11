@@ -13,6 +13,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -23,6 +24,8 @@ import (
 
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/errors"
 )
+
+const clusterPath = "/_cluster_setup"
 
 func Test_post_RunE(t *testing.T) {
 	tests := testy.NewTable()
@@ -147,6 +150,31 @@ func Test_post_RunE(t *testing.T) {
 			args: []string{"--debug", "post", s.URL + "/_replicate", "-O", "source=http://example.com/foo", "-O", "target=http://example.com/bar"},
 		}
 	})
+	tests.Add("auto cluster setup", func(t *testing.T) interface{} {
+		s := testy.ServeResponseValidator(t, &http.Response{
+			StatusCode: http.StatusOK,
+			Header: http.Header{
+				"Content-Type": []string{"application/json"},
+			},
+			Body: ioutil.NopCloser(strings.NewReader(`"old"`)),
+		}, func(t *testing.T, req *http.Request) {
+			if req.Method != http.MethodPost {
+				t.Errorf("Unexpected method: %v", req.Method)
+			}
+			want := json.RawMessage(`{"action":"finish_cluster"}`)
+			if d := testy.DiffAsJSON(want, req.Body); d != nil {
+				t.Errorf("Unexpected request body: %s", d)
+			}
+			if req.URL.Path != clusterPath {
+				t.Errorf("unexpected path: %s", req.URL.Path)
+			}
+		})
+
+		return cmdTest{
+			args: []string{"post", s.URL + clusterPath, "--data", `{"action":"finish_cluster"}`},
+		}
+	})
+
 	tests.Run(t, func(t *testing.T, tt cmdTest) {
 		tt.Test(t)
 	})

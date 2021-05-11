@@ -144,9 +144,14 @@ func (f *Formatter) createFile(path string) (*os.File, error) {
 }
 
 func (f *Formatter) OK() error {
-	return f.Output(JSONReader(map[string]bool{
-		"ok": true,
-	}))
+	format := `OK`
+	data := struct {
+		OK bool
+	}{
+		OK: true,
+	}
+	result := TemplateReader(format, data, JSONReader(map[string]bool{"ok": true}))
+	return f.Output(result)
 }
 
 func (f *Formatter) UpdateResult(id, rev string) error {

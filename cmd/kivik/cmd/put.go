@@ -36,6 +36,7 @@ func putCmd(r *root) *cobra.Command {
 	c.att = putAttCmd(c)
 	c.cf = putConfigCmd(c)
 	c.sec = putSecurityCmd(c)
+
 	cmd := &cobra.Command{
 		Use:   "put",
 		Short: "Put a resource",
