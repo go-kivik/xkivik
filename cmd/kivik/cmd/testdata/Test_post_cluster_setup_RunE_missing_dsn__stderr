@@ -1,26 +1,18 @@
-Debug mode enabled
-failed to read config: open ~/.kivik/config: no such file or directory
-Error: parse "http://localhost:1/foo/bar/%xxx": invalid URL escape "%xx"
+Error: no context specified
 Usage:
-  kivik get [command] [flags]
-  kivik get [command]
+  kivik post cluster-setup [dsn] [flags]
 
-Available Commands:
-  all-dbs       List all databases
-  attachment    Get an attachment
-  cluster-setup Get the status of the node or cluster
-  config        Get server config
-  database      Get a database
-  document      Get a document
-  security      Get a database's security object
-  version       Print server version information
+Aliases:
+  cluster-setup, cluster
 
 Flags:
-  -h, --help   help for get
+  -h, --help   help for cluster-setup
 
 Global Flags:
       --config string                Path to config file to use for CLI requests (default "~/.kivik/config")
       --connect-timeout string       Limits the time spent establishing a TCP connection.
+  -d, --data string                  JSON document data.
+  -D, --data-file string             Read document data from the named file. Use - for stdin. Assumed to be JSON, unless the file extension is .yaml or .yml, or the --yaml flag is used.
       --debug                        Enable debug output
   -f, --format string                Output format. One of: json[=...]|raw|yaml|go-template=...
   -H, --header                       Output response header
@@ -33,6 +25,5 @@ Global Flags:
       --retry-delay string           Delay between retry attempts. Disables the default exponential backoff algorithm.
       --retry-timeout string         When used with --retry, no more retries will be attempted after this timeout.
   -v, --verbose                      Output bi-directional network traffic
-
-Use "kivik get [command] --help" for more information about a command.
+      --yaml                         Treat input data as YAML
 

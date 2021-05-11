@@ -4,6 +4,7 @@ Usage:
   kivik post [command]
 
 Available Commands:
+  cluster-setup Configure node as standalone node or finalize a cluster
   compact       Compact the database
   compact-views Compact the database
   document      Create a document

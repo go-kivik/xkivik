@@ -14,36 +14,44 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/go-kivik/xkivik/v4/cmd/kivik/input"
 )
 
-type deleteDB struct {
+type postClusterSetup struct {
 	*root
+	*input.Input
 }
 
-func deleteDBCmd(r *root) *cobra.Command {
-	c := &deleteDB{
-		root: r,
+func postClusterSetupCmd(p *post) *cobra.Command {
+	c := &postClusterSetup{
+		root:  p.root,
+		Input: p.Input,
 	}
-	return &cobra.Command{
-		Use:     "database [dsn]/[database]",
-		Aliases: []string{"db"},
-		Short:   "Delete a database",
+	cmd := &cobra.Command{
+		Use:     "cluster-setup [dsn]",
+		Aliases: []string{"cluster"},
+		Short:   "Configure node as standalone node or finalize a cluster",
 		RunE:    c.RunE,
 	}
+
+	return cmd
 }
 
-func (c *deleteDB) RunE(cmd *cobra.Command, _ []string) error {
+func (c *postClusterSetup) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := c.client()
 	if err != nil {
 		return err
 	}
-	db, _, err := c.conf.DBDoc()
+
+	data, err := c.JSONData()
 	if err != nil {
 		return err
 	}
-	c.log.Debugf("[delete] Will delete database: %s/%s/%s", client.DSN(), db)
+	c.log.Debugf("[get] Will put cluster setup object: %s", client.DSN())
+
 	return c.retry(func() error {
-		err := client.DestroyDB(cmd.Context(), db, c.opts())
+		err = client.ClusterSetup(cmd.Context(), data)
 		if err != nil {
 			return err
 		}
