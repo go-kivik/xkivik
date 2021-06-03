@@ -34,6 +34,9 @@ import (
 // http://docs.couchdb.org/en/2.0.0/api/server/authn.html#cookie-authentication
 //
 // CookieAuth stores authentication state after use, so should not be re-used.
+//
+// It also drops the auth cookie if we receive a 401 response to ensure
+// that follow up requests can try to authenticate again.
 type CookieAuth struct {
 	Username string `json:"name"`
 	Password string `json:"password"`
@@ -105,7 +108,19 @@ func (a *CookieAuth) RoundTrip(req *http.Request) (*http.Response, error) {
 	if err := a.authenticate(req); err != nil {
 		return nil, err
 	}
-	return a.transport.RoundTrip(req)
+	res, err := a.transport.RoundTrip(req)
+	if err != nil {
+		return res, err
+	}
+
+	if res != nil && res.StatusCode == http.StatusUnauthorized {
+		if cookie := a.Cookie(); cookie != nil {
+			// set to expire yesterday to allow us to ditch it
+			cookie.Expires = time.Now().AddDate(0, 0, -1)
+			a.client.Jar.SetCookies(a.dsn, []*http.Cookie{cookie})
+		}
+	}
+	return res, nil
 }
 
 func (a *CookieAuth) authenticate(req *http.Request) error {
