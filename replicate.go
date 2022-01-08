@@ -303,7 +303,8 @@ func readDiffs(ctx context.Context, db *kivik.DB, ch <-chan *change, results cha
 		if len(revMap) == 0 {
 			return nil
 		}
-		diffs, err := db.RevsDiff(ctx, revMap)
+		diffs := db.RevsDiff(ctx, revMap)
+		err := diffs.Err()
 		cb(ReplicationEvent{
 			Type:  eventRevsDiff,
 			Read:  true,
