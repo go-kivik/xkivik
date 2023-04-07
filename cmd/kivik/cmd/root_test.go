@@ -199,12 +199,18 @@ func Test_root_RunE(t *testing.T) {
 		}
 	})
 
-	tests.Run(t, func(t *testing.T, tt cmdTest) {
-		re := testy.Replacement{
+	res := []testy.Replacement{
+		{
 			Regexp:      regexp.MustCompile(`time: invalid duration oink`),
 			Replacement: `time: invalid duration "oink"`,
-		}
-		tt.Test(t, re)
+		},
+		{
+			Regexp:      regexp.MustCompile(`Will retry in \d\.\d+s`),
+			Replacement: `Will retry in X.XXs`,
+		},
+	}
+	tests.Run(t, func(t *testing.T, tt cmdTest) {
+		tt.Test(t, res...)
 	})
 }
 
