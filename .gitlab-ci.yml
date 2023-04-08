@@ -29,21 +29,17 @@ lint:
 
 coverage:
   stage: test
-  image: golang:1.16
+  image: golang:1.20
   script:
   - ./script/coverage.sh
 
-go-1.14:
+go-1.19:
   <<: *test_template
-  image: golang:1.14
+  image: golang:1.19
 
-go-1.15:
+go-1.20:
   <<: *test_template
-  image: golang:1.15
-
-go-1.16:
-  <<: *test_template
-  image: golang:1.16
+  image: golang:1.20
 
 go-rc:
   <<: *test_template
