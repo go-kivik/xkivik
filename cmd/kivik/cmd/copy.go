@@ -100,7 +100,7 @@ func (c *copy) RunE(cmd *cobra.Command, args []string) error {
 	return c.retry(func() error {
 		if doc == nil {
 			row := client.DB(sourceDB).Get(cmd.Context(), sourceDoc, c.opts())
-			if err := row.Err; err != nil {
+			if err := row.Err(); err != nil {
 				return err
 			}
 			if err := row.ScanDoc(&doc); err != nil {

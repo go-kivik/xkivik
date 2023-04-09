@@ -48,7 +48,7 @@ func (c *getDoc) RunE(cmd *cobra.Command, _ []string) error {
 	c.log.Debugf("[get] Will fetch document: %s/%s/%s", client.DSN(), db, docID)
 	return c.retry(func() error {
 		row := client.DB(db).Get(cmd.Context(), docID, c.opts())
-		if err := row.Err; err != nil {
+		if err := row.Err(); err != nil {
 			return err
 		}
 		var doc json.RawMessage

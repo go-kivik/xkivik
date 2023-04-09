@@ -131,10 +131,10 @@ func InspectErrorCode(err error) int {
 	}
 
 	var kivikErr interface {
-		StatusCode() int
+		HTTPStatus() int
 	}
 	if errors.As(err, &kivikErr) {
-		return fromHTTPStatus(kivikErr.StatusCode())
+		return fromHTTPStatus(kivikErr.HTTPStatus())
 	}
 
 	return 0
