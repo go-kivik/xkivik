@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -36,7 +36,7 @@ func Test_get_attachment_RunE(t *testing.T) {
 			Header: http.Header{
 				"Content-Type": []string{"application/json"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"error":"not_found","reason":"Document is missing attachment"}
+			Body: io.NopCloser(strings.NewReader(`{"error":"not_found","reason":"Document is missing attachment"}
 			`)),
 		})
 
@@ -53,7 +53,7 @@ func Test_get_attachment_RunE(t *testing.T) {
 				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
 				"ETag":         []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`Testing`)),
+			Body: io.NopCloser(strings.NewReader(`Testing`)),
 		})
 
 		return cmdTest{
@@ -69,7 +69,7 @@ func Test_get_attachment_RunE(t *testing.T) {
 				"ETag":           []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
 				"Content-Length": []string{"7"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`Testing`)),
+			Body: io.NopCloser(strings.NewReader(`Testing`)),
 		})
 
 		return cmdTest{

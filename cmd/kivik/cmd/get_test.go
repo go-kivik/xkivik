@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -67,7 +67,7 @@ func Test_get_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader("invalid")),
+			Body: io.NopCloser(strings.NewReader("invalid")),
 		})
 
 		return cmdTest{
@@ -82,7 +82,7 @@ func Test_get_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{
+			Body: io.NopCloser(strings.NewReader(`{
 				"_id":"foo",
 				"_rev":"1-xxx",
 				"foo":"bar"
@@ -100,7 +100,7 @@ func Test_get_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"db_name":"foo","purge_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","update_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","sizes":{"file":16692,"external":0,"active":0},"props":{},"doc_del_count":0,"doc_count":0,"disk_format_version":8,"compact_running":false,"cluster":{"q":2,"n":1,"w":1,"r":1},"instance_start_time":"0"}
+			Body: io.NopCloser(strings.NewReader(`{"db_name":"foo","purge_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","update_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","sizes":{"file":16692,"external":0,"active":0},"props":{},"doc_del_count":0,"doc_count":0,"disk_format_version":8,"compact_running":false,"cluster":{"q":2,"n":1,"w":1,"r":1},"instance_start_time":"0"}
 			`)),
 		})
 		return cmdTest{
@@ -114,7 +114,7 @@ func Test_get_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"db_name":"foo","purge_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","update_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","sizes":{"file":16692,"external":0,"active":0},"props":{},"doc_del_count":0,"doc_count":0,"disk_format_version":8,"compact_running":false,"cluster":{"q":2,"n":1,"w":1,"r":1},"instance_start_time":"0"}
+			Body: io.NopCloser(strings.NewReader(`{"db_name":"foo","purge_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","update_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","sizes":{"file":16692,"external":0,"active":0},"props":{},"doc_del_count":0,"doc_count":0,"disk_format_version":8,"compact_running":false,"cluster":{"q":2,"n":1,"w":1,"r":1},"instance_start_time":"0"}
 			`)),
 		})
 		return cmdTest{
@@ -128,7 +128,7 @@ func Test_get_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"db_name":"foo","purge_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","update_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","sizes":{"file":16692,"external":0,"active":0},"props":{},"doc_del_count":0,"doc_count":0,"disk_format_version":8,"compact_running":false,"cluster":{"q":2,"n":1,"w":1,"r":1},"instance_start_time":"0"}
+			Body: io.NopCloser(strings.NewReader(`{"db_name":"foo","purge_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","update_seq":"0-g1AAAABPeJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCeexAEmGBiD1HwiyEhlwqEtkSKqHKMgCAIT2GV4","sizes":{"file":16692,"external":0,"active":0},"props":{},"doc_del_count":0,"doc_count":0,"disk_format_version":8,"compact_running":false,"cluster":{"q":2,"n":1,"w":1,"r":1},"instance_start_time":"0"}
 			`)),
 		})
 		return cmdTest{
@@ -142,7 +142,7 @@ func Test_get_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"0ae5d1a72d60e4e1370a444f1cf7ce7c","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
+			Body: io.NopCloser(strings.NewReader(`{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"0ae5d1a72d60e4e1370a444f1cf7ce7c","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
 			`)),
 		})
 
@@ -158,7 +158,7 @@ func Test_get_RunE(t *testing.T) {
 				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
 				"ETag":         []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`Testing`)),
+			Body: io.NopCloser(strings.NewReader(`Testing`)),
 		})
 
 		return cmdTest{
@@ -173,7 +173,7 @@ func Test_get_RunE(t *testing.T) {
 				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
 				"ETag":         []string{`"cy5z3SF7yaYp4vmLX0k31Q==`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`["foo","bar"]`)),
+			Body: io.NopCloser(strings.NewReader(`["foo","bar"]`)),
 		})
 
 		return cmdTest{
@@ -187,7 +187,7 @@ func Test_get_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`"512"`)),
+			Body: io.NopCloser(strings.NewReader(`"512"`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.URL.Path != "/_node/_local/_config/chttpd/backlog" {
 				t.Errorf("unexpected path: %s", req.URL.Path)
@@ -205,7 +205,7 @@ func Test_get_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"admins":{"names":["bob"]}}`)),
+			Body: io.NopCloser(strings.NewReader(`{"admins":{"names":["bob"]}}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.URL.Path != "/foo/_security" {
 				t.Errorf("unexpected path: %s", req.URL.Path)
@@ -223,7 +223,7 @@ func Test_get_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"state":"cluster_enabled"}
+			Body: io.NopCloser(strings.NewReader(`{"state":"cluster_enabled"}
 }`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.URL.Path != clusterPath {

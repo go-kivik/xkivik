@@ -14,7 +14,7 @@ package cmd
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -39,7 +39,7 @@ func Test_put_security_RunE(t *testing.T) {
 			Header: http.Header{
 				"Content-Type": []string{"application/json"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`"old"`)),
+			Body: io.NopCloser(strings.NewReader(`"old"`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPut {
 				t.Errorf("Unexpected method: %v", req.Method)

@@ -14,7 +14,6 @@ package output
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -63,7 +62,7 @@ func TestOutput(t *testing.T) {
 			args: []string{"-o", path},
 			obj:  `{"x":"y"}`,
 			check: func() {
-				buf, err := ioutil.ReadFile(path)
+				buf, err := os.ReadFile(path)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -105,7 +104,7 @@ func TestOutput(t *testing.T) {
 			args: []string{"-o", path, "-F"},
 			obj:  `{"x":"y"}`,
 			check: func() {
-				buf, err := ioutil.ReadFile(path)
+				buf, err := os.ReadFile(path)
 				if err != nil {
 					t.Fatal(err)
 				}

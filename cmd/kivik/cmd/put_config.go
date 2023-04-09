@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -63,8 +63,8 @@ func (c *putConfig) RunE(cmd *cobra.Command, _ []string) error {
 		c.key = key
 	}
 
-	parts := strings.SplitN(c.key, "/", 2)
-	if len(parts) != 2 { // nolint:gomnd
+	parts := strings.SplitN(c.key, "/", 2) //nolint:gomnd
+	if len(parts) != 2 {                   //nolint:gomnd
 		return errors.Code(errors.ErrUsage, "section/key must contain a slash")
 	}
 
@@ -72,7 +72,7 @@ func (c *putConfig) RunE(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	value, err := ioutil.ReadAll(valueReader)
+	value, err := io.ReadAll(valueReader)
 	if err != nil {
 		return err
 	}

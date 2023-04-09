@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -39,7 +39,7 @@ func Test_ping_RunE(t *testing.T) {
 	})
 	tests.Add("server only on command line", func(t *testing.T) interface{} {
 		s := testy.ServeResponse(&http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
 		})
 
 		return cmdTest{

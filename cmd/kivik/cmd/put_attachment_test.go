@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -36,7 +36,7 @@ func Test_put_attachment_RunE(t *testing.T) {
 	})
 	tests.Add("json data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
 		}, checkRequest)
 
 		return cmdTest{
@@ -45,7 +45,7 @@ func Test_put_attachment_RunE(t *testing.T) {
 	})
 	tests.Add("stdin", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
 		}, checkRequest)
 
 		return cmdTest{
@@ -55,7 +55,7 @@ func Test_put_attachment_RunE(t *testing.T) {
 	})
 	tests.Add("data file", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
 		}, checkRequest)
 
 		return cmdTest{

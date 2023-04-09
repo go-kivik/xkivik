@@ -14,7 +14,7 @@ package cmd
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -37,7 +37,7 @@ func Test_put_RunE(t *testing.T) {
 	})
 	tests.Add("json data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -51,7 +51,7 @@ func Test_put_RunE(t *testing.T) {
 	})
 	tests.Add("json data stdin", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -66,7 +66,7 @@ func Test_put_RunE(t *testing.T) {
 	})
 	tests.Add("json data file", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -81,7 +81,7 @@ func Test_put_RunE(t *testing.T) {
 	})
 	tests.Add("yaml data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -99,9 +99,9 @@ func Test_put_RunE(t *testing.T) {
 			Header: http.Header{
 				"Content-Type": []string{"application/json"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`"old"`)),
+			Body: io.NopCloser(strings.NewReader(`"old"`)),
 		}, func(t *testing.T, req *http.Request) {
-			content, _ := ioutil.ReadAll(req.Body)
+			content, _ := io.ReadAll(req.Body)
 			if string(content) != `"baz"` {
 				t.Errorf("Unexpected request body: %s", string(content))
 			}
@@ -123,7 +123,7 @@ func Test_put_RunE(t *testing.T) {
 			Header: http.Header{
 				"Content-Type": []string{"application/json"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`"old"`)),
+			Body: io.NopCloser(strings.NewReader(`"old"`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPut {
 				t.Errorf("Unexpected method: %s", req.Method)

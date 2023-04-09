@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -45,7 +45,7 @@ func Test_copy_RunE(t *testing.T) {
 			Header: http.Header{
 				"ETag": {`"2-62e778c9ec09214dd685a981dcc24074"`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != methodCopy {
 				t.Errorf("Unexpected method: %v", req.Method)
@@ -68,7 +68,7 @@ func Test_copy_RunE(t *testing.T) {
 				"Content-Type": {"application/json"},
 				"ETag":         {`"2-62e778c9ec09214dd685a981dcc24074"`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodGet {
 				t.Errorf("Unexpected source method: %v", req.Method)
@@ -81,7 +81,7 @@ func Test_copy_RunE(t *testing.T) {
 			Header: http.Header{
 				"ETag": {`"2-62e778c9ec09214dd685a981dcc24074"`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPut {
 				t.Errorf("Unexpected target method: %v", req.Method)
@@ -103,7 +103,7 @@ func Test_copy_RunE(t *testing.T) {
 			Header: http.Header{
 				"ETag": {`"2-62e778c9ec09214dd685a981dcc24074"`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != methodCopy {
 				t.Errorf("Unexpected method: %v", req.Method)
@@ -125,7 +125,7 @@ func Test_copy_RunE(t *testing.T) {
 			Header: http.Header{
 				"ETag": {`"2-62e778c9ec09214dd685a981dcc24074"`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != methodCopy {
 				t.Errorf("Unexpected method: %v", req.Method)
@@ -148,7 +148,7 @@ func Test_copy_RunE(t *testing.T) {
 				"Content-Type": {"application/json"},
 				"ETag":         {`"2-62e778c9ec09214dd685a981dcc24074"`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodGet {
 				t.Errorf("Unexpected source method: %v", req.Method)
@@ -161,7 +161,7 @@ func Test_copy_RunE(t *testing.T) {
 			Header: http.Header{
 				"ETag": {`"2-62e778c9ec09214dd685a981dcc24074"`},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPut {
 				t.Errorf("Unexpected target method: %v", req.Method)

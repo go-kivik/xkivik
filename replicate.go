@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"sync"
 	"time"
 
@@ -407,7 +406,7 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 			switch att.ContentEncoding {
 			case "":
 				var err error
-				content, err = ioutil.ReadAll(att.Content)
+				content, err = io.ReadAll(att.Content)
 				if err != nil {
 					return nil, err
 				}
@@ -419,7 +418,7 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 				if err != nil {
 					return nil, err
 				}
-				content, err = ioutil.ReadAll(zr)
+				content, err = io.ReadAll(zr)
 				if err != nil {
 					return nil, err
 				}
@@ -434,7 +433,7 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 			}
 			att.Stub = false
 			att.Follows = false
-			att.Content = ioutil.NopCloser(bytes.NewReader(content))
+			att.Content = io.NopCloser(bytes.NewReader(content))
 			doc.Attachments.Set(att.Filename, att)
 		}
 	}

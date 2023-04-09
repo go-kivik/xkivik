@@ -15,7 +15,6 @@ package input
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -53,7 +52,7 @@ func (r *jsonReader) MarshalJSON() ([]byte, error) {
 	if c, ok := r.Reader.(io.Closer); ok {
 		defer c.Close() // nolint:errcheck
 	}
-	buf, err := ioutil.ReadAll(r)
+	buf, err := io.ReadAll(r)
 	return buf, errors.Code(errors.ErrIO, err)
 }
 
@@ -103,7 +102,7 @@ func (i *Input) JSONData() (json.Marshaler, error) {
 		}
 	}
 	if i.data != "" {
-		return yaml2json(ioutil.NopCloser(strings.NewReader(i.data)))
+		return yaml2json(io.NopCloser(strings.NewReader(i.data)))
 	}
 	switch i.file {
 	case "-":
@@ -122,7 +121,7 @@ func (i *Input) JSONData() (json.Marshaler, error) {
 func yaml2json(r io.ReadCloser) (json.Marshaler, error) {
 	defer r.Close() // nolint:errcheck
 
-	buf, err := ioutil.ReadAll(r)
+	buf, err := io.ReadAll(r)
 	if err != nil {
 		return nil, errors.Code(errors.ErrIO, err)
 	}
@@ -136,7 +135,7 @@ func yaml2json(r io.ReadCloser) (json.Marshaler, error) {
 
 func (i *Input) RawData() (io.ReadCloser, error) {
 	if i.data != "" {
-		return ioutil.NopCloser(strings.NewReader(i.data)), nil
+		return io.NopCloser(strings.NewReader(i.data)), nil
 	}
 	switch i.file {
 	case "-":

@@ -17,7 +17,6 @@ package xkivik
 
 import (
 	"context"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
@@ -261,7 +260,7 @@ func TestReplicate_live(t *testing.T) {
 		}
 	})
 	tests.Add("couch to fs", func(t *testing.T) interface{} {
-		tempDir, err := ioutil.TempDir("", "kivik.test.")
+		tempDir, err := os.MkdirTemp("", "kivik.test.")
 		if err != nil {
 			t.Fatal(err)
 		}

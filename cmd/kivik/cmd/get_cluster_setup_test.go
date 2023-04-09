@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -37,7 +37,7 @@ func Test_get_clusterSetup_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"state":"cluster_enabled"}
+			Body: io.NopCloser(strings.NewReader(`{"state":"cluster_enabled"}
 			`)),
 		})
 
@@ -52,7 +52,7 @@ func Test_get_clusterSetup_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"state":"cluster_enabled"}
+			Body: io.NopCloser(strings.NewReader(`{"state":"cluster_enabled"}
 			`)),
 		})
 
