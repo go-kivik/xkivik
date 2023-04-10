@@ -14,7 +14,7 @@ package cmd
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os/user"
 	"path/filepath"
@@ -56,7 +56,7 @@ func Test_root_RunE(t *testing.T) {
 	})
 	tests.Add("timeout", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
 		}, func(*testing.T, *http.Request) {
 			time.Sleep(time.Second)
 		})
@@ -103,7 +103,7 @@ func Test_root_RunE(t *testing.T) {
 	})
 	tests.Add("view cleanup", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"status":"ok"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
 		}, func(*testing.T, *http.Request) {
 			time.Sleep(time.Second)
 		})
@@ -114,7 +114,7 @@ func Test_root_RunE(t *testing.T) {
 	})
 	tests.Add("flush", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
@@ -130,7 +130,7 @@ func Test_root_RunE(t *testing.T) {
 	})
 	tests.Add("compact", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
@@ -146,7 +146,7 @@ func Test_root_RunE(t *testing.T) {
 	})
 	tests.Add("compact views", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
@@ -162,7 +162,7 @@ func Test_root_RunE(t *testing.T) {
 	})
 	tests.Add("purge", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
@@ -181,7 +181,7 @@ func Test_root_RunE(t *testing.T) {
 	})
 	tests.Add("purge --data", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
@@ -250,7 +250,7 @@ func (tt *cmdTest) Test(t *testing.T, re ...testy.Replacement) {
 	stdout, stderr := testy.RedirIO(strings.NewReader(tt.stdin), func() {
 		status = root.execute(context.Background())
 	})
-	repl := append(standardReplacements, re...)
+	repl := append(standardReplacements, re...) //nolint:gocritic
 	if d := testy.DiffText(testy.Snapshot(t, "_stdout"), stdout, repl...); d != nil {
 		t.Errorf("STDOUT: %s", d)
 	}

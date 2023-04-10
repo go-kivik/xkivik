@@ -497,8 +497,9 @@ func splitPath(p string) []string {
 		result[0] = parts[0] + "/" + result[0]
 		return result
 	}
-	result := make([]string, 0, 3)
-	for len(result) < 3 {
+	const maxElements = 4
+	result := make([]string, 0, maxElements-1)
+	for len(result) < maxElements-1 {
 		base := path.Base(p)
 		p = path.Dir(p)
 		result = append([]string{base}, result...)

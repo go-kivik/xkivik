@@ -10,13 +10,13 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
+//go:build livetest
 // +build livetest
 
 package xkivik
 
 import (
 	"context"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
@@ -260,7 +260,7 @@ func TestReplicate_live(t *testing.T) {
 		}
 	})
 	tests.Add("couch to fs", func(t *testing.T) interface{} {
-		tempDir, err := ioutil.TempDir("", "kivik.test.")
+		tempDir, err := os.MkdirTemp("", "kivik.test.")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -369,14 +369,14 @@ func verifyDoc(ctx context.Context, t *testing.T, target, source *kivik.DB, docI
 	var targetDoc, sourceDoc interface{}
 	notFound := false
 	if err := source.Get(ctx, docID).ScanDoc(&sourceDoc); err != nil {
-		if kivik.StatusCode(err) == http.StatusNotFound {
+		if kivik.HTTPStatus(err) == http.StatusNotFound {
 			notFound = true
 		} else {
 			t.Fatalf("get %s from source failed: %s", docID, err)
 		}
 	}
 	if err := target.Get(ctx, docID).ScanDoc(&targetDoc); err != nil {
-		if notFound && kivik.StatusCode(err) == http.StatusNotFound {
+		if notFound && kivik.HTTPStatus(err) == http.StatusNotFound {
 			return
 		}
 		t.Fatalf("get %s from target failed: %s", docID, err)

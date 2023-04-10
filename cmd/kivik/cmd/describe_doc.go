@@ -47,24 +47,21 @@ func (c *descrDoc) RunE(cmd *cobra.Command, _ []string) error {
 	c.log.Debugf("[get] Will fetch document: %s/%s/%s", client.DSN(), db, docID)
 
 	type result struct {
-		ID   string `json:"_id"`
-		Rev  string `json:"_rev"`
-		Size int64  `json:"-"`
+		ID  string `json:"_id"`
+		Rev string `json:"_rev"`
 	}
 	return c.retry(func() error {
-		size, rev, err := client.DB(db).GetMeta(cmd.Context(), docID, c.opts())
+		rev, err := client.DB(db).GetRev(cmd.Context(), docID, c.opts())
 		if err != nil {
 			return err
 		}
 		data := result{
-			ID:   docID,
-			Rev:  rev,
-			Size: size,
+			ID:  docID,
+			Rev: rev,
 		}
 
 		format := `      ID: {{ .ID }}
-Revision: {{ .Rev }}
-    Size: {{ .Size }}`
+Revision: {{ .Rev }}`
 		result := output.TemplateReader(format, data, output.JSONReader(data))
 		return c.fmt.Output(result)
 	})

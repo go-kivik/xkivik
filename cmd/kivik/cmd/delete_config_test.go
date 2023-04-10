@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -38,7 +38,7 @@ func Test_delete_config_RunE(t *testing.T) {
 			Header: http.Header{
 				"Content-Type": []string{"application/json"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`"foo"`)),
+			Body: io.NopCloser(strings.NewReader(`"foo"`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodDelete {
 				t.Errorf("Unexpected method: %s", req.Method)

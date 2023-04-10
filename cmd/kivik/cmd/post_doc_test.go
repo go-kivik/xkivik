@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -40,7 +40,7 @@ func Test_post_doc_RunE(t *testing.T) {
 	})
 	tests.Add("json data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -54,7 +54,7 @@ func Test_post_doc_RunE(t *testing.T) {
 	})
 	tests.Add("json data stdin", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -69,7 +69,7 @@ func Test_post_doc_RunE(t *testing.T) {
 	})
 	tests.Add("json data file", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
@@ -83,7 +83,7 @@ func Test_post_doc_RunE(t *testing.T) {
 	})
 	tests.Add("yaml data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
 		}, func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {

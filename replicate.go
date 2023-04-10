@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"sync"
 	"time"
 
@@ -145,13 +144,13 @@ var callbackKey = &contextKey{"event_callback"}
 //
 // The following options are supported:
 //
-//     filter (string) - The name of a filter function.
-//     doc_ids (array of string) - Array of document IDs to be synchronized.
-//     copy_security (bool) - When true, the security object is read from the
-//                            source, and copied to the target, before the
-//                            replication. Use with caution! The security object
-//                            is not versioned, and will be unconditionally
-//                            overwritten!
+//	filter (string) - The name of a filter function.
+//	doc_ids (array of string) - Array of document IDs to be synchronized.
+//	copy_security (bool) - When true, the security object is read from the
+//	                       source, and copied to the target, before the
+//	                       replication. Use with caution! The security object
+//	                       is not versioned, and will be unconditionally
+//	                       overwritten!
 func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.Options) (*ReplicationResult, error) {
 	result := &resultWrapper{
 		ReplicationResult: &ReplicationResult{
@@ -394,9 +393,9 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 	}
 	// TODO: It seems silly this is necessary... I need better attachment
 	// handling in kivik.
-	if row.Attachments != nil {
+	if atts := row.Attachments(); atts != nil {
 		for {
-			att, err := row.Attachments.Next()
+			att, err := atts.Next()
 			if err != nil {
 				if err != io.EOF {
 					return nil, err
@@ -407,7 +406,7 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 			switch att.ContentEncoding {
 			case "":
 				var err error
-				content, err = ioutil.ReadAll(att.Content)
+				content, err = io.ReadAll(att.Content)
 				if err != nil {
 					return nil, err
 				}
@@ -419,7 +418,7 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 				if err != nil {
 					return nil, err
 				}
-				content, err = ioutil.ReadAll(zr)
+				content, err = io.ReadAll(zr)
 				if err != nil {
 					return nil, err
 				}
@@ -434,7 +433,7 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 			}
 			att.Stub = false
 			att.Follows = false
-			att.Content = ioutil.NopCloser(bytes.NewReader(content))
+			att.Content = io.NopCloser(bytes.NewReader(content))
 			doc.Attachments.Set(att.Filename, att)
 		}
 	}

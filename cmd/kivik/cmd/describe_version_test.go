@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -31,7 +31,7 @@ func Test_describe_version_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"0ae5d1a72d60e4e1370a444f1cf7ce7c","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
+			Body: io.NopCloser(strings.NewReader(`{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"0ae5d1a72d60e4e1370a444f1cf7ce7c","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
 			`)),
 		})
 
@@ -46,7 +46,7 @@ func Test_describe_version_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"Server":       []string{"CouchDB/2.3.1 (Erlang OTP/20)"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"0ae5d1a72d60e4e1370a444f1cf7ce7c","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
+			Body: io.NopCloser(strings.NewReader(`{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"0ae5d1a72d60e4e1370a444f1cf7ce7c","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
 			`)),
 		})
 

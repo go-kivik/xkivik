@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -32,7 +32,7 @@ func Test_post_flush_RunE(t *testing.T) {
 	})
 	tests.Add("success", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)

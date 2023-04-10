@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -31,7 +31,7 @@ func Test_get_all_databases_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`["foo","bar"]`)),
+			Body: io.NopCloser(strings.NewReader(`["foo","bar"]`)),
 		})
 
 		return cmdTest{

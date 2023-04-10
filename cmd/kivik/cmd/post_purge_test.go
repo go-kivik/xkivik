@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -32,7 +32,7 @@ func Test_post_purge_RunE(t *testing.T) {
 	})
 	tests.Add("one rev", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
@@ -51,7 +51,7 @@ func Test_post_purge_RunE(t *testing.T) {
 	})
 	tests.Add("two revs", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
@@ -70,7 +70,7 @@ func Test_post_purge_RunE(t *testing.T) {
 	})
 	tests.Add("from --data", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
-			Body: ioutil.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
 		}, func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)

@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -38,9 +38,9 @@ func Test_put_config_RunE(t *testing.T) {
 			Header: http.Header{
 				"Content-Type": []string{"application/json"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`"old"`)),
+			Body: io.NopCloser(strings.NewReader(`"old"`)),
 		}, func(t *testing.T, req *http.Request) {
-			content, _ := ioutil.ReadAll(req.Body)
+			content, _ := io.ReadAll(req.Body)
 			if string(content) != `"baz"` {
 				t.Errorf("Unexpected request body: %s", string(content))
 			}

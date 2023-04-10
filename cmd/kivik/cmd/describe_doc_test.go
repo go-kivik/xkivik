@@ -13,7 +13,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -32,7 +32,7 @@ func Test_describe_doc_RunE(t *testing.T) {
 				"ETag":           []string{"1-xxx"},
 				"Content-Length": []string{"59"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{
+			Body: io.NopCloser(strings.NewReader(`{
 				"_id":"foo",
 				"_rev":"1-xxx",
 				"foo":"bar"
@@ -50,7 +50,7 @@ func Test_describe_doc_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 				"ETag":         []string{"1-xxx"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{
+			Body: io.NopCloser(strings.NewReader(`{
 				"_id":"foo",
 				"_rev":"1-xxx",
 				"foo":"bar"
@@ -69,7 +69,7 @@ func Test_describe_doc_RunE(t *testing.T) {
 				"ETag":           []string{"1-xxx"},
 				"Content-Length": []string{"59"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{
+			Body: io.NopCloser(strings.NewReader(`{
 				"_id":"foo",
 				"_rev":"1-xxx",
 				"foo":"bar"
@@ -88,7 +88,7 @@ func Test_describe_doc_RunE(t *testing.T) {
 				"ETag":           []string{"1-xxx"},
 				"Content-Length": []string{"59"},
 			},
-			Body: ioutil.NopCloser(strings.NewReader(`{
+			Body: io.NopCloser(strings.NewReader(`{
 				"_id":"foo",
 				"_rev":"1-xxx",
 				"foo":"bar"

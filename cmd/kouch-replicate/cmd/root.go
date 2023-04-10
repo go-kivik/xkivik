@@ -61,7 +61,7 @@ protocol.`,
 func connect(dsn string) (*kivik.DB, error) {
 	uri, err := url.Parse(dsn)
 	if err != nil {
-		return nil, &kivik.Error{HTTPStatus: http.StatusBadRequest, Err: err}
+		return nil, &kivik.Error{Status: http.StatusBadRequest, Err: err}
 	}
 	switch uri.Scheme {
 	case "http", "https":
@@ -82,8 +82,8 @@ func connect(dsn string) (*kivik.DB, error) {
 		return db, db.Err()
 	default:
 		return nil, &kivik.Error{
-			HTTPStatus: http.StatusBadRequest,
-			Message:    fmt.Sprintf("unsupported URL scheme '%s'", uri.Scheme),
+			Status:  http.StatusBadRequest,
+			Message: fmt.Sprintf("unsupported URL scheme '%s'", uri.Scheme),
 		}
 	}
 }
