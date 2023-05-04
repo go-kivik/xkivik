@@ -4,11 +4,11 @@ go 1.19
 
 require (
 	github.com/cenkalti/backoff/v4 v4.2.0
-	github.com/go-kivik/couchdb/v4 v4.0.0-20230403193523-d950b18ca444
-	github.com/go-kivik/fsdb/v4 v4.0.0-20230407210039-944c89267151
-	github.com/go-kivik/kivik/v4 v4.0.0-20230331074407-d84254814834
-	github.com/go-kivik/kivikmock/v4 v4.0.0-20201011105747-d4ebdf080861
-	github.com/go-kivik/kiviktest/v4 v4.0.0-20230330202035-a6ae53d9f5a9
+	github.com/go-kivik/couchdb/v4 v4.0.0-20230504204107-3e3315c3b4c9
+	github.com/go-kivik/fsdb/v4 v4.0.0-20230504194344-f477350b2b9f
+	github.com/go-kivik/kivik/v4 v4.0.0-20230501195040-a1047e6b252d
+	github.com/go-kivik/kivikmock/v4 v4.0.0-20230504194026-039bfdb051b2
+	github.com/go-kivik/kiviktest/v4 v4.0.0-20230430201722-e2a6a7954793
 	github.com/icza/dyno v0.0.0-20230330125955-09f820a8d9c0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.7.0
