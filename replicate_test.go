@@ -17,6 +17,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -113,7 +114,7 @@ func TestReplicateMock(t *testing.T) {
 			WillReturn(kivikmock.NewRows().
 				AddRow(&driver.Row{
 					ID:    "foo",
-					Value: []byte(`{"missing":["2-7051cbe5c8faecd085a3fa619e6e6337"]}`),
+					Value: strings.NewReader(`{"missing":["2-7051cbe5c8faecd085a3fa619e6e6337"]}`),
 				}))
 		sdb.ExpectGet().
 			WithDocID("foo").
