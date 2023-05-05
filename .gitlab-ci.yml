@@ -49,7 +49,7 @@ go-rc:
 release-test:
   stage: test
   image:
-    name: goreleaser/goreleaser:latest
+    name: goreleaser/goreleaser:v1.18.1
     entrypoint: [""]
   script:
   - goreleaser check
@@ -57,7 +57,7 @@ release-test:
 release:
   stage: release
   image:
-    name: goreleaser/goreleaser:latest
+    name: goreleaser/goreleaser:v1.18.1
     entrypoint: [""]
   script:
   - goreleaser
