@@ -46,19 +46,20 @@ go-rc:
   image: golang:rc
   allow_failure: true
 
-release-test:
-  stage: test
+.releaser: &release_template
   image:
     name: goreleaser/goreleaser:v1.18.1
     entrypoint: [""]
+  variables:
+    GIT_DEPTH: 0
+
+release-test:
+  <<: *release_template
   script:
   - goreleaser check
 
 release:
-  stage: release
-  image:
-    name: goreleaser/goreleaser:v1.18.1
-    entrypoint: [""]
+  <<: *release_template
   script:
   - goreleaser
   only:
