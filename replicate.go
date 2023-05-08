@@ -323,7 +323,7 @@ func readDiffs(ctx context.Context, db *kivik.DB, ch <-chan *change, results cha
 				})
 				return err
 			}
-			val.ID = diffs.ID()
+			val.ID, _ = diffs.ID()
 			cb(ReplicationEvent{
 				Type:  eventRevsDiff,
 				Read:  true,
@@ -393,7 +393,7 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 	}
 	// TODO: It seems silly this is necessary... I need better attachment
 	// handling in kivik.
-	if atts := row.Attachments(); atts != nil {
+	if atts, _ := row.Attachments(); atts != nil {
 		for {
 			att, err := atts.Next()
 			if err != nil {
