@@ -15,11 +15,10 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"gitlab.com/flimzy/testy"
-
-	"github.com/go-kivik/kivik/v4"
 )
 
 func TestInspectErrorCode(t *testing.T) {
@@ -42,15 +41,15 @@ func TestInspectErrorCode(t *testing.T) {
 		want: 123,
 	})
 	tests.Add("kivik 404", tt{
-		err:  &kivik.Error{Status: 404},
+		err:  httpErr(404),
 		want: 14,
 	})
 	tests.Add("kivik internal server error", tt{
-		err:  &kivik.Error{Status: 500},
+		err:  httpErr(500),
 		want: ErrInternalServerError,
 	})
 	tests.Add("kivik 501", tt{
-		err:  &kivik.Error{Status: 501},
+		err:  httpErr(501),
 		want: ErrUnknown,
 	})
 
@@ -60,4 +59,14 @@ func TestInspectErrorCode(t *testing.T) {
 			t.Errorf("want %d, got %d", tt.want, got)
 		}
 	})
+}
+
+type httpErr int
+
+func (e httpErr) Error() string {
+	return http.StatusText(int(e))
+}
+
+func (e httpErr) HTTPStatus() int {
+	return int(e)
 }
