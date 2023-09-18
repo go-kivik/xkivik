@@ -15,7 +15,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -76,8 +75,6 @@ type root struct {
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute(ctx context.Context) {
-	// Init the pRNG here, so it doesn't affect tests.
-	rand.Seed(time.Now().Unix())
 	lg := log.New()
 	root := rootCmd(lg)
 	os.Exit(root.execute(ctx))
