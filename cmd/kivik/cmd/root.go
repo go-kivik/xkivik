@@ -25,8 +25,8 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/spf13/cobra"
 
-	"github.com/go-kivik/couchdb/v4/chttp"
 	"github.com/go-kivik/kivik/v4"
+	"github.com/go-kivik/kivik/v4/couchdb/chttp"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/errors"

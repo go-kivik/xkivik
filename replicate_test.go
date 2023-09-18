@@ -26,7 +26,7 @@ import (
 	_ "github.com/go-kivik/fsdb/v4" // The filesystem driver
 	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/kivik/v4/driver"
-	"github.com/go-kivik/kivikmock/v4"
+	kivikmock "github.com/go-kivik/kivik/v4/mockdb"
 )
 
 func TestReplicateMock(t *testing.T) {

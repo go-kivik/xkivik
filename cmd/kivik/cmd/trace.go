@@ -17,7 +17,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/go-kivik/couchdb/v4/chttp"
+	"github.com/go-kivik/kivik/v4/couchdb/chttp"
 )
 
 func (r *root) clientTrace() *chttp.ClientTrace {
