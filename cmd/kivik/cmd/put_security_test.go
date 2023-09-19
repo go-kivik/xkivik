@@ -40,7 +40,7 @@ func Test_put_security_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 			},
 			Body: io.NopCloser(strings.NewReader(`"old"`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPut {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
@@ -51,7 +51,7 @@ func Test_put_security_RunE(t *testing.T) {
 			if req.URL.Path != "/db/_security" {
 				t.Errorf("unexpected path: %s", req.URL.Path)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"put", "security", s.URL + "/db", "--data", "{}"},

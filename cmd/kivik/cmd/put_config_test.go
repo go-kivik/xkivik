@@ -39,7 +39,7 @@ func Test_put_config_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 			},
 			Body: io.NopCloser(strings.NewReader(`"old"`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			content, _ := io.ReadAll(req.Body)
 			if string(content) != `"baz"` {
 				t.Errorf("Unexpected request body: %s", string(content))
@@ -50,7 +50,7 @@ func Test_put_config_RunE(t *testing.T) {
 			if req.URL.Path != "/_node/foo/_config/foo/bar" {
 				t.Errorf("unexpected path: %s", req.URL.Path)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"put", "config", s.URL, "--node", "foo", "--key", "foo/bar", "--data", "baz"},

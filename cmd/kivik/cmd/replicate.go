@@ -53,7 +53,7 @@ copy_security (bool) - When true, the security object is read from the source, a
 }
 
 func (c *replicate) connect(key string) (*kivik.DB, error) {
-	opts := c.opts()
+	opts := c.options
 	dsn, _ := opts[key].(string)
 	if dsn == "" {
 		return nil, errors.Codef(errors.ErrUsage, "missing %s", key)
@@ -95,9 +95,9 @@ func (c *replicate) RunE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	opts := c.opts()
+	opts := c.options
 	c.log.Debugf("[replicate] Will replicate %s to %s", opts["source"], opts["target"])
-	result, err := xkivik.Replicate(cmd.Context(), target, source, opts)
+	result, err := xkivik.Replicate(cmd.Context(), target, source, kivik.Params(opts))
 	if err != nil {
 		return err
 	}

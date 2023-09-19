@@ -19,6 +19,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/errors"
 )
 
@@ -45,7 +46,7 @@ func (c *postReplicate) RunE(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	opts := c.opts()
+	opts := c.options
 	source, _ := opts["source"].(string)
 	target, _ := opts["target"].(string)
 	if source == "" && target == "" {
@@ -73,7 +74,7 @@ func (c *postReplicate) RunE(cmd *cobra.Command, _ []string) error {
 
 	c.log.Debugf("[post] Will replicate %s to %s", source, target)
 	return c.retry(func() error {
-		_, err := client.Replicate(cmd.Context(), target, source, opts)
+		_, err := client.Replicate(cmd.Context(), target, source, kivik.Params(opts))
 		if err != nil {
 			return err
 		}

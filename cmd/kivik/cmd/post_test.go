@@ -13,6 +13,8 @@
 package cmd
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -27,6 +29,22 @@ import (
 
 const clusterPath = "/_cluster_setup"
 
+// gunzipBody reads all of r, and closes it, gunzips it, and returns a new
+// io.Reader with the uncompressed data.
+func gunzipBody(t *testing.T, r io.ReadCloser) io.Reader {
+	t.Helper()
+	defer r.Close()
+	gun, err := gzip.NewReader(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, err := io.ReadAll(gun)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return bytes.NewReader(body)
+}
+
 func Test_post_RunE(t *testing.T) {
 	tests := testy.NewTable()
 
@@ -37,12 +55,12 @@ func Test_post_RunE(t *testing.T) {
 	tests.Add("auto create doc", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"--debug", "post", s.URL + "/foo", "--data", `{"foo":"bar"}`},
@@ -112,7 +130,7 @@ func Test_post_RunE(t *testing.T) {
 	tests.Add("auto purge", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
@@ -122,7 +140,7 @@ func Test_post_RunE(t *testing.T) {
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"post", s.URL + "/db/_purge", "--data", `{"foo":["1-xxx"]}`},
@@ -138,8 +156,7 @@ func Test_post_RunE(t *testing.T) {
 			if r.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %s", r.Method)
 			}
-			defer r.Body.Close() // nolint:errcheck
-			if d := testy.DiffAsJSON(testy.Snapshot(t), r.Body); d != nil {
+			if d := testy.DiffAsJSON(testy.Snapshot(t), gunzipBody(t, r.Body)); d != nil {
 				t.Error(d)
 			}
 			_, _ = w.Write([]byte(`{"ok":true,"session_id":"87bf1c2a565f20976c4cb19a22528b7e","source_last_seq":"6-g1AAAABteJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCScyJNX___8_K4M5kS0XKMBunmRiYmRmhK4Yh_Y8FiDJ0ACk_oNMSWTIAgDY6SGt","replication_id_version":4,"history":[{"session_id":"87bf1c2a565f20976c4cb19a22528b7e","start_time":"Sun, 25 Apr 2021 19:53:34 GMT","end_time":"Sun, 25 Apr 2021 19:53:35 GMT","start_last_seq":0,"end_last_seq":"6-g1AAAABteJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCScyJNX___8_K4M5kS0XKMBunmRiYmRmhK4Yh_Y8FiDJ0ACk_oNMSWTIAgDY6SGt","recorded_seq":"6-g1AAAABteJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCScyJNX___8_K4M5kS0XKMBunmRiYmRmhK4Yh_Y8FiDJ0ACk_oNMSWTIAgDY6SGt","missing_checked":2,"missing_found":2,"docs_read":2,"docs_written":2,"doc_write_failures":0}]}
@@ -157,7 +174,7 @@ func Test_post_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 			},
 			Body: io.NopCloser(strings.NewReader(`"old"`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
@@ -168,7 +185,7 @@ func Test_post_RunE(t *testing.T) {
 			if req.URL.Path != clusterPath {
 				t.Errorf("unexpected path: %s", req.URL.Path)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"post", s.URL + clusterPath, "--data", `{"action":"finish_cluster"}`},

@@ -228,16 +228,14 @@ func (c *Context) KivikClient(connTimeout, reqTimeout time.Duration) (*kivik.Cli
 	case "file":
 		return kivik.New("fs", dsn)
 	case "http", "https", "couch", "couchs", "couchdb", "couchdbs":
-		return kivik.New("couch", dsn, kivik.Options{
-			couchdb.OptionHTTPClient: &http.Client{
-				Transport: &http.Transport{
-					DialContext: (&net.Dialer{
-						Timeout: connTimeout,
-					}).DialContext,
-				},
-				Timeout: reqTimeout,
+		return kivik.New("couch", dsn, couchdb.OptionHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				DialContext: (&net.Dialer{
+					Timeout: connTimeout,
+				}).DialContext,
 			},
-		})
+			Timeout: reqTimeout,
+		}))
 	}
 	return nil, errors.Codef(errors.ErrUsage, "unsupported URL scheme: %s", scheme)
 }

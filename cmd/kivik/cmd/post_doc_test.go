@@ -41,12 +41,12 @@ func Test_post_doc_RunE(t *testing.T) {
 	tests.Add("json data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"--debug", "post", "doc", s.URL + "/foo", "--data", `{"foo":"bar"}`},
@@ -55,12 +55,12 @@ func Test_post_doc_RunE(t *testing.T) {
 	tests.Add("json data stdin", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args:  []string{"--debug", "post", "doc", s.URL + "/foo", "--data-file", "-"},
@@ -70,12 +70,12 @@ func Test_post_doc_RunE(t *testing.T) {
 	tests.Add("json data file", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"--debug", "post", "doc", s.URL + "/foo", "--data-file", "./testdata/doc.json"},
@@ -84,12 +84,12 @@ func Test_post_doc_RunE(t *testing.T) {
 	tests.Add("yaml data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true,"id":"random","rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"--debug", "post", "doc", s.URL + "/foo", "--yaml", "--data", `foo: bar`},

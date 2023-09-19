@@ -38,12 +38,12 @@ func Test_put_RunE(t *testing.T) {
 	tests.Add("json data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"--debug", "put", s.URL + "/foo/bar", "--data", `{"foo":"bar"}`},
@@ -52,12 +52,12 @@ func Test_put_RunE(t *testing.T) {
 	tests.Add("json data stdin", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args:  []string{"--debug", "put", s.URL + "/foo/bar", "--data-file", "-"},
@@ -67,12 +67,12 @@ func Test_put_RunE(t *testing.T) {
 	tests.Add("json data file", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true,"rev":"1-xxx"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args:  []string{"--debug", "put", s.URL + "/foo/bar", "--data-file", "./testdata/doc.json"},
@@ -82,12 +82,12 @@ func Test_put_RunE(t *testing.T) {
 	tests.Add("yaml data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			defer req.Body.Close() // nolint:errcheck
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"--debug", "put", s.URL + "/foo/bar", "--yaml", "--data", `foo: bar`},
@@ -100,7 +100,7 @@ func Test_put_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 			},
 			Body: io.NopCloser(strings.NewReader(`"old"`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			content, _ := io.ReadAll(req.Body)
 			if string(content) != `"baz"` {
 				t.Errorf("Unexpected request body: %s", string(content))
@@ -111,7 +111,7 @@ func Test_put_RunE(t *testing.T) {
 			if req.URL.Path != "/_node/_local/_config/foo/bar" {
 				t.Errorf("unexpected path: %s", req.URL.Path)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"put", s.URL + "/_node/_local/_config/foo/bar", "-d", "baz"},
@@ -124,7 +124,7 @@ func Test_put_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 			},
 			Body: io.NopCloser(strings.NewReader(`"old"`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPut {
 				t.Errorf("Unexpected method: %s", req.Method)
 			}
@@ -135,7 +135,7 @@ func Test_put_RunE(t *testing.T) {
 			if req.URL.Path != "/foo/_security" {
 				t.Errorf("unexpected path: %s", req.URL.Path)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"put", s.URL + "/foo/_security", "-d", "{}"},

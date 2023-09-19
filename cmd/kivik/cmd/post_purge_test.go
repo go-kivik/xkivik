@@ -33,7 +33,7 @@ func Test_post_purge_RunE(t *testing.T) {
 	tests.Add("one rev", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
@@ -43,7 +43,7 @@ func Test_post_purge_RunE(t *testing.T) {
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"post", "purge", s.URL + "/qwerty/doc", "--revs", "1-xxx"},
@@ -52,7 +52,7 @@ func Test_post_purge_RunE(t *testing.T) {
 	tests.Add("two revs", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
@@ -62,7 +62,7 @@ func Test_post_purge_RunE(t *testing.T) {
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"post", "purge", s.URL + "/xxx/doc", "--revs", "1-xxx,2-xxx"},
@@ -71,7 +71,7 @@ func Test_post_purge_RunE(t *testing.T) {
 	tests.Add("from --data", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
@@ -81,7 +81,7 @@ func Test_post_purge_RunE(t *testing.T) {
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"post", "purge", s.URL + "/db", "--data", `{"doc":["1-xxx","2-yyy"]}`},

@@ -30,7 +30,7 @@ import (
 func TestReplicate_live(t *testing.T) { //nolint:gocyclo // allowed for subtests
 	type tt struct {
 		source, target *kivik.DB
-		options        kivik.Options
+		options        kivik.Option
 		status         int
 		err            string
 		result         *ReplicationResult
@@ -182,7 +182,7 @@ func TestReplicate_live(t *testing.T) { //nolint:gocyclo // allowed for subtests
 		return tt{
 			source:  source,
 			target:  target,
-			options: map[string]interface{}{"copy_security": true},
+			options: kivik.Param("copy_security", true),
 			result: &ReplicationResult{
 				DocsRead:       1,
 				DocsWritten:    1,

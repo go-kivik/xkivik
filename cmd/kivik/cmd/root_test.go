@@ -13,6 +13,8 @@
 package cmd
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"io"
 	"net/http"
@@ -28,6 +30,25 @@ import (
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/log"
 )
+
+func gunzip(next testy.RequestValidator) testy.RequestValidator {
+	return func(t *testing.T, r *http.Request) {
+		t.Helper()
+		if r.Header.Get("Content-Encoding") == "gzip" {
+			r.Header.Del("Content-Encoding")
+			gun, err := gzip.NewReader(r.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			body, err := io.ReadAll(gun)
+			if err != nil {
+				t.Fatal(err)
+			}
+			r.Body = io.NopCloser(bytes.NewReader(body))
+		}
+		next(t, r)
+	}
+}
 
 func Test_root_RunE(t *testing.T) {
 	tests := testy.NewTable()
@@ -163,7 +184,7 @@ func Test_root_RunE(t *testing.T) {
 	tests.Add("purge", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
@@ -173,7 +194,7 @@ func Test_root_RunE(t *testing.T) {
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"purge", s.URL + "/asdf/quack", "--revs", "1-xyz"},
@@ -182,7 +203,7 @@ func Test_root_RunE(t *testing.T) {
 	tests.Add("purge --data", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"ok":true}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
@@ -192,7 +213,7 @@ func Test_root_RunE(t *testing.T) {
 			if d := testy.DiffAsJSON(testy.Snapshot(t), req.Body); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"purge", s.URL + "/asdf", "--data", `{"foo":["1-xx","2-yy"]}`},

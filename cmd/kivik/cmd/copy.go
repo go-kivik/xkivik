@@ -17,6 +17,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/errors"
 )
@@ -92,9 +93,9 @@ func (c *copy) RunE(cmd *cobra.Command, args []string) error {
 	}
 
 	var doc map[string]interface{}
-	opts := map[string]interface{}{}
+	var rev kivik.Option
 	if c.targetRev != "" {
-		opts["rev"] = c.targetRev
+		rev = kivik.Rev(c.targetRev)
 	}
 
 	return c.retry(func() error {
@@ -107,7 +108,7 @@ func (c *copy) RunE(cmd *cobra.Command, args []string) error {
 				return err
 			}
 		}
-		rev, err := tClient.DB(target.Database).Put(cmd.Context(), target.DocID, doc, opts)
+		rev, err := tClient.DB(target.Database).Put(cmd.Context(), target.DocID, doc, rev)
 		if err != nil {
 			return err
 		}
