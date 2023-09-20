@@ -26,22 +26,6 @@ import (
 	"github.com/go-kivik/kivik/v4"
 )
 
-func mergeOptions(otherOpts ...kivik.Options) kivik.Options {
-	if len(otherOpts) == 0 {
-		return nil
-	}
-	options := make(kivik.Options)
-	for _, opts := range otherOpts {
-		for k, v := range opts {
-			options[k] = v
-		}
-	}
-	if len(options) == 0 {
-		return nil
-	}
-	return options
-}
-
 // ReplicationResult represents the result of a replication.
 type ReplicationResult struct {
 	DocWriteFailures int       `json:"doc_write_failures"`
@@ -139,6 +123,18 @@ type contextKey struct{ name string }
 
 var callbackKey = &contextKey{"event_callback"}
 
+type multiOptions []kivik.Option
+
+var _ kivik.Option = (multiOptions)(nil)
+
+func (o multiOptions) Apply(t interface{}) {
+	for _, opt := range o {
+		if opt != nil {
+			opt.Apply(t)
+		}
+	}
+}
+
 // Replicate performs a replication from source to target, using a limited
 // version of the CouchDB replication protocol.
 //
@@ -151,7 +147,7 @@ var callbackKey = &contextKey{"event_callback"}
 //	                       replication. Use with caution! The security object
 //	                       is not versioned, and will be unconditionally
 //	                       overwritten!
-func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.Options) (*ReplicationResult, error) {
+func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.Option) (*ReplicationResult, error) {
 	result := &resultWrapper{
 		ReplicationResult: &ReplicationResult{
 			StartTime: time.Now(),
@@ -160,7 +156,8 @@ func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.O
 	defer func() {
 		result.EndTime = time.Now()
 	}()
-	opts := mergeOptions(options...)
+	opts := map[string]interface{}{}
+	multiOptions(options).Apply(opts)
 	cb := callback(ctx)
 
 	if _, sec := opts["copy_security"].(bool); sec {
@@ -172,7 +169,7 @@ func Replicate(ctx context.Context, target, source *kivik.DB, options ...kivik.O
 	changes := make(chan *change)
 	group.Go(func() error {
 		defer close(changes)
-		return readChanges(ctx, source, changes, opts, cb)
+		return readChanges(ctx, source, changes, multiOptions(options), cb)
 	})
 
 	diffs := make(chan *revDiff)
@@ -221,25 +218,12 @@ type change struct {
 	Changes []string
 }
 
-func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, options kivik.Options, cb EventCallback) error {
-	opts := kivik.Options{
-		"feed":  "normal",
-		"style": "all_docs",
-	}
-	for _, key := range []string{"filter", "doc_ids"} {
-		if value, ok := options[key]; ok {
-			opts[key] = value
-		}
-	}
-	changes, err := db.Changes(ctx, opts)
+func readChanges(ctx context.Context, db *kivik.DB, results chan<- *change, options kivik.Option, cb EventCallback) error {
+	changes := db.Changes(ctx, options, kivik.Param("feed", "normal"), kivik.Param("style", "all_docs"))
 	cb(ReplicationEvent{
-		Type:  eventChanges,
-		Read:  true,
-		Error: err,
+		Type: eventChanges,
+		Read: true,
 	})
-	if err != nil {
-		return fmt.Errorf("open changes feed: %w", err)
-	}
 
 	defer changes.Close() // nolint: errcheck
 	for changes.Next() {
@@ -383,11 +367,11 @@ func readDocs(ctx context.Context, db *kivik.DB, diffs <-chan *revDiff, results 
 
 func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, error) {
 	doc := new(Document)
-	row := db.Get(ctx, docID, kivik.Options{
+	row := db.Get(ctx, docID, kivik.Params(map[string]interface{}{
 		"rev":         rev,
 		"revs":        true,
 		"attachments": true,
-	})
+	}))
 	if err := row.ScanDoc(&doc); err != nil {
 		return nil, err
 	}
@@ -442,9 +426,7 @@ func readDoc(ctx context.Context, db *kivik.DB, docID, rev string) (*Document, e
 
 func storeDocs(ctx context.Context, db *kivik.DB, docs <-chan *Document, result *resultWrapper, cb EventCallback) error {
 	for doc := range docs {
-		_, err := db.Put(ctx, doc.ID, doc, kivik.Options{
-			"new_edits": false,
-		})
+		_, err := db.Put(ctx, doc.ID, doc, kivik.Param("new_edits", false))
 		cb(ReplicationEvent{
 			Type:  "document",
 			Read:  false,

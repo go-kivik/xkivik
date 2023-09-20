@@ -82,7 +82,7 @@ func Test_copy_RunE(t *testing.T) {
 				"ETag": {`"2-62e778c9ec09214dd685a981dcc24074"`},
 			},
 			Body: io.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPut {
 				t.Errorf("Unexpected target method: %v", req.Method)
 			}
@@ -92,7 +92,7 @@ func Test_copy_RunE(t *testing.T) {
 			if d := testy.DiffHTTPRequest(testy.Snapshot(t), req, standardReplacements...); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"--debug", "copy", ss.URL + "/asdf/src", ts.URL + "/qwerty/target"},
@@ -162,7 +162,7 @@ func Test_copy_RunE(t *testing.T) {
 				"ETag": {`"2-62e778c9ec09214dd685a981dcc24074"`},
 			},
 			Body: io.NopCloser(strings.NewReader(`{"id": "target","ok": true,"rev": "2-62e778c9ec09214dd685a981dcc24074"}`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPut {
 				t.Errorf("Unexpected target method: %v", req.Method)
 			}
@@ -172,7 +172,7 @@ func Test_copy_RunE(t *testing.T) {
 			if d := testy.DiffHTTPRequest(testy.Snapshot(t), req, standardReplacements...); d != nil {
 				t.Error(d)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"--debug", "copy", ss.URL + "/asdf/src", ts.URL + "/qwerty/target?rev=7-qhk"},

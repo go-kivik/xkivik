@@ -25,8 +25,8 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/spf13/cobra"
 
-	"github.com/go-kivik/couchdb/v4/chttp"
 	"github.com/go-kivik/kivik/v4"
+	"github.com/go-kivik/kivik/v4/couchdb/chttp"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/config"
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/errors"
@@ -53,7 +53,7 @@ type root struct {
 	connectTimeout       string
 	parsedConnectTimeout time.Duration
 	retryTimeout         string
-	options              kivik.Options
+	options              map[string]interface{}
 	stringOptions        map[string]string
 	boolOptions          map[string]string
 
@@ -224,7 +224,7 @@ func (r *root) init(cmd *cobra.Command, args []string) error {
 	}
 
 	if r.options == nil {
-		r.options = kivik.Options{}
+		r.options = map[string]interface{}{}
 	}
 	if len(args) > 0 {
 		opts, err := r.conf.SetURL(args[0])
@@ -351,6 +351,6 @@ func fmtDuration(dur time.Duration) string {
 }
 
 // opts returns the kivik options gathered from the command line.
-func (r *root) opts() kivik.Options {
-	return r.options
+func (r *root) opts() kivik.Option {
+	return kivik.Params(r.options)
 }

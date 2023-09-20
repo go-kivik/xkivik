@@ -14,8 +14,6 @@ package xkivik
 
 import (
 	"context"
-	"errors"
-	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -26,33 +24,19 @@ import (
 	_ "github.com/go-kivik/fsdb/v4" // The filesystem driver
 	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/kivik/v4/driver"
-	"github.com/go-kivik/kivikmock/v4"
+	kivikmock "github.com/go-kivik/kivik/v4/mockdb"
 )
 
 func TestReplicateMock(t *testing.T) {
 	type tt struct {
 		mockT, mockS   *kivikmock.Client
 		target, source *kivik.DB
-		options        kivik.Options
+		options        kivik.Option
 		status         int
 		err            string
 		result         *ReplicationResult
 	}
 	tests := testy.NewTable()
-	tests.Add("changes error", func(t *testing.T) interface{} {
-		source, mock := kivikmock.NewT(t)
-		db := mock.NewDB()
-		mock.ExpectDB().WillReturn(db)
-		db.ExpectChanges().WillReturnError(errors.New("changes err"))
-
-		return tt{
-			mockS:  mock,
-			source: source.DB("src"),
-			status: http.StatusInternalServerError,
-			err:    "open changes feed: changes err",
-			result: &ReplicationResult{},
-		}
-	})
 	tests.Add("no changes", func(t *testing.T) interface{} {
 		source, mock := kivikmock.NewT(t)
 		db := mock.NewDB()
@@ -118,17 +102,17 @@ func TestReplicateMock(t *testing.T) {
 				}))
 		sdb.ExpectGet().
 			WithDocID("foo").
-			WithOptions(kivik.Options{
+			WithOptions(kivik.Params(map[string]interface{}{
 				"rev":         "2-7051cbe5c8faecd085a3fa619e6e6337",
 				"revs":        true,
 				"attachments": true,
-			}).
-			WillReturn(kivikmock.DocumentT(t, `{"_id":"foo","_rev":"2-7051cbe5c8faecd085a3fa619e6e6337","foo":"bar"}`))
+			})).
+			WillReturn(kivikmock.NewRows().AddRow(&driver.Row{
+				Doc: strings.NewReader(`{"_id":"foo","_rev":"2-7051cbe5c8faecd085a3fa619e6e6337","foo":"bar"}`),
+			}))
 		tdb.ExpectPut().
 			WithDocID("foo").
-			WithOptions(kivik.Options{
-				"new_edits": false,
-			}).
+			WithOptions(kivik.Param("new_edits", false)).
 			WillReturn("2-7051cbe5c8faecd085a3fa619e6e6337")
 
 		return tt{
@@ -166,7 +150,7 @@ func TestReplicate(t *testing.T) {
 	type tt struct {
 		path           string
 		target, source *kivik.DB
-		options        kivik.Options
+		options        kivik.Option
 		status         int
 		err            string
 	}

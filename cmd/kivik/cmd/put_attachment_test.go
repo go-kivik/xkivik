@@ -37,7 +37,7 @@ func Test_put_attachment_RunE(t *testing.T) {
 	tests.Add("json data string", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
-		}, checkRequest)
+		}, gunzip(checkRequest))
 
 		return cmdTest{
 			args: []string{"--debug", "put", "att", s.URL + "/foo/bar/foo.txt", "--data", `Testing`},
@@ -46,7 +46,7 @@ func Test_put_attachment_RunE(t *testing.T) {
 	tests.Add("stdin", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
-		}, checkRequest)
+		}, gunzip(checkRequest))
 
 		return cmdTest{
 			args:  []string{"--debug", "put", "att", s.URL + "/foo/bar/foo.txt", "--data-file", "-"},
@@ -56,7 +56,7 @@ func Test_put_attachment_RunE(t *testing.T) {
 	tests.Add("data file", func(t *testing.T) interface{} {
 		s := testy.ServeResponseValidator(t, &http.Response{
 			Body: io.NopCloser(strings.NewReader(`{"status":"ok"}`)),
-		}, checkRequest)
+		}, gunzip(checkRequest))
 
 		return cmdTest{
 			args:  []string{"--debug", "put", "att", s.URL + "/foo/bar/doc.json", "--data-file", "./testdata/doc.json"},

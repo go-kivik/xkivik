@@ -46,7 +46,7 @@ func Test_post_cluster_setup_RunE(t *testing.T) {
 				"Content-Type": []string{"application/json"},
 			},
 			Body: io.NopCloser(strings.NewReader(`"old"`)),
-		}, func(t *testing.T, req *http.Request) {
+		}, gunzip(func(t *testing.T, req *http.Request) {
 			if req.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %v", req.Method)
 			}
@@ -57,7 +57,7 @@ func Test_post_cluster_setup_RunE(t *testing.T) {
 			if req.URL.Path != "/_cluster_setup" {
 				t.Errorf("unexpected path: %s", req.URL.Path)
 			}
-		})
+		}))
 
 		return cmdTest{
 			args: []string{"post", "cluster", s.URL, "--data", `{"action":"finish_cluster"}`},

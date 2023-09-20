@@ -25,9 +25,9 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/go-kivik/couchdb/v4"
 	_ "github.com/go-kivik/fsdb/v4" // Filesystem driver
 	"github.com/go-kivik/kivik/v4"
+	"github.com/go-kivik/kivik/v4/couchdb"
 
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/log"
@@ -228,16 +228,14 @@ func (c *Context) KivikClient(connTimeout, reqTimeout time.Duration) (*kivik.Cli
 	case "file":
 		return kivik.New("fs", dsn)
 	case "http", "https", "couch", "couchs", "couchdb", "couchdbs":
-		return kivik.New("couch", dsn, kivik.Options{
-			couchdb.OptionHTTPClient: &http.Client{
-				Transport: &http.Transport{
-					DialContext: (&net.Dialer{
-						Timeout: connTimeout,
-					}).DialContext,
-				},
-				Timeout: reqTimeout,
+		return kivik.New("couch", dsn, couchdb.OptionHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				DialContext: (&net.Dialer{
+					Timeout: connTimeout,
+				}).DialContext,
 			},
-		})
+			Timeout: reqTimeout,
+		}))
 	}
 	return nil, errors.Codef(errors.ErrUsage, "unsupported URL scheme: %s", scheme)
 }

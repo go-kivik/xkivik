@@ -43,8 +43,7 @@ func Test_post_replicate_RunE(t *testing.T) {
 			if r.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %s", r.Method)
 			}
-			defer r.Body.Close() // nolint:errcheck
-			if d := testy.DiffAsJSON(testy.Snapshot(t), r.Body); d != nil {
+			if d := testy.DiffAsJSON(testy.Snapshot(t), gunzipBody(t, r.Body)); d != nil {
 				t.Error(d)
 			}
 			_, _ = w.Write([]byte(`{"ok":true,"session_id":"87bf1c2a565f20976c4cb19a22528b7e","source_last_seq":"6-g1AAAABteJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCScyJNX___8_K4M5kS0XKMBunmRiYmRmhK4Yh_Y8FiDJ0ACk_oNMSWTIAgDY6SGt","replication_id_version":4,"history":[{"session_id":"87bf1c2a565f20976c4cb19a22528b7e","start_time":"Sun, 25 Apr 2021 19:53:34 GMT","end_time":"Sun, 25 Apr 2021 19:53:35 GMT","start_last_seq":0,"end_last_seq":"6-g1AAAABteJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCScyJNX___8_K4M5kS0XKMBunmRiYmRmhK4Yh_Y8FiDJ0ACk_oNMSWTIAgDY6SGt","recorded_seq":"6-g1AAAABteJzLYWBgYMpgTmHgzcvPy09JdcjLz8gvLskBCScyJNX___8_K4M5kS0XKMBunmRiYmRmhK4Yh_Y8FiDJ0ACk_oNMSWTIAgDY6SGt","missing_checked":2,"missing_found":2,"docs_read":2,"docs_written":2,"doc_write_failures":0}]}
@@ -65,8 +64,7 @@ func Test_post_replicate_RunE(t *testing.T) {
 			if r.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %s", r.Method)
 			}
-			defer r.Body.Close() // nolint:errcheck
-			if d := testy.DiffAsJSON(testy.Snapshot(t), r.Body); d != nil {
+			if d := testy.DiffAsJSON(testy.Snapshot(t), gunzipBody(t, r.Body)); d != nil {
 				t.Error(d)
 			}
 			_, _ = w.Write([]byte(`{"ok":true}`))
@@ -86,8 +84,7 @@ func Test_post_replicate_RunE(t *testing.T) {
 			if r.Method != http.MethodPost {
 				t.Errorf("Unexpected method: %s", r.Method)
 			}
-			defer r.Body.Close() // nolint:errcheck
-			if d := testy.DiffAsJSON(testy.Snapshot(t), r.Body); d != nil {
+			if d := testy.DiffAsJSON(testy.Snapshot(t), gunzipBody(t, r.Body)); d != nil {
 				t.Error(d)
 			}
 			_, _ = w.Write([]byte(`{"ok":true}`))
