@@ -17,7 +17,7 @@ stages:
     - curl --silent --fail -o /dev/null -X PUT ${KIVIK_TEST_DSN}/_global_changes
     - curl --silent --fail -o /dev/null -X PUT ${KIVIK_TEST_DSN}/_node/nonode@nohost/_config/replicator/interval -d '"1000"'
   script:
-    - go test -race -tags=livetest ./...
+    - go test -race ./...
 
 lint:
   stage: test

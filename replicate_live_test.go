@@ -10,9 +10,6 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
-//go:build livetest
-// +build livetest
-
 package xkivik
 
 import (
@@ -30,7 +27,7 @@ import (
 	"github.com/go-kivik/kiviktest/v4/kt"
 )
 
-func TestReplicate_live(t *testing.T) {
+func TestReplicate_live(t *testing.T) { //nolint:gocyclo // allowed for subtests
 	type tt struct {
 		source, target *kivik.DB
 		options        kivik.Options
