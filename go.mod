@@ -4,8 +4,7 @@ go 1.20
 
 require (
 	github.com/cenkalti/backoff/v4 v4.2.0
-	github.com/go-kivik/fsdb/v4 v4.0.0-20230918121732-cb0c8c4cc910
-	github.com/go-kivik/kivik/v4 v4.0.0-20230920211051-6f1ecbcd9657
+	github.com/go-kivik/kivik/v4 v4.0.0-20230921130806-a3072a8d2f69
 	github.com/icza/dyno v0.0.0-20230330125955-09f820a8d9c0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
