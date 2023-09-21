@@ -6,10 +6,8 @@ github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46t
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/go-kivik/fsdb/v4 v4.0.0-20230918121732-cb0c8c4cc910 h1:GapexKoV6jjWEoqznHc3JqDal/yZgO5a6TiQbq3WOiU=
-github.com/go-kivik/fsdb/v4 v4.0.0-20230918121732-cb0c8c4cc910/go.mod h1:nW22JSwhylxRe8FGqZLKm4w5VExQirx/wJQvkVEa3/k=
-github.com/go-kivik/kivik/v4 v4.0.0-20230920211051-6f1ecbcd9657 h1:gQk+HpD2yEdrcO3dYeuTKYhUsbuUmJ0vXQcsNf23ZPM=
-github.com/go-kivik/kivik/v4 v4.0.0-20230920211051-6f1ecbcd9657/go.mod h1:5plLEDoE+VF85zFngh9m1V4QrAAoDGO+URgmiFcIhUw=
+github.com/go-kivik/kivik/v4 v4.0.0-20230921130806-a3072a8d2f69 h1:0zzWE4VvSFppRiBwPXITCneBdvLTuIPC8mANyusZDNs=
+github.com/go-kivik/kivik/v4 v4.0.0-20230921130806-a3072a8d2f69/go.mod h1:T6f5lnpt5mrCQx4yCDLAbenT7yurJ/ffwpNGUdEFBbs=
 github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/gopherjs/gopherjs v1.17.2 h1:fQnZVsXk8uxXIStYb0N4bGk7jeyTalG/wsZjQ25dO0g=
 github.com/icza/dyno v0.0.0-20230330125955-09f820a8d9c0 h1:nHoRIX8iXob3Y2kdt9KsjyIb7iApSvb3vgsd93xb5Ow=
@@ -29,7 +27,6 @@ github.com/mattn/go-colorable v0.1.12 h1:jF+Du6AlPIjs2BiUiQlKOX0rt3SujHxPnksPKZb
 github.com/mattn/go-colorable v0.1.12/go.mod h1:u5H1YNBxpqRaxsYJYSkiCWKzEfiAb1Gb520KVy5xxl4=
 github.com/mattn/go-isatty v0.0.14 h1:yVuAays6BHfxijgZPzw+3Zlu5yQgKGP2/hcQbHb7S9Y=
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
-github.com/otiai10/copy v1.10.0 h1:znyI7l134wNg/wDktoVQPxPkgvhDfGCYUasey+h0rDQ=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

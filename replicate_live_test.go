@@ -21,10 +21,10 @@ import (
 
 	"gitlab.com/flimzy/testy"
 
-	_ "github.com/go-kivik/fsdb/v4" // Filesystem driver
 	"github.com/go-kivik/kivik/v4"
 	_ "github.com/go-kivik/kivik/v4/couchdb" // CouchDB driver
 	"github.com/go-kivik/kivik/v4/kiviktest/kt"
+	_ "github.com/go-kivik/kivik/v4/x/fsdb" // Filesystem driver
 )
 
 func TestReplicate_live(t *testing.T) { //nolint:gocyclo // allowed for subtests

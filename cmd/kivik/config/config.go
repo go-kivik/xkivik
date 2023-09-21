@@ -25,9 +25,9 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	_ "github.com/go-kivik/fsdb/v4" // Filesystem driver
 	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/kivik/v4/couchdb"
+	_ "github.com/go-kivik/kivik/v4/x/fsdb" // Filesystem driver
 
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/errors"
 	"github.com/go-kivik/xkivik/v4/cmd/kivik/log"

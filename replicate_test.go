@@ -21,10 +21,10 @@ import (
 
 	"gitlab.com/flimzy/testy"
 
-	_ "github.com/go-kivik/fsdb/v4" // The filesystem driver
 	"github.com/go-kivik/kivik/v4"
 	"github.com/go-kivik/kivik/v4/driver"
 	kivikmock "github.com/go-kivik/kivik/v4/mockdb"
+	_ "github.com/go-kivik/kivik/v4/x/fsdb" // The filesystem driver
 )
 
 func TestReplicateMock(t *testing.T) {
